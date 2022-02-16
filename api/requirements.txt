@@ -1,0 +1,6 @@
+flask
+flask-cors
+requests
+pypco
+flask_sqlalchemy
+pyjwt

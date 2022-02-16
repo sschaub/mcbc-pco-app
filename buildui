@@ -1,0 +1,11 @@
+#!/usr/bin/bash
+
+. .env.production
+
+docker run --rm --volume=$(pwd)/ui:/app --workdir=/app --user=$UID:$GID node:17-bullseye npm install
+docker run --rm --volume=$(pwd)/ui:/app --volume=$(pwd)/uidist:/app/dist --workdir=/app --user=$UID:$GID \
+     -e VITE_APP_API_URL=$VITE_APP_API_URL \
+     node:17-bullseye npm run build
+
+# docker compose -f docker-compose-buildui.yml run buildui npm install
+# docker compose -f docker-compose-buildui.yml run buildui npm run build

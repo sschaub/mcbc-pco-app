@@ -1,0 +1,88 @@
+# README
+
+## Development Setup: Windows
+
+### Python setup
+
+Setup a Python virtual environment:
+```
+pip install virtualenv
+virtualenv .venv
+.venv\Scripts\activate
+pip install -r api\requirements.txt
+```
+
+Create .env in root folder:
+```
+PCO_APP_ID=...put PCO App ID here...
+PCO_SECRET=...
+PCO_WEBAPP_LOGIN_USERNAME=...
+PCO_WEBAPP_LOGIN_PASSWORD=...
+DB_PATH=/temp/mcbcmusic.sqlite3
+SENDGRID_API_KEY=...SENDGRID API KEY HERE...
+```
+
+In VSCode, open server.py and choose Run > Start Debugging. This will import environment variables
+from .env and start server.py.
+
+### NodeJS setup
+
+Install NodeJS. Then:
+```
+cd ui
+npm install
+```
+
+To start UI module:
+```
+cd ui
+npm run dev
+```
+
+## Development Setup: Docker
+
+On Windows:
+
+1. Install WSL
+2. Install Docker Desktop
+3. Checkout project to WSL home directory (~)
+4. Create a file named ~/mcbc-pco-app/.env containing the following:
+
+   ```
+   PCO_APP_ID=...put PCO App ID here...
+   PCO_SECRET=...
+   PCO_WEBAPP_LOGIN_USERNAME=...
+   PCO_WEBAPP_LOGIN_PASSWORD=...
+   ```
+
+To start:
+
+```
+cd ~/mcbc-pco-app
+./devrun
+```
+
+With VSCode:
+
+1. Open VSCode:
+   ```
+   cd ~/mcbc-pco-app
+   mkdir ~/mcbc-pco-app/ui/node_modules
+   code .
+   ```
+2. In VSCode, Remote-Containers: Reopen Folder in Container
+3. Install modules:
+   ```
+   cd /workspace/ui
+   sudo -u node npm install
+   ```
+4. Install VSCode Vetur extension for intellisense and syntax highlighting
+5. Start UI app:
+   ```
+   cd ui
+   npm run serve
+   ```
+
+Test URL's:
+* Application UI: http://localhost:8080
+* Application API: http://localhost:9091
