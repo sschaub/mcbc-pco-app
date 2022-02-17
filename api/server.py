@@ -44,6 +44,13 @@ def token_required(f):
             return jsonify({
                 'message' : 'Token is invalid !!'
             }), 401
+
+
+        if not current_user:
+            return jsonify({
+                'message' : 'Token does not match record'
+            }), 401
+            
         # returns the current logged in users context to the routes
         return  f(current_user, *args, **kwargs)
   
