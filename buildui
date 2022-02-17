@@ -2,6 +2,8 @@
 
 . .env.production
 
+mkdir uidist
+
 docker run --rm --volume=$(pwd)/ui:/app --workdir=/app --user=$UID:$GID node:17-bullseye npm install
 docker run --rm --volume=$(pwd)/ui:/app --volume=$(pwd)/uidist:/app/dist --workdir=/app --user=$UID:$GID \
      -e VITE_APP_API_URL=$VITE_APP_API_URL \

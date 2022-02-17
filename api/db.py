@@ -42,6 +42,7 @@ class SchedSpecial(db.Model):
     author = db.Column(db.String(40), nullable=True)
     composer = db.Column(db.String(40), nullable=True)
     arranger = db.Column(db.String(40), nullable=True)
+    translator = db.Column(db.String(40), nullable=True)      # Text translator
     genre_note = db.Column(db.String(40), nullable=True)
     solo_instruments = db.Column(db.String(80), nullable=True)
     accomp_instruments = db.Column(db.String(80), nullable=True)

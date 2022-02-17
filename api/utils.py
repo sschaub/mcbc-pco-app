@@ -2,8 +2,9 @@ import json
 import logging
 from const import *
 from db import *
+import requests
 import sqlalchemy.exc
-from sqlalchemy import update, select
+from sqlalchemy import update, select, func
 
 # def do_patch(uri: str, data: dict) -> requests.Response:
 #     logging.debug("Posting to " + uri + ":" + json.dumps(data))
@@ -164,10 +165,28 @@ def begin_edit_item(service_type_id: int, plan_id: int, item: dict) -> SchedSpec
 
     return sched_spec
 
-def save_item(service_type_id, plan_id, item_id, version_no, song_id, arrangement_id, 
-                arrangement_name, title, copyright_year, copyright_holder, author, composer, 
+def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id, version_no, song_id, arrangement_id, 
+                arrangement_name, title, copyright_year, copyright_holder, author, translator, composer, 
                 arranger, genre_note, solo_instruments, accomp_instruments, other_performers,
                 staging_notes, song_text, start_key, end_key):
+
+    def row(header, new_value, old_value, link='', extra_text=''):
+        if new_value or old_value:
+            content = f'''<tr><th style="text-align: right; vertical-align: top">{header}</th>'''
+            color = 'black'
+            if new_value != old_value:
+                color = 'blue'
+            if not new_value:
+                color = 'red'
+                new_value = '(Deleted)'
+            if link:
+                link = f'''<a href="https://services.planningcenteronline.com{link}" target="_blank">[pco]</a>'''
+            content += f'''<td style='color: {color}'>{new_value} {link} {extra_text}</td>'''
+            content += '</tr>'
+        else:
+            content = ''
+        return content + '\n'
+
     # note_url = (BASE_SERVICE_URL + "/items/{}/item_notes/{}").format(service_type_id, plan_id, item['id'], item['system_id'])
     # content = json.dumps({
     #     'title': title,
@@ -182,6 +201,65 @@ def save_item(service_type_id, plan_id, item_id, version_no, song_id, arrangemen
     if sched_spec.title != title or sched_spec.song_id != song_id or sched_spec.arrangement_id != arrangement_id:
         sched_spec.status = SchedSpecial.STATUS_PENDING
 
+    copyright_license_status = sched_spec.copyright_license_status
+    if copyright_holder and copyright_holder != sched_spec.copyright_holder:
+        if LicensedPublishers.query.filter(func.lower(LicensedPublishers.publisher_name)==copyright_holder.lower()).count() > 0:
+            copyright_license_status = SchedSpecial.COPYRIGHT_STATUS_APPROVED
+        else:
+            copyright_license_status = SchedSpecial.COPYRIGHT_STATUS_UNKNOWN
+
+    # Generate email body
+    msg = f'''<html><body>
+            <p><a href="https://services.planningcenteronline.com/plans/{plan_id}" target="_blank">Link to PCO Service</a> |
+            <a href="https://app.mcbcmusic.org/service/{service_type_id}-{plan_id}/{item_id}" target="_blank">Edit Special</a> | 
+            <a href="https://schedule.mcbcmusic.org" target="_blank">MCBC Monthly Schedule</a>
+            </p>
+            <h2>{sched_spec.description}</h2>
+            <table>'''
+            
+    service_name = item_data['service']['name']
+    assigned_to_list = ','.join(item['name'] + " &lt;" + item.get('email') + "&gt;<br>" for item in item_data['item']['assigned_to'])
+    link = f'/songs/{song_id}' if song_id else ''
+    title_approval = '<span style="color: red">Approval Pending</span>' if sched_spec.status == SchedSpecial.STATUS_PENDING else '<span style="color: green">Approved</span>'
+    msg += row('Assigned To', assigned_to_list, assigned_to_list)
+    msg += row('Title', title, sched_spec.title, link, extra_text=title_approval)
+    link = f'/songs/{song_id}/arrangements/{arrangement_id}' if arrangement_id else ''
+    msg += row('Arrangement', arrangement_name, sched_spec.arrangement_name, link)
+    msg += '</table>\n<h3>Instrumentation / Personnel</h3>\n<table>\n'    
+    msg += row('Special type', genre_note, sched_spec.genre_note)
+    msg += row('Solo instrument(s)', solo_instruments, sched_spec.solo_instruments)
+    msg += row('Accompaniment instrument(s)', accomp_instruments, sched_spec.accomp_instruments)
+    msg += row('Other performers', other_performers, sched_spec.other_performers)
+
+    msg += '</table>\n<h3>Song Details</h3>\n<table>\n'
+
+    orig_copyright = f'{sched_spec.copyright_year or ""} by {sched_spec.copyright_holder or "?"}'
+
+    copyright = f'{copyright_year or ""} by {copyright_holder or "?"}'
+    copyright_status_html = ''
+    if copyright_license_status == SchedSpecial.COPYRIGHT_STATUS_UNKNOWN:
+        copyright_status_html = ' <span style="color:red">(Unknown approval status)</span>'
+    msg += row('Author', author, sched_spec.author)
+    msg += row('Translator', translator, sched_spec.translator)
+    msg += row('Composer', composer, sched_spec.composer)
+    msg += row('Arranger', arranger, sched_spec.arranger)
+    msg += row('Copyright', copyright, orig_copyright, extra_text=copyright_status_html)
+
+    msg += '</table>\n<h3>Other Details</h3>\n'
+
+    if song_text:
+        style = 'style="color:blue"' if song_text != sched_spec.song_text else ''
+        song_text_html = song_text.replace('\n', '<br>\n')
+        msg += f'''<h4>Song Text</h4><div {style}>{song_text_html}</div>'''
+
+    if staging_notes:
+        style = 'style="color:blue"' if staging_notes != sched_spec.staging_notes else ''
+        staging_notes_html = staging_notes.replace('\n', '<br>\n')
+        msg += f'''<h4>Staging Notes</h4><div {style}>{staging_notes_html}</div>'''
+
+    msg += '<p style="color: blue">New information is in blue</p>'
+    msg += '</body></html>'
+
     # Version number check to detect multiuser conflict
     result = db.session.execute(
         update(SchedSpecial).
@@ -195,6 +273,7 @@ def save_item(service_type_id, plan_id, item_id, version_no, song_id, arrangemen
             copyright_holder = copyright_holder,
             copyright_year = copyright_year,
             author = author,
+            translator = translator,
             composer = composer,
             arranger = arranger,
             genre_note = genre_note,
@@ -204,14 +283,47 @@ def save_item(service_type_id, plan_id, item_id, version_no, song_id, arrangemen
             staging_notes = staging_notes,
             song_text = song_text,
             start_key = start_key,
+            copyright_license_status = copyright_license_status,
             end_key = end_key))
 
     db.session.commit()
-    return result.rowcount == 1
+    success = result.rowcount == 1
 
-    # Send email:  curl --request POST \
-    # >   --url https://api.sendgrid.com/v3/mail/send \
-    # >   --header "Authorization: Bearer $SENDGRID_API_KEY" \
-    # >   --header 'Content-Type: application/json' \
-    # >   --data '{"personalizations": [{"to": [{"email": "sschaub88@outlook.com"}]}],"from": {"email": "admin@mcbcmusic.org"},"subject": "Sending with SendGrid is Fun","content": [{"type": "text/plain", "value": "and easy to do anywhere, even with cURL"}]}'
+    if success:
+        
+        send_email(replyEmail=current_user.email, replyName=current_user.name,
+            subject=f'{service_name} {sched_spec.description}',
+            msg=msg,
+            ccEmails = [current_user.email]
+        )
+
+    return success
+
+def send_email(replyEmail: str, replyName: str, subject: str, msg: str, ccEmails: list = None):
+    if not ccEmails:
+        ccEmails = []
+
+    dest_email_list = [{"email": email} for email in EMAIL_LIST]
+    cc_email_list = [{"email": email} for email in ccEmails if email not in EMAIL_LIST]
+    personalizations = {"to": dest_email_list, "subject": subject}
+    
+    if len(cc_email_list):
+        personalizations["cc"] = cc_email_list
+
+    r = None
+    try:
+        r = requests.post('https://api.sendgrid.com/v3/mail/send', 
+            headers={
+                'Authorization': f'Bearer {SENDGRID_API_KEY}'
+                },
+            json={
+                "personalizations": [personalizations],
+                "content": [{"type": "text/html", "value": msg}],
+                "from":{"email":FROM_EMAIL_ADDR,"name":"MCBC Music"},
+                "reply_to":{"email":replyEmail,"name":replyName}}
+            )
+        r.raise_for_status()
+    except:
+        status_code = r.status_code if r else 'unknown'
+        logging.exception(f'Problem sending email with reply address {replyEmail}: status {status_code}')
 

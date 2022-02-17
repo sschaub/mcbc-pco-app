@@ -170,7 +170,8 @@ def api_approve_service_item(current_user: Person, service_id: str, item_id: str
     if current_user.user_type != Person.USER_TYPE_ADMIN:
         return { 'result': 'Unauthorized' }, 401
 
-    service_type_id, plan_id = service_id.split('-')
+    service_type_id, plan_id = service_id.split('-')    
+
     sched_spec = SchedSpecial.query.filter_by(
             service_type_id=service_type_id,
             plan_id=plan_id,
@@ -197,7 +198,7 @@ def api_approve_service_item(current_user: Person, service_id: str, item_id: str
     pco.patch(url, templ)
     
     sched_spec.status = SchedSpecial.STATUS_APPROVED
-    db.session.commit()
+    db.session.commit()    
     
     return { 'result': 'OK' }
 
@@ -206,10 +207,11 @@ def api_approve_service_item(current_user: Person, service_id: str, item_id: str
 def api_update_service_item(current_user: Person, service_id: str, item_id: str):
     service_type_id, plan_id = service_id.split('-')
     
+    item_data = get_plan_item(int(service_type_id), int(plan_id), int(item_id))
     data = request.json
-    logging.info(data)
+    logging.info(data)    
 
-    if save_item(int(service_type_id), int(plan_id), int(item_id), 
+    if save_item(current_user, item_data, int(service_type_id), int(plan_id), int(item_id), 
         version_no=data.get('version_no'),
         song_id=data.get('song_id'), 
         arrangement_id=data.get('arrangement_id'),
@@ -218,6 +220,7 @@ def api_update_service_item(current_user: Person, service_id: str, item_id: str)
         copyright_year=data.get('copyright_year'), 
         copyright_holder=data.get('copyright_holder'), 
         author=data.get('author'), 
+        translator=data.get('translator'), 
         composer=data.get('composer'), 
         arranger=data.get('arranger'), 
         genre_note=data.get('genre_note'), 

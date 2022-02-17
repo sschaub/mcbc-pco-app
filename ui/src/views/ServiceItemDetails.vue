@@ -18,6 +18,9 @@
     <div v-if="sched_item.author">
       Author: {{sched_item.author}}
     </div>
+    <div v-if="sched_item.translator">
+      Translator: {{sched_item.translator}}
+    </div>
     <div v-if="sched_item.composer">
       Composer: {{sched_item.composer}}
     </div>
@@ -32,7 +35,7 @@
         <span v-if="!isCopyrightOk()">
           <img src="/public/fail.png">
         </span>
-        <v-btn @click="approveCopyrightClicked()">Approval Received</v-btn>
+        <v-btn v-if="!isCopyrightOk()" @click="approveCopyrightClicked()">Mark Ok</v-btn>
     </div>
     <div v-if="sched_item.start_key">
       Starting Key: {{sched_item.start_key}}
@@ -48,7 +51,7 @@
     </div>
     <div v-if="sched_item.song_text">
       <h4>Song Text</h4>
-      <div v-html="sched_item.song_text.replace('\n', '<br>')"></div>
+      <div v-html="sched_item.song_text.replace(/\n/g, '<br>')"></div>
     </div>
   </div>
 </template>
