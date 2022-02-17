@@ -4,10 +4,12 @@
       <v-col cols="12">      
         <h2>Login</h2>
 
-        <v-text-field v-model="username" label="Email address or Phone number" />
-        <v-text-field v-model="password" label="Password" />
+        <v-text-field v-model="username" label="Email address" type="email" autocomplete="username" />
+        <v-text-field v-model="password" label="Password" type="password" autocomplete="current-password" />
+        <p><a href="javascript:" @click="passwordReminder">Password Reminder</a></p>
+
         <div v-if="errmsg">{{ errmsg }}</div>
-        <v-btn @click="login()">Login</v-btn>
+        <v-btn @click="login()" :disabled="!username.length || !password.length">Login</v-btn>
 
         <div v-if="loading">
           <v-progress-circular indeterminate />
@@ -29,7 +31,8 @@ export default {
     username: localStorage.username || '', 
     password: '',
     errmsg: '',
-    loading: false
+    loading: false,
+    prevRoute: null
   }),
 
   methods: {
@@ -37,14 +40,20 @@ export default {
         this.loading = true
         this.errmsg = ''
         try {
-          if (this.username.trim().length == 0 || this.password.trim().length == 0)
-            return
 
           let response = await this.$api.login(this.username.trim(), this.password.trim())
           if (response.token) {
             localStorage.api_auth = response.token
             this.setUser(response.user)
-            this.$router.go(-1)        
+
+            if (this.prevRoute.path == '/') {
+              // User started on login page
+              this.$router.replace({ name: 'Home' })
+            } else {
+              // Login triggered during use of app
+              this.$router.go(-1)
+            }
+            
           } else {
             alert('Invalid username or password.')
           }
@@ -59,6 +68,29 @@ export default {
           this.loading = false
         }
     },
+
+    async passwordReminder() {
+      if (this.username.trim().length == 0 || this.password.trim().length == 0)
+        return
+
+      this.errmsg = ''
+      this.loading = true
+      try {
+          let response = await this.$api.passwordReminder(this.username.trim())
+          this.errmsg = response
+      } finally {
+        this.loading = false
+      }
+    },
+
+  },
+
+    // capture previous route
+  beforeRouteEnter(to, from, next) {
+    next(vm => {
+        vm.prevRoute = from
+    })
   }
+
 }
 </script>

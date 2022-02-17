@@ -21,7 +21,19 @@
 
             <div v-for="song in songList" :key="song.id">
                 <h4>{{ song.title }}</h4>
-                <div v-if="song.author">{{ song.author }}</div>
+                <div v-if="song.author">{{ song.author }}</div>                
+                <div v-if="song.history">
+                  <div v-if="song.history.length">
+                  <div><i>Recent Usage</i></div>
+                    <div v-for="sh in song.history" :key="sh.id">
+                      {{ sh.service_date }} {{ sh.service_time.substring(0, 5) }} {{ sh.event }} - {{ sh.arrangement }} [{{ sh.person_names }}]
+                    </div>
+                  </div>
+                  <div v-else><i>No recent usage</i></div>
+                </div>
+                <p v-else>
+                  <a href="javascript:" @click="showHistory($event.target, song)">Show History</a>
+                </p>
                 <v-btn @click="songSelected(song.id)" :disabled="keywords.length < 3">
                   Select
                 </v-btn>
@@ -63,7 +75,19 @@
 
           <div v-for="arr in arrList" :key="arr.id">
               <h4>{{ arr.name }}</h4>
-              <div v-if="arr.last_used">Last used: {{ arr.last_used }}</div>
+              <div v-if="arr.history">
+                <div v-if="arr.history.length">
+                <div><i>Recent Usage</i></div>
+                  <div v-for="sh in arr.history" :key="sh.id">
+                    {{ sh.service_date }} {{ sh.service_time.substring(0, 5) }} {{ sh.event }} [{{ sh.person_names }}]
+                  </div>
+                </div>
+                <div v-else><i>No recent usage</i></div>
+              </div>
+              <p v-else>
+                <a href="javascript:" @click="showArrHistory($event.target, arr)">Show History</a>
+              </p>
+
               <v-btn @click="arrangementSelected(arr)">
                 Select
               </v-btn>
@@ -105,6 +129,18 @@ export default {
   }),
 
   methods: {
+    async showHistory(self, song) {
+      self.innerHTML = 'Loading'
+      let songDetails = await this.$api.getSong(song.id)
+      song.history = songDetails.history
+    },
+
+    async showArrHistory(self, arr) {
+      self.innerHTML = 'Loading'
+      let arrDetails = await this.$api.getArrangement(this.song.id, arr.id)
+      arr.history = arrDetails.history
+    },
+
     async doSongSearch() {
       if (this.keywords.length < 3)
         return
@@ -126,6 +162,7 @@ export default {
       this.song = this.songList.find( song => song.id == songId )
       this.mode = 'arrangement'
       this.loading = true
+      this.arrangement = {}
       try {
         this.arrList = [] // clear arrangement list from UI
         this.arrList = await this.$api.getArrangements(songId)
@@ -138,8 +175,10 @@ export default {
     },
 
     async arrangementSelected(arrangement) {
-      this.arrangement = await this.$api.getArrangement(this.song.id, arrangement.id)
-      console.log(arrangement)
+      if (arrangement)
+        this.arrangement = arrangement
+      else
+        this.arrangement = {}
       this.finishEntry()
     },
 
@@ -149,14 +188,20 @@ export default {
       this.finishEntry()
     },
 
-    finishEntry() {
+    async finishEntry() {
       siStore.sched_item.song_id = this.song.id
       siStore.sched_item.title = this.song.title
       siStore.sched_item.author = this.song.author
-      siStore.sched_item.copyright = this.song.copyright
-      if (this.arrangement) {
-        siStore.sched_item.arrangement_id = this.arrangement.id
-        siStore.sched_item.arrangement_name = this.arrangement.name        
+      siStore.sched_item.arrangement_id = this.arrangement.id
+      siStore.sched_item.arrangement_name = this.arrangement.name        
+      if (this.arrangement.id) {
+        try {
+          this.loading = true
+          this.arrangement = await this.$api.getArrangement(this.song.id, this.arrangement.id)
+        } finally {
+          this.loading = false
+        }
+
         siStore.sched_item.author = this.arrangement.author
         siStore.sched_item.copyright_holder = this.arrangement.copyright_holder
         siStore.sched_item.copyright_year = this.arrangement.copyright_year
@@ -164,14 +209,19 @@ export default {
         siStore.sched_item.end_key = this.arrangement.end_key
         siStore.sched_item.song_text = this.arrangement.lyrics
         siStore.sched_item.composer = this.arrangement.composer
-        siStore.sched_item.arranger = this.arrangement.arranger
-        
-        if (this.arrangement.lyrics) {
-          siStore.sched_item.song_text = this.arrangement.lyrics
-        }
-
-        if (this.arrangement.copyright) {
-          siStore.sched_item.copyright_holder = this.arrangement.copyright
+        siStore.sched_item.arranger = this.arrangement.arranger        
+      } else if (this.song.id) {
+        try {
+          this.loading = true
+          this.song =  await this.$api.getSong(this.song.id)
+          siStore.sched_item.title = this.song.title
+          siStore.sched_item.author = this.song.author
+          siStore.sched_item.composer = this.song.composer
+          siStore.sched_item.song_text = this.song.lyrics
+          siStore.sched_item.copyright_holder = this.song.copyright_holder
+          siStore.sched_item.copyright_year = this.song.copyright_year
+        } finally {
+          this.loading = false
         }
       }
       this.$router.go(-1)

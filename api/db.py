@@ -83,8 +83,9 @@ class ServiceItem(db.Model):
     service_id = db.Column(db.Integer, db.ForeignKey('service.id')) # FK to Service
     event = db.Column(db.String(80), nullable=True)
     title = db.Column(db.String(80), nullable=True)
-    #song_id = db.Column(db.Integer, nullable=True)
+    song_id = db.Column(db.Integer, nullable=True)
     arrangement_id = db.Column(db.Integer, index=True, nullable=True)
+    arrangement = db.Column(db.String(80), nullable=True)
     person_names = db.Column(db.String(80), nullable=True)
 
     service = db.relationship("Service", back_populates="service_items")

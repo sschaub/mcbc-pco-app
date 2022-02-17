@@ -70,12 +70,16 @@ class ApiService {
         return this.post(`/login`, { 'username': username, 'password': password })
     }
 
+    passwordReminder(username) {
+        return this.post(`/password_reminder`, { 'username': username })
+    }
+
     getServices() {
         return this.get(`/services`)
     }    
 
     getService(service_id) {
-        return this.get(`/service/${service_id}`)
+        return this.get(`/services/${service_id}`)
     }
 
     /**
@@ -99,36 +103,44 @@ class ApiService {
      * } 
      */
     getServiceItem(service_id, item_id) {
-        return this.get(`/service/${service_id}/${item_id}`)
+        return this.get(`/services/${service_id}/${item_id}`)
     }
 
     /**
      * returns: See getServiceItem()
      */
     beginEditServiceItem(service_id, item_id) {
-        return this.post(`/service/${service_id}/${item_id}/edit`)
+        return this.post(`/services/${service_id}/${item_id}/edit`)
     }
 
     updateServiceItem(service_id, item_id, itemData) {
-        return this.post(`/service/${service_id}/${item_id}`, itemData)
+        return this.post(`/services/${service_id}/${item_id}`, itemData)
     }
 
     approveServiceItem(service_id, item_id) {
-        return this.post(`/service/${service_id}/${item_id}/approve`)
+        return this.post(`/services/${service_id}/${item_id}/approve`)
     }
 
+    approveCopyright(service_type_id, plan_id, item_id) {
+        return this.post(`/services/${service_type_id}-${plan_id}/${item_id}/approve_copyright`)
+    }
 
     searchSongs(title) {
         return this.get(`/song_search?title=${title}`)
     }
 
     getArrangements(songId) {
-        return this.get(`/song/${songId}/arrangements`)
+        return this.get(`/songs/${songId}/arrangements`)
     }
 
     getArrangement(songId, arrId) {
-        return this.get(`/song/${songId}/arrangements/${arrId}`)
+        return this.get(`/songs/${songId}/arrangements/${arrId}`)
     }
+
+    getSong(songId) {
+        return this.get(`/songs/${songId}`)
+    }
+
 }
  
 

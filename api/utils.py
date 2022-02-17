@@ -5,6 +5,7 @@ from db import *
 import requests
 import sqlalchemy.exc
 import re
+from datetime import datetime
 from sqlalchemy import update, select, func
 
 # def do_patch(uri: str, data: dict) -> requests.Response:
@@ -38,16 +39,19 @@ def get_plan(service_type_id: int, plan_id: int) -> dict:
 
     rows = get_plan_items_with_team(plan_url, team_members)
 
-    rows = [row for row in rows if row['description'] in EDITABLE_ITEMS]
-
     rows.sort(key=lambda entry: entry['item_seq'])
+
+    cong_songs = [{ 'id': row['id'], 'title': row['title'], 'description': row['description'], 'arrangement': row['arrangement'] } for row in rows 
+        if ('Song' in (row['description'] or '') or row['description'] in EDITABLE_ITEMS) and row['title'] != row['description']]
+    rows = [row for row in rows if row['description'] in EDITABLE_ITEMS]
 
     return {
         'service': {
             'name': service_name,
-            'theme': plan_theme
+            'theme': plan_theme,
+            'songs': cong_songs
         },
-        'items': rows
+        'items': rows        
     }
 
 def get_plan_item(service_type_id: int, plan_id: int, item_id: int) -> dict:
@@ -72,28 +76,28 @@ def get_plan_items_with_team(plan_url: str, team_members: list):
 
     for item in items:
         items_included = item['included']
-        item = item['data']
-        item_id = item['id']
-        item_type = item['attributes']['item_type']
-        item_title = item['attributes']['title']
-        item_description = item['attributes']['description']
-        item_seq = item['attributes']['sequence']
+        item_data = item['data']
+        item_id = item_data['id']
+        item_type = item_data['attributes']['item_type']
+        item_title = item_data['attributes']['title']
+        item_description = item_data['attributes']['description']
+        item_seq = item_data['attributes']['sequence']
         item_arr_title = ''
         item_team = ''
         item_assigned_to = []
         arr_id = ''
         song_id = ''
 
-        if item['relationships']['song'].get('data'):
-            song_id = item['relationships']['song']['data']['id']
+        if item_data['relationships']['song'].get('data'):
+            song_id = item_data['relationships']['song']['data']['id']
 
-        if item['relationships']['arrangement'].get('data'):
-            arr_id = item['relationships']['arrangement']['data']['id']
+        if item_data['relationships']['arrangement'].get('data'):
+            arr_id = item_data['relationships']['arrangement']['data']['id']
             for arr in items_included:
                 if arr['type'] == 'Arrangement' and arr['id'] == arr_id:
                     item_arr_title = arr['attributes']['name']
 
-        for note in item['relationships']['item_notes'].get('data', []):
+        for note in item_data['relationships']['item_notes'].get('data', []):
             note_id = note['id']
             for note in items_included:
                 if note['type'] == 'ItemNote' and note['attributes']['category_name'] == 'Service Order Team' and  note['id'] == note_id:
@@ -134,24 +138,42 @@ def get_sched_special(service_type_id: int, plan_id: int, item: dict) -> SchedSp
 
     return sched_spec
 
+def parse_author(author: str) -> tuple:
+    composer = ''
+    m = re.match(r'(.+) \(text\)[,;] (.+) \(tune\)', author)
+    if m:
+        author = m.group(1)
+        composer = m.group(2)
+    return author, composer
+    
+def parse_copyright(copyright: str) -> tuple:
+    copyright_year = None
+    copyright_holder = copyright
+    m = re.match(r'[Cc](opyright|\.) (\d+) (by )?(.+)', copyright)
+    if m:
+        copyright_year = m.group(2)
+        copyright_holder = m.group(4)
+    return copyright_year, copyright_holder
+
+def get_arrangement_history(arrangement_id: int) -> list:
+    return list(dict(row) for row in db.session.execute("""
+        select service_item.id, service_date, service_time, event, person_names
+        from service join service_item on service.id = service_item.service_id 
+        where arrangement_id = :arr_id
+        order by service_date desc
+        """, { 'arr_id': arrangement_id }))
+
 def get_arrangement(song_id: int, arrangement_id: int) -> dict:
     song_url = f'/services/v2/songs/{song_id}'
     song_data = pco.get(song_url)
     song_data = song_data['data']['attributes']
-    copyright_holder = song_data['copyright']
-    copyright_year = ''
-    author = song_data['author']
-    composer = ''
+    copyright_year, copyright_holder = parse_copyright(song_data['copyright'] or '')
+    author, composer = parse_author(song_data['author'] or '')
     lyrics = ''
     starting_key = ''
     ending_key = ''
     arranger = ''
-
-    m = re.match(r'(.+) \(text\), (.+) \(tune\)', author)
-    if m:
-        author = m.group(1)
-        composer = m.group(2)
-
+    
     arr_url = f'/services/v2/songs/{song_id}/arrangements'
     for arr in pco.iterate(arr_url, include='keys'):
         included = arr['included']
@@ -171,13 +193,12 @@ def get_arrangement(song_id: int, arrangement_id: int) -> dict:
             # Extract additional info from arrangement notes
             notes = arr_data['attributes']['notes']
             if notes:
-                # Scan for a line indicating copyright
+                # Scan for a line indicating copyright or arranger
                 notes_lines = notes.split('\n')
                 for line in notes_lines:
-                    m = re.match(r'[Cc](opyright|\.) (.+) (by )?(.+)', line)
-                    if m:
-                        copyright_year = m.group(1)
-                        copyright_holder = m.group(2)
+                    copyright_data = parse_copyright(line)
+                    if copyright_data[1]:
+                        copyright_year, copyright_holder = copyright_data
                     m = re.match(r'arr. (by )?(.+)', line)
                     if m:
                         arranger = m.group(2)
@@ -194,6 +215,8 @@ def get_arrangement(song_id: int, arrangement_id: int) -> dict:
                         if incl['attributes']['ending_minor']:
                             ending_key = ending_key.lower()
 
+    history = get_arrangement_history(arrangement_id)
+
     return {
         'id': arrangement_id,
         'name': arr_name,
@@ -204,9 +227,51 @@ def get_arrangement(song_id: int, arrangement_id: int) -> dict:
         'composer': composer,
         'arranger': arranger,
         'copyright_holder': copyright_holder,
-        'copyright_year': copyright_year
+        'copyright_year': copyright_year,
+        'history': history  # see get_arrangement_history
     }
 
+def get_song_history(song_id: int) -> list:
+    return list(dict(row) for row in db.session.execute("""
+        select service_item.id, service_date, service_time, event, person_names, arrangement
+        from service join service_item on service.id = service_item.service_id 
+        where song_id = :song_id
+        order by service_date desc
+        """, { 'song_id': song_id }))
+
+def get_song(song_id: int) -> dict:
+    song_url = f'/services/v2/songs/{song_id}'
+    song_data = pco.get(song_url)
+    song_data = song_data['data']['attributes']
+    copyright_year, copyright_holder = parse_copyright(song_data['copyright'] or '')
+    song_title = song_data['title']
+    author, composer = parse_author(song_data['author'] or '')
+
+    any_lyrics = ''
+    hymnal_lyrics = ''
+
+    # Try to find some lyrics in at least one of the arrangements
+    arr_url = f'/services/v2/songs/{song_id}/arrangements'
+    for arr in pco.iterate(arr_url):
+        arr_data = arr['data']        
+
+        if arr_data['attributes']['lyrics'] and (('HGG' in arr_data['attributes']['name']) or ('PG' in arr_data['attributes']['name'])):
+            hymnal_lyrics = arr_data['attributes']['lyrics']
+        if arr_data['attributes']['lyrics'] and not any_lyrics:
+            any_lyrics = arr_data['attributes']['lyrics']
+
+    history = get_song_history(song_id)
+
+    return {
+        'id': song_id,
+        'title': song_title,
+        'lyrics': hymnal_lyrics or any_lyrics,
+        'author': author,
+        'composer': composer,
+        'copyright_holder': copyright_holder,
+        'copyright_year': copyright_year,
+        'history': history  # See get_song_history
+    }
 
 def begin_edit_item(service_type_id: int, plan_id: int, item: dict) -> SchedSpecial:
     try:
@@ -216,8 +281,12 @@ def begin_edit_item(service_type_id: int, plan_id: int, item: dict) -> SchedSpec
         solo_instruments = ''
         if 'Vocal' in item['description']:
             genre_note = 'Vocal solo'
-            solo_instruments = 'Voice'
+            solo_instruments = 'Voice'        
         accomp_instruments = 'Piano'
+        if 'Organ' in item['description']:
+            genre_note = 'Organ solo'
+            solo_instruments = 'Organ'
+            accomp_instruments = 'N/A'
 
         sched_spec = SchedSpecial(
             service_type_id=service_type_id,
@@ -275,13 +344,13 @@ def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id
             content = ''
         return content + '\n'
 
-    # note_url = (BASE_SERVICE_URL + "/items/{}/item_notes/{}").format(service_type_id, plan_id, item['id'], item['system_id'])
-    # content = json.dumps({
-    #     'title': title,
-    #     'song_text': song_text
-    # })
-    # update_payload = pco.template('ItemNote', {'content': content })
-    # pco.patch(note_url, payload=update_payload)
+    def to12hour(timestr: str) -> str:
+        try:
+            timestr = datetime.strptime(timestr[:5], "%H:%M").strftime("%I:%M %p")
+        except:
+            pass
+        return timestr
+
     sched_spec = SchedSpecial.query.filter_by(
             service_type_id=service_type_id,
             plan_id=plan_id,
@@ -315,8 +384,8 @@ def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id
     msg += row('Arrangement', arrangement_name, sched_spec.arrangement_name, link)
     msg += '</table>\n<h3>Instrumentation / Personnel</h3>\n<table>\n'    
     msg += row('Special type', genre_note, sched_spec.genre_note)
-    msg += row('Solo instrument(s)', solo_instruments, sched_spec.solo_instruments)
-    msg += row('Accompaniment instrument(s)', accomp_instruments, sched_spec.accomp_instruments)
+    msg += row('Instrument(s)', solo_instruments, sched_spec.solo_instruments)
+    msg += row('Accompaniment', accomp_instruments, sched_spec.accomp_instruments)
     msg += row('Other performers', other_performers, sched_spec.other_performers)
 
     msg += '</table>\n<h3>Song Details</h3>\n<table>\n'
@@ -344,6 +413,20 @@ def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id
         style = 'style="color:blue"' if staging_notes != sched_spec.staging_notes else ''
         staging_notes_html = staging_notes.replace('\n', '<br>\n')
         msg += f'''<h4>Staging Notes</h4><div {style}>{staging_notes_html}</div>'''
+
+    if song_id:
+        history = get_song_history(song_id)
+        if len(history):
+            msg += '\n<h3>Song Last Used</h3>'
+            for hi in history:
+                msg += f'''<p>{hi['service_date']} {to12hour(hi['service_time'])} {hi['event']} - {hi['arrangement']} [{hi['person_names']}]</p>'''
+
+    if arrangement_id:
+        history = get_arrangement_history(arrangement_id)
+        if len(history):
+            msg += '\n<h3>Arrangement Last Used</h3>'
+            for hi in history:
+                msg += f'''<p>{hi['service_date']} {to12hour(hi['service_time'])} {hi['event']} [{hi['person_names']}]</p>'''
 
     msg += '<p style="color: blue">New information is in blue</p>'
     msg += '</body></html>'
@@ -387,16 +470,29 @@ def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id
 
     return success
 
-def send_email(replyEmail: str, replyName: str, subject: str, msg: str, ccEmails: list = None):
+def send_email(subject: str, msg: str, replyEmail: str = '', replyName: str = '',  toEmails: list = None, ccEmails: list = None):
     if not ccEmails:
         ccEmails = []
-
-    dest_email_list = [{"email": email} for email in EMAIL_LIST]
-    cc_email_list = [{"email": email} for email in ccEmails if email not in EMAIL_LIST]
-    personalizations = {"to": dest_email_list, "subject": subject}
+    if not toEmails:
+        toEmails = EMAIL_LIST
+    
+    cc_email_list = [{"email": email} for email in ccEmails if email not in toEmails]
+    toEmail_list = [{"email": email} for email in toEmails]
+    personalizations = {"to": toEmail_list, "subject": subject}
     
     if len(cc_email_list):
         personalizations["cc"] = cc_email_list
+
+    json={
+                "personalizations": [personalizations],
+                "content": [{"type": "text/html", "value": msg}],
+                "from":{"email":FROM_EMAIL_ADDR,"name":"MCBC Music"},
+    }
+    if replyEmail:
+        reply_to = {"email":replyEmail}
+        if replyName:
+            reply_to["name"] = replyName
+        json['reply_to'] = reply_to
 
     r = None
     try:
@@ -404,14 +500,10 @@ def send_email(replyEmail: str, replyName: str, subject: str, msg: str, ccEmails
             headers={
                 'Authorization': f'Bearer {SENDGRID_API_KEY}'
                 },
-            json={
-                "personalizations": [personalizations],
-                "content": [{"type": "text/html", "value": msg}],
-                "from":{"email":FROM_EMAIL_ADDR,"name":"MCBC Music"},
-                "reply_to":{"email":replyEmail,"name":replyName}}
-            )
+            json=json)
         r.raise_for_status()
     except:
         status_code = r.status_code if r else 'unknown'
         logging.exception(f'Problem sending email with reply address {replyEmail}: status {status_code}')
+        logging.info(json)
 

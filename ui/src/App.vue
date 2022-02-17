@@ -20,7 +20,11 @@ export default {
 
   data: () => ({
     // global state goes here
-  })
+  }),
+
+  mounted() {
+    
+  }
 
 }
 </script>

@@ -42,6 +42,7 @@ def genhistory():
 
             if Service.query.filter_by(service_type_id=service_type_id, plan_id=plan_id).first():
                 # Record already exists
+                print('Already processed (skipping)')
                 continue
 
             rows = get_plan_items_with_team(plan_url, team_members)
@@ -53,24 +54,28 @@ def genhistory():
             for row in rows:
                 if row['item_type'] == 'song':
                     si = ServiceItem(service=s, event=row['description'], title=row['title'],
-                            arrangement_id=row['arrangement_id'])
+                            arrangement_id=row['arrangement_id'],
+                            arrangement=row['arrangement'],
+                            song_id=row['song_id'])
                     db.session.add(si)
                     person_names = []
-                    for person in row['people']:
+                    for person in row['assigned_to']:
                         if person.get('id'):
                             person_id = int(person['id'])
                             p = next((p for p in all_people if p.id == int(person_id)), None)
                             if not p:
                                 print(f'Cannot find person {person_id}')
+                            else:
+                                person_names.append(p.name)
                         sip = ServiceItemPerson(service_item=si, person=p)
-                        person_names.append(sip.name)
+                        
                         db.session.add(sip)
                     si.person_names = ', '.join(person_names)
                     
             db.session.commit()
             num += 1
             # if num > 3:
-            #     return
+            #      return
 
 
 def gen_history_report():

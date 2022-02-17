@@ -1,16 +1,13 @@
 <template>
   <v-container>
     <v-row class="text-center">
-      <div><a href="/">Home</a> &gt; <a :href="`/service/${service_id}`">{{service.name}}</a> &gt; {{ item.description }}</div>
       <v-col cols="12">
         <div v-if="!service.name">
           <v-progress-circular indeterminate />
         </div>
         <div v-if="service.name">
-          <h2>{{ service.name }} Service</h2>
           <div>
-            <h4>{{ item.description}}</h4>
-            <div v-if="item.assigned_to.length">Assigned to: {{ itemPeople(item.assigned_to) }}</div>
+            <h2>{{ service.name }} {{ item.description}}</h2>
             <div v-if="item.title">
               Scheduled Title: {{ item.title }}
             </div>
@@ -25,13 +22,14 @@
             <v-text-field v-model="sched_item.solo_instruments" label="Solo instrument(s)" />
             <v-text-field v-model="sched_item.accomp_instruments" label="Accompanimental instrument(s)" />
             <v-text-field v-model="sched_item.other_performers" label="Other performers (name of accompanist, other musicians)" />
+
+            <div class="notice">Please supply as much of the following as you are able.
+              <br>If it is early and you are proposing a title, all you need to do is
+              provide the starting and ending key.<br>
+              You can come back and provide more details after the title is approved.</div>
+
             <h4>Song Details</h4>
-            <v-text-field v-model="sched_item.author" label="Text Author (ex. Fanny Crosby)" />
-            <v-text-field v-model="sched_item.translator" label="Text Translator (ex. Fred Jones)" />
-            <v-text-field v-model="sched_item.composer" label="Composer (ex. Joseph Haydn)" />
-            <v-text-field v-model="sched_item.arranger" label="Arranger (ex. Craig Courtney)" />
-            <v-text-field v-model="sched_item.copyright_year" label="Copyright Year (ex. 1995)" />
-            <v-text-field v-model="sched_item.copyright_holder" label="Copyright Holder (ex. Soundforth)" />
+            
             <v-container>
               <v-row>
                 <v-col>
@@ -43,6 +41,16 @@
                 </v-col>
               </v-row>
             </v-container>
+            <v-text-field v-model="sched_item.author" label="Text Author (ex. Fanny Crosby)" />
+            <v-text-field v-model="sched_item.translator" label="Text Translator (ex. Fred Jones)" />
+            <v-text-field v-model="sched_item.composer" label="Composer (ex. Joseph Haydn)" />
+            <v-text-field v-model="sched_item.arranger" label="Arranger (ex. Craig Courtney)" />
+            <div>
+              Tip: To fill in the following, look for a copyright notice (ex. "Copyright 2004 Soundforth") on the bottom of the first page of the music.<br>
+              If it's not there, look at the title page of the book.
+            </div>
+            <v-text-field v-model="sched_item.copyright_year" label="Copyright Year (ex. 1995)" />
+            <v-text-field v-model="sched_item.copyright_holder" label="Copyright Holder (ex. Soundforth, Lorenz, Majesty Music)" />
 
             <h4>Other Details</h4>
             <v-textarea v-model="sched_item.song_text" label="Song Text" />
@@ -57,6 +65,14 @@
     </v-row>
   </v-container>
 </template>
+
+<style>
+  .notice {
+    border: 1px solid black;
+    background-color: lightblue;
+    padding: 10px;
+  }
+</style>
 
 <script>
 
@@ -116,7 +132,7 @@ export default {
           this.$router.push({ name: 'SongSearch' })
         }
       }
-
+      scrollTo(0,0)
     } catch (err) {
       console.log(err);      
       if (err.response && err.response.status == 401) {

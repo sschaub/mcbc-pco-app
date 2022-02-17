@@ -14,9 +14,17 @@
             <div v-if="item.title != item.description">Title: {{ item.title}}</div>
             <div v-if="item.arrangement">Arrangement: {{ item.arrangement}}</div>            
             <div v-if="item.assigned_to.length">Assigned to: {{ itemPeople(item.assigned_to) }}</div>
-            <v-btn :href="toPath(service_id, item.id)" text="Details"/>
+            <v-btn :href="toPath(item.id)" text="Details"/>
             
           </div>
+
+          <div v-if="service.songs.length">
+            <h3>Congregational Songs</h3>
+            <div v-for="song in service.songs" :key="song.id">
+                  <p v-if="song.description.includes('Song')">{{ song.title }} <span v-if="song.arrangement">- {{ song.arrangement }}</span></p>
+            </div>
+          </div>
+
         </div>
       </v-col>
 
@@ -39,7 +47,7 @@ export default {
   }),  
 
   methods: {
-    toPath: (service_id, item_id) => `/service/${service_id}/${item_id}`
+    toPath(item_id) { return `/service/${this.service_id}/${item_id}` }
   },
   
   async mounted() {

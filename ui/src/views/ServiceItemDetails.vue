@@ -29,13 +29,15 @@
     </div>
     <div v-if="sched_item.copyright_year || sched_item.copyright_holder">
       Copyright: {{sched_item.copyright_year}} {{sched_item.copyright_holder}}
+      <span v-if="show_copyright_status">
         <span v-if="isCopyrightOk()">
           <img src="/public/pass.png">
         </span>
-        <span v-if="!isCopyrightOk()">
+        <span v-else>
           <img src="/public/fail.png">
+          <v-btn v-if="isAdmin()" @click="approveCopyrightClicked()">Mark Ok</v-btn>
         </span>
-        <v-btn v-if="!isCopyrightOk()" @click="approveCopyrightClicked()">Mark Ok</v-btn>
+      </span>
     </div>
     <div v-if="sched_item.start_key">
       Starting Key: {{sched_item.start_key}}
@@ -58,15 +60,27 @@
 
 <script>
 
+import {COPYRIGHT_STATUS_APPROVED} from '../constants.js';
+
 export default {
   name: 'ServiceItemDetails',
 
   props: {
-    sched_item: {}
+    sched_item: {},
+    show_copyright_status: {
+      type: Boolean,
+      default: true
+    }
   },
 
   methods: {
+    async approveCopyrightClicked() {
+      let result = await this.$api.approveCopyright(this.sched_item.service_type_id, this.sched_item.plan_id, this.sched_item.item_id)
+      if (result == 'OK') {
+        this.sched_item.copyright_license_status = COPYRIGHT_STATUS_APPROVED
+      }
 
+    }
   },
 
   mounted() {

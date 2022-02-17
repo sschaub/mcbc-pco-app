@@ -2,21 +2,28 @@
   <v-container>
     <v-row class="text-center">
       <v-col cols="12">
-        <div v-if="service.name">
-          <h2>{{ service.name }} Service</h2>
-          <h3 v-if="service.theme" >{{ service.theme }}</h3>
-          <h4>{{ item.description}}</h4>
+        <div v-if="service.name && mode == 'review'">
+          <h2>Please Review Your Entries</h2>
+          <p>Review the information below and click Submit, or click Edit to change.</p>
+          <h3>{{ service.name }} {{ item.description }}</h3>
           <div v-if="item.assigned_to.length">Assigned to: {{ itemPeople(item.assigned_to) }}</div>
           <div>
-            Title: {{ sched_item.title }}
+            Proposed Title: {{ sched_item.title }}
           </div>
           <p v-if="sched_item.arrangement_name">Arrangement: {{ sched_item.arrangement_name }}</p>
-          <br>
-          <service-item-details :sched_item="sched_item" /> 
+          <service-item-details :sched_item="sched_item" :show_copyright_status="false" /> 
           <v-btn @click="editClicked()">Edit</v-btn>
           <v-btn :disabled="loading" @click="submitClicked()">Submit</v-btn>
           <v-btn @click="cancelClicked()">Cancel</v-btn>
         </div>
+
+        <div v-if="mode == 'finished'">
+        <h3>Thank you for your submission!</h3>
+        <p>An email has been sent to the appropriate personnel, and you have been copied.</p>
+        <br>
+        <v-btn @click="cancelClicked()">Finish</v-btn>
+        </div>
+
         <div v-if="loading">
           <v-progress-circular indeterminate />
         </div>
@@ -49,6 +56,7 @@ export default {
     item: siStore.item,
     service: siStore.service, 
     sched_item: siStore.sched_item,
+    mode: 'review'
   }),  
 
   methods: {
@@ -58,7 +66,7 @@ export default {
         this.loading = true
         let response = await this.$api.updateServiceItem(this.service_id, this.item_id, this.sched_item)
         if (response.result == 'OK') {
-          this.$router.go(-2)        
+          this.mode = 'finished'
         } else {
           alert('Someone else has changed this entry while you were editing it. Click Cancel, then try again.')
         }
@@ -78,10 +86,11 @@ export default {
   },
 
   mounted() {
-    console.log(`Version: ${this.sched_item.version_no}`)
+    //console.log(`Version: ${this.sched_item.version_no}`)
     if (!this.item.id) {
       this.$router.go(-1)
     }
+    scrollTo(0,0)
   },
   
   components: {

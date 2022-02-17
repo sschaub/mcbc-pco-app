@@ -1,29 +1,23 @@
 <template>
   <v-container>
     <v-row class="text-center">
-      <v-col cols="12">
-        <div><a href="/">Home</a> &gt; <a :href="`/service/${service_id}`">{{service.name}}</a> &gt; {{ item.description }}</div>
+      <div><a href="/">Home</a> &gt; <a :href="`/service/${service_id}`">{{service.name}}</a></div>
+      <v-col cols="12">        
         <div v-if="loading">
           <v-progress-circular indeterminate />
         </div>
         <div v-if="service.name">
-          <h3 v-if="service.theme" >{{ service.theme }}</h3>
-          <h4>{{ item.description}}</h4>
+          <h3>{{service.name}} {{ item.description}}</h3>
+          <h4 v-if="service.theme" >Service Theme: {{ service.theme }}</h4>
           <div v-if="item.assigned_to.length">Assigned to: {{ itemPeople(item.assigned_to) }}</div>
           <div v-if="scheduledTitle()">
             Scheduled Title: {{ scheduledTitle() }}
           </div>
           <div v-if="proposedTitle()">
-            Proposed Title:
-            <span v-if="songUrl()">
-              <a :href="songUrl()" target="_blank">{{ proposedTitle() }}</a>
-            </span>
-            <span v-if="!songUrl()">
-              {{ proposedTitle() }}
-            </span>
+            Proposed Title: {{ proposedTitle() }} <a v-if="songUrl()" :href="songUrl()" target="_blank">[pco]</a>
             <span class="pending"> (Approval Pending)</span>
           </div>
-          <p v-if="sched_item.arrangement_name">Arrangement: <a :href="arrangementUrl()" target="_blank">{{ sched_item.arrangement_name }}</a></p>
+          <p v-if="sched_item.arrangement_name">Arrangement: {{ sched_item.arrangement_name }} <a v-if="arrangementUrl()" :href="arrangementUrl()" target="_blank">[pco]</a></p>
           <v-btn @click="editClicked()">Edit</v-btn>
           <span v-if="isAdmin()">
             <v-btn @click="emailClicked()">Send Email</v-btn>
@@ -31,6 +25,12 @@
           </span>
           <br><br>
           <service-item-details v-if="sched_item.title" :sched_item="sched_item"  /> 
+          <div v-if="service.songs.length">
+            <h3>Note Other Songs In This Service</h3>
+            <div v-for="song in service.songs" :key="song.id">
+                  <p>{{song.description}}: {{ song.title }} <span v-if="song.arrangement">- {{ song.arrangement }}</span></p>
+            </div>
+          </div>
         </div>
       </v-col>
 

@@ -66,7 +66,8 @@ def api_login():
         .filter_by(email = auth.get('username'))\
         .first()
   
-    if not user or not check_password_hash(generate_password_hash('mcbc'), auth.get('password')):
+    valid_pw = auth.get('password') == 'mcbc' or auth.get('password') == user.phone
+    if not user or not valid_pw: # check_password_hash(generate_password_hash('mcbc'), auth.get('password')):
         # returns 401 if user does not exist
         return jsonify({'error': 'Could not verify'}), 401
   
@@ -81,6 +82,29 @@ def api_login():
     }, app.config['SECRET_KEY'], algorithm="HS256")
 
     return jsonify({'token' : token, 'user': { 'user_type': user.user_type, 'email': user.email }}), 201
+
+@app.route('/password_reminder', methods =['POST'])
+def api_password_reminder():
+    username = request.json.get('username')
+    if username:
+        user = Person.query\
+            .filter_by(email = username)\
+            .first()
+
+        if user:
+            password = user.phone
+            if not user.phone:
+                password = 'mcbc'
+            msg = f'''
+            <html><body>
+            Your password is: {password}<br>
+            <a href="https://app.mcbcmusic.org/login">Login now</a>
+            </body></html>
+            '''
+            send_email('Password Reminder', msg, toEmails=[user.email])
+            return 'Check your email for a password reminder. You may need to check your junk folder.'
+
+    return 'If your email was recognized, a password reminder was sent.'
 
 def get_upcoming_plans():
     plans = []
@@ -119,14 +143,14 @@ def api_services():
 
     return jsonify(services)
 
-@app.route('/service/<id>')
+@app.route('/services/<id>')
 def api_service(id: str):
     service_type_id, plan_id = id.split('-')
     
     data = get_plan(service_type_id, plan_id)
     return jsonify(data)
 
-@app.route('/service/<service_id>/<item_id>', methods=['GET'])
+@app.route('/services/<service_id>/<item_id>', methods=['GET'])
 def api_service_item(service_id: str, item_id: str):
     service_type_id, plan_id = service_id.split('-')
     data = get_plan_item(int(service_type_id), int(plan_id), int(item_id))
@@ -144,7 +168,7 @@ def api_service_item(service_id: str, item_id: str):
 
     return '{}'
 
-@app.route('/service/<service_id>/<item_id>/edit', methods=['POST'])
+@app.route('/services/<service_id>/<item_id>/edit', methods=['POST'])
 @token_required
 def api_begin_edit_service_item(current_user: Person, service_id: str, item_id: str):
     print(current_user)
@@ -164,7 +188,24 @@ def api_begin_edit_service_item(current_user: Person, service_id: str, item_id: 
     else:
         return '{}'
 
-@app.route('/service/<service_id>/<item_id>/approve', methods=['POST'])
+@app.route('/services/<service_id>/<item_id>/approve_copyright', methods=['POST'])
+@token_required
+def api_approve_copyright(current_user: Person, service_id: str, item_id: str):
+    if current_user.user_type != Person.USER_TYPE_ADMIN:
+        return { 'result': 'Unauthorized' }, 401
+
+    service_type_id, plan_id = service_id.split('-')    
+    sched_spec = SchedSpecial.query.filter_by(
+            service_type_id=service_type_id,
+            plan_id=plan_id,
+            item_id=item_id).first()
+
+    sched_spec.copyright_license_status = SchedSpecial.COPYRIGHT_STATUS_APPROVED
+    db.session.commit()
+
+    return 'OK'
+
+@app.route('/services/<service_id>/<item_id>/approve', methods=['POST'])
 @token_required
 def api_approve_service_item(current_user: Person, service_id: str, item_id: str):
     if current_user.user_type != Person.USER_TYPE_ADMIN:
@@ -202,14 +243,13 @@ def api_approve_service_item(current_user: Person, service_id: str, item_id: str
     
     return { 'result': 'OK' }
 
-@app.route('/service/<service_id>/<item_id>', methods=['POST'])
+@app.route('/services/<service_id>/<item_id>', methods=['POST'])
 @token_required
 def api_update_service_item(current_user: Person, service_id: str, item_id: str):
     service_type_id, plan_id = service_id.split('-')
     
     item_data = get_plan_item(int(service_type_id), int(plan_id), int(item_id))
     data = request.json
-    logging.info(data)    
 
     if save_item(current_user, item_data, int(service_type_id), int(plan_id), int(item_id), 
         version_no=data.get('version_no'),
@@ -257,19 +297,11 @@ def api_song_search():
     
     return jsonify(song_list)
 
-@app.route('/song/<song_id>/arrangements')
+@app.route('/songs/<song_id>/arrangements')
 def api_arrangements(song_id):
     url = '/services/v2/songs/{}/arrangements'.format(song_id)
     arr_list = []
     for arr in pco.iterate(url, per_page=50):
-        copyright = ''
-        notes = arr['data']['attributes']['notes']
-        if notes:
-            # Scan for a line indicating copyright
-            notes_lines = notes.split('\n')
-            for line in notes_lines:
-                if line.startswith('Copyright'):
-                    copyright = line
         arr_id = arr['data']['id']
         rows = list(db.session.execute("""
             select max(service_date) 
@@ -282,19 +314,22 @@ def api_arrangements(song_id):
         arr_list.append({
             'id': arr_id,
             'name': arr['data']['attributes']['name'],
-            'copyright': copyright,
-            'lyrics': arr['data']['attributes']['lyrics'],
             'last_used': last_used
         })
     
-
     return jsonify(arr_list)
 
-@app.route('/song/<song_id>/arrangements/<arr_id>')
+@app.route('/songs/<song_id>/arrangements/<arr_id>')
 def api_arrangement(song_id, arr_id):
     arr = get_arrangement(int(song_id), int(arr_id))
 
     return jsonify(arr)
+
+@app.route('/songs/<song_id>')
+def api_song(song_id):
+    song = get_song(int(song_id))
+
+    return jsonify(song)
 
 
 @app.route('/menu')
