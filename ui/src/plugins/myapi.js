@@ -125,7 +125,11 @@ class ApiService {
     getArrangements(songId) {
         return this.get(`/song/${songId}/arrangements`)
     }
- }
+
+    getArrangement(songId, arrId) {
+        return this.get(`/song/${songId}/arrangements/${arrId}`)
+    }
+}
  
 
 export default {

@@ -2,16 +2,18 @@
 
 The following instructions assume you are using a Ubuntu 20 environment.
 
+## Setup Server
+
+Set time zone:
+```
+sudo timedatectl set-timezone America/New_York
+```
+
 ## Install Docker
 
-Execute the following to install Docker:
-
-```
-sudo apt install docker.io
-```
+Follow these instructions to install Docker: https://docs.docker.com/engine/install/ubuntu/
 
 Execute the following to add the current user to the docker group so that docker commands can be executed without using sudo:
-
 
 ```
 sudo usermod -a -G docker $USER

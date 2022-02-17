@@ -4,6 +4,7 @@ from const import *
 from db import *
 import requests
 import sqlalchemy.exc
+import re
 from sqlalchemy import update, select, func
 
 # def do_patch(uri: str, data: dict) -> requests.Response:
@@ -81,29 +82,25 @@ def get_plan_items_with_team(plan_url: str, team_members: list):
         item_team = ''
         item_assigned_to = []
         arr_id = ''
-        item_system = ''
-        item_system_noteid = ''
+        song_id = ''
 
-    
-        if 'data' in item['relationships']['arrangement'] and item['relationships']['arrangement']['data']:
+        if item['relationships']['song'].get('data'):
+            song_id = item['relationships']['song']['data']['id']
+
+        if item['relationships']['arrangement'].get('data'):
             arr_id = item['relationships']['arrangement']['data']['id']
             for arr in items_included:
                 if arr['type'] == 'Arrangement' and arr['id'] == arr_id:
                     item_arr_title = arr['attributes']['name']
 
-        if 'data' in item['relationships']['item_notes']:
-            notes = item['relationships']['item_notes']['data']
-            for note in notes:
-                note_id = note['id']
-                for note in items_included:
-                    if note['type'] == 'ItemNote' and note['attributes']['category_name'] == 'Service Order Team' and  note['id'] == note_id:
-                        item_team = note['attributes']['content']
-                    # TODO: Remove the following?
-                    elif note['type'] == 'ItemNote' and note['attributes']['category_name'] == 'Person' and  note['id'] == note_id:
-                        item_assigned_to.append({ 'name': note['attributes']['content'] })
-                    elif note['type'] == 'ItemNote' and note['attributes']['category_name'] == 'System' and  note['id'] == note_id:
-                        item_system = note['attributes']['content']
-                        item_system_noteid = note['id']
+        for note in item['relationships']['item_notes'].get('data', []):
+            note_id = note['id']
+            for note in items_included:
+                if note['type'] == 'ItemNote' and note['attributes']['category_name'] == 'Service Order Team' and  note['id'] == note_id:
+                    item_team = note['attributes']['content']
+                # TODO: Remove the following?
+                elif note['type'] == 'ItemNote' and note['attributes']['category_name'] == 'Person' and  note['id'] == note_id:
+                    item_assigned_to.append({ 'name': note['attributes']['content'] })
 
         if item_team and len(item_assigned_to) == 0:
             for team_member in team_members:
@@ -123,6 +120,7 @@ def get_plan_items_with_team(plan_url: str, team_members: list):
                     })
 
         rows.append({'id': item_id, 'item_seq': item_seq, 'description': item_description, 'title': item_title,
+                        'song_id': song_id,
                         'arrangement': item_arr_title, 'arrangement_id': arr_id, 'assigned_to': item_assigned_to,
                         'item_type': item_type })
                         
@@ -136,6 +134,80 @@ def get_sched_special(service_type_id: int, plan_id: int, item: dict) -> SchedSp
 
     return sched_spec
 
+def get_arrangement(song_id: int, arrangement_id: int) -> dict:
+    song_url = f'/services/v2/songs/{song_id}'
+    song_data = pco.get(song_url)
+    song_data = song_data['data']['attributes']
+    copyright_holder = song_data['copyright']
+    copyright_year = ''
+    author = song_data['author']
+    composer = ''
+    lyrics = ''
+    starting_key = ''
+    ending_key = ''
+    arranger = ''
+
+    m = re.match(r'(.+) \(text\), (.+) \(tune\)', author)
+    if m:
+        author = m.group(1)
+        composer = m.group(2)
+
+    arr_url = f'/services/v2/songs/{song_id}/arrangements'
+    for arr in pco.iterate(arr_url, include='keys'):
+        included = arr['included']
+        arr_data = arr['data']        
+
+        # Try to find some lyrics in at least one of the arrangements
+        if arr_data['attributes']['lyrics'] and not lyrics:
+            lyrics = arr_data['attributes']['lyrics']
+
+        if arr_data['id'] == str(arrangement_id):
+            arr_name = arr_data['attributes']['name']
+
+            # Override any found lyrics with those of this arrangement
+            if arr_data['attributes']['lyrics']:
+                lyrics = arr_data['attributes']['lyrics']
+
+            # Extract additional info from arrangement notes
+            notes = arr_data['attributes']['notes']
+            if notes:
+                # Scan for a line indicating copyright
+                notes_lines = notes.split('\n')
+                for line in notes_lines:
+                    m = re.match(r'[Cc](opyright|\.) (.+) (by )?(.+)', line)
+                    if m:
+                        copyright_year = m.group(1)
+                        copyright_holder = m.group(2)
+                    m = re.match(r'arr. (by )?(.+)', line)
+                    if m:
+                        arranger = m.group(2)
+
+            for incl in included:
+                if incl['type'] == 'Key':
+                    starting_key = incl['attributes']['starting_key']
+                    if incl['attributes']['starting_minor']:
+                        starting_key = starting_key.lower()
+                    ending_key = incl['attributes']['ending_key']
+                    if not ending_key:
+                        ending_key = starting_key
+                    else:
+                        if incl['attributes']['ending_minor']:
+                            ending_key = ending_key.lower()
+
+    return {
+        'id': arrangement_id,
+        'name': arr_name,
+        'lyrics': lyrics,
+        'start_key': starting_key,
+        'end_key': ending_key,
+        'author': author,
+        'composer': composer,
+        'arranger': arranger,
+        'copyright_holder': copyright_holder,
+        'copyright_year': copyright_year
+    }
+
+
 def begin_edit_item(service_type_id: int, plan_id: int, item: dict) -> SchedSpecial:
     try:
         title = item['title'] if item['title'] != item['description'] else ''
@@ -146,11 +218,15 @@ def begin_edit_item(service_type_id: int, plan_id: int, item: dict) -> SchedSpec
             genre_note = 'Vocal solo'
             solo_instruments = 'Voice'
         accomp_instruments = 'Piano'
+
         sched_spec = SchedSpecial(
             service_type_id=service_type_id,
             plan_id=plan_id,
             item_id=item['id'],
             title=title,
+            song_id=item['song_id'],
+            arrangement_id=item['arrangement_id'],
+            arrangement_name=item['arrangement'],
             description=item['description'],
             genre_note=genre_note,
             solo_instruments=solo_instruments,
@@ -158,6 +234,18 @@ def begin_edit_item(service_type_id: int, plan_id: int, item: dict) -> SchedSpec
         )
         db.session.add(sched_spec)
         db.session.commit()
+
+        if item['arrangement_id']:
+            arr = get_arrangement(item['song_id'], item['arrangement_id'])
+            sched_spec.song_text = arr['lyrics']
+            sched_spec.copyright_holder = arr['copyright_holder']
+            sched_spec.copyright_year = arr['copyright_year']
+            sched_spec.author = arr['author']
+            sched_spec.composer = arr['composer']
+            sched_spec.arranger = arr['arranger']
+            sched_spec.start_key = arr['start_key']
+            sched_spec.end_key = arr['end_key']
+            db.session.commit()
     except sqlalchemy.exc.IntegrityError as e:
         # Failed to create; now try to look up
         db.session.rollback()

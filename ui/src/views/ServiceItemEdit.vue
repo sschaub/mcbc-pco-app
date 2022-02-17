@@ -1,6 +1,7 @@
 <template>
   <v-container>
     <v-row class="text-center">
+      <div><a href="/">Home</a> &gt; <a :href="`/service/${service_id}`">{{service.name}}</a> &gt; {{ item.description }}</div>
       <v-col cols="12">
         <div v-if="!service.name">
           <v-progress-circular indeterminate />
@@ -96,13 +97,13 @@ export default {
   async mounted() {
     try {
       if (!this.sched_item.id) {
-        console.log('No sched_item set')
         let res = await this.$api.beginEditServiceItem(this.service_id, this.item_id)
         this.sched_item = siStore.sched_item = res.sched_item
         this.service = siStore.service = res.service
         this.item = siStore.item = res.item
       }
-      console.log(`Version: ${this.sched_item.version_no}`)
+
+      document.title = this.service.name + ' ' + this.item.description
 
       if (!this.sched_item.title) {
         if (siStore.searchCancelled) {

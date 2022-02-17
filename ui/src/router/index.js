@@ -72,4 +72,12 @@ const router = createRouter({
   routes
 })
 
+router.beforeEach((to, from, next) => {
+  // Set default page title each time navigation occurs
+  // Override this in the mounted() callback on individual pages
+  document.title = 'MCBC Music System';
+
+  next();
+});
+
 export default router

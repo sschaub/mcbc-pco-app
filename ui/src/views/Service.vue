@@ -2,6 +2,7 @@
   <v-container>
     <v-row class="text-center">
       <v-col cols="12">
+        <div><a href="/">Home</a></div>
         <div v-if="!service.name">
           <v-progress-circular indeterminate />
         </div>

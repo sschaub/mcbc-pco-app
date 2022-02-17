@@ -290,6 +290,13 @@ def api_arrangements(song_id):
 
     return jsonify(arr_list)
 
+@app.route('/song/<song_id>/arrangements/<arr_id>')
+def api_arrangement(song_id, arr_id):
+    arr = get_arrangement(int(song_id), int(arr_id))
+
+    return jsonify(arr)
+
+
 @app.route('/menu')
 def index():
     logging.info('Serving menu')

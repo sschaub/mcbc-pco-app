@@ -2,11 +2,11 @@
   <v-container>
     <v-row class="text-center">
       <v-col cols="12">
+        <div><a href="/">Home</a> &gt; <a :href="`/service/${service_id}`">{{service.name}}</a> &gt; {{ item.description }}</div>
         <div v-if="loading">
           <v-progress-circular indeterminate />
         </div>
         <div v-if="service.name">
-          <h2>{{ service.name }} Service</h2>
           <h3 v-if="service.theme" >{{ service.theme }}</h3>
           <h4>{{ item.description}}</h4>
           <div v-if="item.assigned_to.length">Assigned to: {{ itemPeople(item.assigned_to) }}</div>
@@ -125,6 +125,7 @@ export default {
       this.item = res.item
       this.service = res.service
       this.sched_item = res.sched_item || {}
+      document.title = this.service.name + ' ' + this.item.description
     } finally {
       this.loading = false
     }

@@ -137,8 +137,8 @@ export default {
       
     },
 
-    arrangementSelected(arrangement) {
-      this.arrangement = arrangement
+    async arrangementSelected(arrangement) {
+      this.arrangement = await this.$api.getArrangement(this.song.id, arrangement.id)
       console.log(arrangement)
       this.finishEntry()
     },
@@ -158,8 +158,13 @@ export default {
         siStore.sched_item.arrangement_id = this.arrangement.id
         siStore.sched_item.arrangement_name = this.arrangement.name        
         siStore.sched_item.author = this.arrangement.author
-        siStore.sched_item.copyright = this.arrangement.copyright
-        siStore.sched_item.composer = ''
+        siStore.sched_item.copyright_holder = this.arrangement.copyright_holder
+        siStore.sched_item.copyright_year = this.arrangement.copyright_year
+        siStore.sched_item.start_key = this.arrangement.start_key
+        siStore.sched_item.end_key = this.arrangement.end_key
+        siStore.sched_item.song_text = this.arrangement.lyrics
+        siStore.sched_item.composer = this.arrangement.composer
+        siStore.sched_item.arranger = this.arrangement.arranger
         
         if (this.arrangement.lyrics) {
           siStore.sched_item.song_text = this.arrangement.lyrics
