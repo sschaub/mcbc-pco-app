@@ -1,8 +1,12 @@
 <template>
+    <v-breadcrumbs density="compact">
+      <v-list density="compact">
+        <v-list-item to="/">All Services</v-list-item>
+      </v-list>
+    </v-breadcrumbs>
   <v-container>
     <v-row class="text-center">
       <v-col cols="12">
-        <div><a href="/">Home</a></div>
         <div v-if="!service.name">
           <v-progress-circular indeterminate />
         </div>
@@ -31,6 +35,10 @@
     </v-row>
   </v-container>
 </template>
+
+<style scoped>
+  .v-breadcrumbs { padding: 0px !important; }
+</style>
 
 <script>
 

@@ -24,9 +24,6 @@ FLASK_SECRET_KEY=...FLASK SECRET KEY HERE...
 EMAIL_LIST=...comma-delimited list of email addresses to receive special info submissions...
 ```
 
-In VSCode, open server.py and choose Run > Start Debugging. This will import environment variables
-from .env and start server.py.
-
 ### NodeJS setup
 
 Install NodeJS. Then:
@@ -35,11 +32,17 @@ cd ui
 npm install
 ```
 
+## Start Debugging
+
 To start UI module:
 ```
 cd ui
 npm run dev
 ```
+
+To start API module: In VSCode, in the debug tab, pick Python: Flask and choose Run > Start Debugging. This will import environment variables
+from .env and start server.py.
+
 
 ## Development Setup: Docker
 

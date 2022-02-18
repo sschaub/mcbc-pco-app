@@ -1,26 +1,19 @@
 import sys
-sys.path.insert(1, '../api')
 
-from datetime import datetime
-import requests
+from datetime import datetime, timedelta
 import logging
 import threading
 import time
+import argparse
 
 from db import *
 from const import *
 from utils import *
 
-def subtract_years(dt, years):
-    try:
-        dt = dt.replace(year=dt.year-years)
-    except ValueError:
-        dt = dt.replace(year=dt.year-years, day=dt.day-1)
-    return dt    
-
-def genhistory():
-    today_str = datetime.today().strftime('%Y-%m-%d')
-    after_date_str = subtract_years(datetime.today(), 1).strftime('%Y-%m-%d')
+def genhistory(after_date_str):
+    if not after_date_str:
+        after_date = datetime.today() - timedelta(days=30)
+        after_date_str = after_date.strftime('%Y-%m-%d')
     logging.info(f'Generating history after {after_date_str}')
 
     all_people = Person.query.all()
@@ -29,8 +22,8 @@ def genhistory():
     service_types_url ='https://api.planningcenteronline.com/services/v2/service_types'
     for service_type in pco.iterate(service_types_url):
         service_type_id = service_type['data']['id']
-        plans_url = f"{service_types_url}/{service_type_id}/plans" # ?filter=after,past&per_page=200&after=" + after_date_str
-        for plan in pco.iterate(plans_url, filter='after,past', per_page=50, after=after_date_str):
+        plans_url = f"{service_types_url}/{service_type_id}/plans"
+        for plan in pco.iterate(plans_url, filter='after', per_page=50, after=after_date_str): # filter='after,past'
             plan = plan['data']
             plan_id = plan['id']
             plan_url = f'{plans_url}/{plan_id}'
@@ -40,10 +33,19 @@ def genhistory():
             
             team_members = list(member['data'] for member in pco.iterate(f"{plan_url}/team_members", per_page=50))
 
-            if Service.query.filter_by(service_type_id=service_type_id, plan_id=plan_id).first():
+            service = Service.query.filter_by(service_type_id=service_type_id, plan_id=plan_id).first()
+            if service:
                 # Record already exists
-                print('Already processed (skipping)')
-                continue
+                db.session.execute('''
+                    delete from service_item_person
+                    where service_item_id in (select service_item_id from service_item where service_item.service_id = :service_id)
+                ''', { 'service_id': service.id }) 
+                db.session.execute('''
+                    delete from service_item
+                    where service_id = :service_id
+                ''', { 'service_id': service.id })
+                db.session.delete(service) 
+                db.session.commit()
 
             rows = get_plan_items_with_team(plan_url, team_members)
             service_dt = datetime.strptime(plan_time, '%Y-%m-%dT%H:%M:%SZ') 
@@ -76,7 +78,7 @@ def genhistory():
             num += 1
             # if num > 3:
             #      return
-
+    logging.info(f'History generation complete')
 
 def gen_history_report():
     report_html = ["""
@@ -123,4 +125,15 @@ def gen_history_report():
 
     return report_content
 
-genhistory()
+def main():
+    parser = argparse.ArgumentParser(description='Import PCO service history.')
+    # parser.add_argument('logfile', nargs='?', help='Log file')
+    # parser.add_argument('--debug', help='Debug logging', action='store_true')
+    # parser.add_argument('--no-email', help='No email', action='store_true')
+    parser.add_argument('--after', help='yyyy-mm-dd')
+
+    args = parser.parse_args()
+
+    genhistory(args.after)
+
+main()

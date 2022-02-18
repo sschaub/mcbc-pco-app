@@ -1,10 +1,44 @@
 <template>
   <v-app>
-    
-         <router-view/>
-    
+          <v-app-bar
+            color="blue">
+            <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
+            <v-app-bar-title @click="$router.push('/')" >MCBC Music</v-app-bar-title>
+            <v-spacer></v-spacer>
+          </v-app-bar>
+
+          <v-navigation-drawer
+            v-model="drawer"
+            temporary>
+            <v-list>
+              <v-list-item @click="$router.push('/'); drawer=false">
+                <v-list-item-header>Upcoming Services</v-list-item-header>
+              </v-list-item>
+              <v-list-item @click="navigateTo('https://schedule.mcbcmusic.org/history')">
+                <v-list-item-header>History</v-list-item-header>
+              </v-list-item>
+              <v-list-item @click="navigateTo('https://schedule.mcbcmusic.org/pdf')">
+                <v-list-item-header>Print Schedule</v-list-item-header>
+              </v-list-item>
+              <v-list-item @click="navigateTo('https://www.mcbcmusic.org/')">
+                <v-list-item-header>Music Website</v-list-item-header>
+              </v-list-item>
+              <v-list-item v-if="isAdmin()" @click="navigateTo('https://schedule.mcbcmusic.org/menu')">
+                <v-list-item-header>Admin</v-list-item-header>
+              </v-list-item>
+            </v-list>
+          </v-navigation-drawer>
+          <v-main>
+            <v-sheet border>
+              <router-view/>    
+            </v-sheet>
+          </v-main>
   </v-app>
 </template>
+
+<style>
+.v-app-bar-title { cursor: pointer }
+</style>
 
 <script>
 // import Home from './views/Home.vue'
@@ -19,8 +53,18 @@ export default {
   // },
 
   data: () => ({
+    drawer: false,
+    items: [
+      { title: 'Hi', value: 'bye' }
+    ]
     // global state goes here
   }),
+
+  methods: {
+    navigateTo(url) {
+      window.open(url)
+    }
+  },
 
   mounted() {
     
