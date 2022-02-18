@@ -40,6 +40,7 @@
 .v-app-bar-title { cursor: pointer }
 .ssbreadcrumb { margin-top: 10px; }
 .ssbreadcrumb a { color: black; text-decoration: none;  }
+.error { color: red } /* color: var(--v-error-base) */
 </style>
 
 <script>

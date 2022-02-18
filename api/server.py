@@ -73,8 +73,8 @@ def api_login():
         .filter_by(email = auth.get('username'))\
         .first()
   
-    valid_pw = auth.get('password') == 'mcbc' or auth.get('password') == user.phone
-    if not user or not valid_pw: # check_password_hash(generate_password_hash('mcbc'), auth.get('password')):
+    valid_pw = user and (auth.get('password') == 'mcbc' or auth.get('password') == user.phone)
+    if not valid_pw: # check_password_hash(generate_password_hash('mcbc'), auth.get('password')):
         # returns 401 if user does not exist
         return jsonify({'error': 'Could not verify'}), 401
   

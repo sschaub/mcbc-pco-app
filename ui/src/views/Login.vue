@@ -4,12 +4,17 @@
       <v-col cols="12">      
         <h2>Login</h2>
 
-        <v-text-field v-model="username" label="Email address" type="email" autocomplete="username" />
+        <v-text-field ref="username" v-model="username" label="Email address" type="email" autocomplete="username" />
         <v-text-field v-model="password" label="Password" type="password" autocomplete="current-password" />
-        <p><a href="javascript:" @click="passwordReminder">Password Reminder</a></p>
 
-        <div v-if="errmsg">{{ errmsg }}</div>
+        <div v-if="errmsg" class="error">{{ errmsg }}</div>
+        <div v-if="msg" >{{ msg }}</div>
         <v-btn @click="login()" :disabled="!username.length || !password.length">Login</v-btn>
+        &nbsp;
+        <v-btn @click="$router.go(-1)">Cancel</v-btn>
+
+        <br><br>
+        <p><a href="javascript:" @click="passwordReminder">Password Reminder</a></p>
 
         <div v-if="loading">
           <v-progress-circular indeterminate />
@@ -19,10 +24,10 @@
 
     </v-row>
   </v-container>
+  
 </template>
 
 <script>
-
 
 export default {
   name: 'Login',
@@ -31,6 +36,7 @@ export default {
     username: localStorage.username || '', 
     password: '',
     errmsg: '',
+    msg: '',
     loading: false,
     prevRoute: null
   }),
@@ -39,6 +45,7 @@ export default {
     async login() {
         this.loading = true
         this.errmsg = ''
+        this.msg = ''
         try {
 
           let response = await this.$api.login(this.username.trim(), this.password.trim())
@@ -70,19 +77,27 @@ export default {
     },
 
     async passwordReminder() {
-      if (this.username.trim().length == 0 || this.password.trim().length == 0)
-        return
-
       this.errmsg = ''
+      this.msg = ''
+      if (this.username.trim().length == 0 || this.password.trim().length == 0) {
+        this.msg = 'Enter your email address, then click Password Reminder.'
+        this.$refs.username.focus()
+        return
+      }
+
       this.loading = true
       try {
           let response = await this.$api.passwordReminder(this.username.trim())
-          this.errmsg = response
+          this.msg = response
       } finally {
         this.loading = false
       }
     },
 
+  },
+
+  mounted() {
+    this.$refs.username.focus()
   },
 
     // capture previous route
