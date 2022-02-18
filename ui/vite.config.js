@@ -11,7 +11,8 @@ export default defineConfig({
     // https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vite-plugin
     vuetify({
       autoImport: true,
-      styles: 'expose'
+      // TODO: Uncomment the following line to be able to override vuetify style variables in styles/variables.scss
+      // styles: 'expose'
     }),
   ],
   define: { 'process.env': {} },

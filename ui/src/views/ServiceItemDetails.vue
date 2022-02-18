@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h3>Instrumentation / Personnel</h3>
+    <h3 class="newsection">Instrumentation / Personnel</h3>
     <div v-if="sched_item.genre_note">
       Special type: {{sched_item.genre_note}}
     </div>
@@ -14,7 +14,7 @@
       Other performers: {{sched_item.other_performers}}
     </div>
 
-    <h3>Song Details</h3>
+    <h3 class="newsection">Song Details</h3>
     <div v-if="sched_item.author">
       Author: {{sched_item.author}}
     </div>
@@ -46,7 +46,7 @@
       Ending Key: {{sched_item.end_key}}
     </div>
 
-    <h3>Other Details</h3>
+    <h3 v-if="sched_item.staging_notes || sched_item.song_text" class="newsection">Other Details</h3>
     <div v-if="sched_item.staging_notes">
       <h4>Staging Notes</h4>
       {{sched_item.staging_notes}}
@@ -57,6 +57,10 @@
     </div>
   </div>
 </template>
+
+<style scoped>
+.newsection { margin-top: 30px; }
+</style>
 
 <script>
 

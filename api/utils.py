@@ -37,6 +37,11 @@ def get_plan(service_type_id: int, plan_id: int) -> dict:
 
     team_members = list(member['data'] for member in pco.iterate(plan_url + "/team_members", per_page=50))
 
+    positions = {}
+    for member in team_members:
+        if member['attributes']['team_position_name'] in SERVICE_POSITIONS:
+            positions[member['attributes']['team_position_name'].lower()] = member['attributes']['name']
+
     rows = get_plan_items_with_team(plan_url, team_members)
 
     rows.sort(key=lambda entry: entry['item_seq'])
@@ -49,7 +54,8 @@ def get_plan(service_type_id: int, plan_id: int) -> dict:
         'service': {
             'name': service_name,
             'theme': plan_theme,
-            'songs': cong_songs
+            'songs': cong_songs,
+            'personnel': positions
         },
         'items': rows        
     }

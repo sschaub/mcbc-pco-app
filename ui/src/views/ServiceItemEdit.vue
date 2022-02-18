@@ -55,7 +55,7 @@
             <h4>Other Details</h4>
             <v-textarea v-model="sched_item.song_text" label="Song Text" />
             <v-textarea v-model="sched_item.staging_notes" label="Staging Notes" />
-            <v-btn @click="continueClicked()">Continue</v-btn>
+            <v-btn @click="continueClicked()">Continue</v-btn> &nbsp;
             <v-btn @click="$router.go(-1)">Cancel</v-btn>
           </div>
         </div>

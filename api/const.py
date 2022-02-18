@@ -24,6 +24,7 @@ ITEM_DETAIL_URL = '/services/v2/service_types/{}/plans/{}/items/{}'
 # The ID numbers in the following come from the PCO API https://api.planningcenteronline.com/services/v2/service_types
 SERVICE_TYPES = { 1060129: 'Sunday AM', 1060132: 'Sunday PM', 1060133: 'Wednesday' }
 EDITABLE_ITEMS = ['Prelude Opener', 'Vocal Special', 'Service Opener', 'Instrumental Special', 'Organ Special']
+SERVICE_POSITIONS = ['Songleader', 'Organ', 'Piano', 'Piano 2']
 
 # Configure log message format
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)

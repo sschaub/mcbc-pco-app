@@ -6,14 +6,14 @@
           <h2>Please Review Your Entries</h2>
           <p>Review the information below and click Submit, or click Edit to change.</p>
           <h3>{{ service.name }} {{ item.description }}</h3>
-          <div v-if="item.assigned_to.length">Assigned to: {{ itemPeople(item.assigned_to) }}</div>
           <div>
             Proposed Title: {{ sched_item.title }}
           </div>
           <p v-if="sched_item.arrangement_name">Arrangement: {{ sched_item.arrangement_name }}</p>
           <service-item-details :sched_item="sched_item" :show_copyright_status="false" /> 
-          <v-btn @click="editClicked()">Edit</v-btn>
-          <v-btn :disabled="loading" @click="submitClicked()">Submit</v-btn>
+          <br>
+          <v-btn @click="editClicked()">Edit</v-btn> &nbsp;
+          <v-btn :disabled="loading" @click="submitClicked()">Submit</v-btn> &nbsp;
           <v-btn @click="cancelClicked()">Cancel</v-btn>
         </div>
 
@@ -34,7 +34,7 @@
   </v-container>
 </template>
 
-<style>
+<style scoped>
   h3 { margin-top: 30px }
 </style>
 

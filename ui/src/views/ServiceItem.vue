@@ -1,15 +1,21 @@
 <template>
+  <!-- <v-breadcrumbs divider="-">
+    <v-list>
+      <v-list-item to="/">All Services</v-list-item>
+      <v-list-item :to="`/service/${service_id}`">{{service.name}}</v-list-item>
+    </v-list>
+  </v-breadcrumbs> -->
   <v-container>
     <v-row class="text-center">
-      <div><a href="/">Home</a> &gt; <a :href="`/service/${service_id}`">{{service.name}}</a></div>
+      <div class="ssbreadcrumb"><a href="/">Services</a> &gt; <a :href="`/service/${service_id}`">{{service.name}}</a></div>
       <v-col cols="12">        
         <div v-if="loading">
           <v-progress-circular indeterminate />
         </div>
         <div v-if="service.name">
           <h3>{{service.name}} {{ item.description}}</h3>
-          <h4 v-if="service.theme" >Service Theme: {{ service.theme }}</h4>
-          <div v-if="item.assigned_to.length">Assigned to: {{ itemPeople(item.assigned_to) }}</div>
+          <div v-if="item.assigned_to.length">{{ itemPeople(item.assigned_to) }}</div>
+          <br>
           <div v-if="scheduledTitle()">
             Scheduled Title: {{ scheduledTitle() }}
           </div>
@@ -18,13 +24,21 @@
             <span class="pending"> (Approval Pending)</span>
           </div>
           <p v-if="sched_item.arrangement_name">Arrangement: {{ sched_item.arrangement_name }} <a v-if="arrangementUrl()" :href="arrangementUrl()" target="_blank">[pco]</a></p>
+          <br>
           <v-btn @click="editClicked()">Edit</v-btn>
           <span v-if="isAdmin()">
+            &nbsp;
             <v-btn @click="emailClicked()">Send Email</v-btn>
+            &nbsp;
             <v-btn v-if="isPending()" @click="approveClicked()">Approve</v-btn>
           </span>
-          <br><br>
+          <br>
           <service-item-details v-if="sched_item.title" :sched_item="sched_item"  /> 
+          <br>
+          <div v-if="service.theme">
+            <h3>Service Theme</h3>
+            {{ service.theme }}
+          </div>
           <div v-if="service.songs.length">
             <h3>Note Other Songs In This Service</h3>
             <div v-for="song in service.songs" :key="song.id">
@@ -38,7 +52,7 @@
   </v-container>
 </template>
 
-<style>
+<style scoped>
   h3 { margin-top: 20px }
   .pending { color: red }
 </style>

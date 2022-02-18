@@ -1,28 +1,34 @@
 <template>
-    <v-breadcrumbs density="compact">
-      <v-list density="compact">
-        <v-list-item to="/">All Services</v-list-item>
-      </v-list>
-    </v-breadcrumbs>
+  <!-- <v-breadcrumbs>
+    <v-list>
+      <v-list-item to="/">All Services</v-list-item>
+    </v-list>
+  </v-breadcrumbs> -->
   <v-container>
     <v-row class="text-center">
+      <div class="ssbreadcrumb"><a href="/">Services</a></div>
       <v-col cols="12">
         <div v-if="!service.name">
           <v-progress-circular indeterminate />
         </div>
         <div v-if="service.name">
           <h2>{{ service.name }} Service</h2>
-          <h3 v-if="service.theme" >{{ service.theme }}</h3>
+          <h3 v-if="service.theme" >Theme: {{ service.theme }}</h3>
+
+          <div v-for="position in positions">
+            <div v-if="service.personnel[position.id]">{{position.title}}: {{ service.personnel[position.id] }}</div>
+          </div>
+
           <div v-for="item in items" :key="item.id">
             <h4>{{ item.description}}</h4>
-            <div v-if="item.title != item.description">Title: {{ item.title}}</div>
-            <div v-if="item.arrangement">Arrangement: {{ item.arrangement}}</div>            
-            <div v-if="item.assigned_to.length">Assigned to: {{ itemPeople(item.assigned_to) }}</div>
+            <div v-if="item.title != item.description">{{ item.title}}</div>
+            <div v-if="item.assigned_to.length">{{ itemPeople(item.assigned_to) }}</div>
             <v-btn :href="toPath(item.id)" text="Details"/>
             
           </div>
 
           <div v-if="service.songs.length">
+            <br>
             <h3>Congregational Songs</h3>
             <div v-for="song in service.songs" :key="song.id">
                   <p v-if="song.description.includes('Song')">{{ song.title }} <span v-if="song.arrangement">- {{ song.arrangement }}</span></p>
@@ -51,7 +57,13 @@ export default {
 
   data: () => ({
     items: [],
-    service: {}, 
+    service: {},
+    positions: [
+      { id: 'songleader', title: 'Songleader'}, 
+      { id: 'organ', title: 'Organ' },
+      { id: 'piano', title: 'Piano' },
+      { id: 'piano 2', title: 'Piano 2' }
+      ]
   }),  
 
   methods: {

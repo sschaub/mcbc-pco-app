@@ -6,7 +6,7 @@
           <v-progress-circular indeterminate />
         </div>
         <div v-if="!loading">
-          <h2>Services</h2>
+          <h2>Upcoming Services</h2>
           <ul v-for="service in serviceList" :key="service.id">
             <v-btn :href="toPath(service.id)">
               {{ service.name }}

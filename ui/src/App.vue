@@ -3,7 +3,7 @@
           <v-app-bar
             color="blue">
             <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
-            <v-app-bar-title @click="$router.push('/')" >MCBC Music</v-app-bar-title>
+            <v-app-bar-title @click="$router.push('/')">MCBC Music</v-app-bar-title>
             <v-spacer></v-spacer>
           </v-app-bar>
 
@@ -11,7 +11,7 @@
             v-model="drawer"
             temporary>
             <v-list>
-              <v-list-item @click="$router.push('/'); drawer=false">
+              <v-list-item @click="navToPage('/')">
                 <v-list-item-header>Upcoming Services</v-list-item-header>
               </v-list-item>
               <v-list-item @click="navigateTo('https://schedule.mcbcmusic.org/history')">
@@ -38,6 +38,8 @@
 
 <style>
 .v-app-bar-title { cursor: pointer }
+.ssbreadcrumb { margin-top: 10px; }
+.ssbreadcrumb a { color: black; text-decoration: none;  }
 </style>
 
 <script>
@@ -63,6 +65,11 @@ export default {
   methods: {
     navigateTo(url) {
       window.open(url)
+      this.drawer = false
+    },
+    navToPage(path) {
+      this.$router.push(path)
+      this.drawer = false
     }
   },
 
