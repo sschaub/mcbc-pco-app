@@ -113,8 +113,8 @@ class ApiService {
         return this.post(`/services/${service_id}/${item_id}/edit`)
     }
 
-    updateServiceItem(service_id, item_id, itemData) {
-        return this.post(`/services/${service_id}/${item_id}`, itemData)
+    updateServiceItem(service_id, item_id, itemData, sendEmail) {
+        return this.post(`/services/${service_id}/${item_id}`, { item: itemData, sendEmail: sendEmail })
     }
 
     approveServiceItem(service_id, item_id) {
@@ -124,6 +124,10 @@ class ApiService {
     approveCopyright(service_type_id, plan_id, item_id) {
         return this.post(`/services/${service_type_id}-${plan_id}/${item_id}/approve_copyright`)
     }
+
+    importServiceItem(service_id, item_id, importArrangementName) {
+        return this.post(`/services/${service_id}/${item_id}/import`, { import_arrangement_name: importArrangementName })
+    }    
 
     searchSongs(title) {
         return this.get(`/song_search?title=${title}`)

@@ -331,7 +331,7 @@ def begin_edit_item(service_type_id: int, plan_id: int, item: dict) -> SchedSpec
 def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id, version_no, song_id, arrangement_id, 
                 arrangement_name, title, copyright_year, copyright_holder, author, translator, composer, 
                 arranger, genre_note, solo_instruments, accomp_instruments, other_performers,
-                staging_notes, song_text, start_key, end_key):
+                staging_notes, song_text, start_key, end_key, do_send_email=False):
 
     def row(header, new_value, old_value, link='', extra_text=''):
         if new_value or old_value:
@@ -466,7 +466,7 @@ def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id
     db.session.commit()
     success = result.rowcount == 1
 
-    if success:
+    if success and do_send_email:
         
         send_email(replyEmail=current_user.email, replyName=current_user.name,
             subject=f'{service_name} {sched_spec.description}',

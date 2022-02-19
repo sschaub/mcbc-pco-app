@@ -175,10 +175,45 @@ def api_service_item(service_id: str, item_id: str):
 
     return '{}'
 
+@app.route('/services/<service_id>/<item_id>', methods=['POST'])
+@token_required
+def api_update_service_item(current_user: Person, service_id: str, item_id: str):
+    service_type_id, plan_id = service_id.split('-')
+    
+    item_data = get_plan_item(int(service_type_id), int(plan_id), int(item_id))
+    data = request.json
+    item_new_data = data['item']
+    do_send_email = data['sendEmail']
+
+    if save_item(current_user, item_data, int(service_type_id), int(plan_id), int(item_id), 
+        version_no=item_new_data.get('version_no'),
+        song_id=item_new_data.get('song_id'), 
+        arrangement_id=item_new_data.get('arrangement_id'),
+        arrangement_name=item_new_data.get('arrangement_name'),
+        title=item_new_data.get('title'), 
+        copyright_year=item_new_data.get('copyright_year'), 
+        copyright_holder=item_new_data.get('copyright_holder'), 
+        author=item_new_data.get('author'), 
+        translator=item_new_data.get('translator'), 
+        composer=item_new_data.get('composer'), 
+        arranger=item_new_data.get('arranger'), 
+        genre_note=item_new_data.get('genre_note'), 
+        solo_instruments=item_new_data.get('solo_instruments'), 
+        accomp_instruments=item_new_data.get('accomp_instruments'), 
+        other_performers=item_new_data.get('other_performers'), 
+        staging_notes=item_new_data.get('staging_notes'), 
+        song_text=item_new_data.get('song_text'),
+        start_key=item_new_data.get('start_key'),
+        end_key=item_new_data.get('end_key'),
+        do_send_email=do_send_email):
+
+        return { 'result': 'OK' }
+    else:
+        return { 'result': 'Record Changed' }
+
 @app.route('/services/<service_id>/<item_id>/edit', methods=['POST'])
 @token_required
 def api_begin_edit_service_item(current_user: Person, service_id: str, item_id: str):
-    print(current_user)
     service_type_id, plan_id = service_id.split('-')
     data = get_plan_item(int(service_type_id), int(plan_id), int(item_id))
 
@@ -225,6 +260,14 @@ def api_approve_service_item(current_user: Person, service_id: str, item_id: str
             plan_id=plan_id,
             item_id=item_id).first()
 
+    pco_assign_song_to_plan_item(item_id, service_type_id, plan_id, sched_spec)
+    
+    sched_spec.status = SchedSpecial.STATUS_APPROVED
+    db.session.commit()    
+    
+    return { 'result': 'OK' }
+
+def pco_assign_song_to_plan_item(item_id, service_type_id, plan_id, sched_spec):
     url = f'/services/v2/service_types/{service_type_id}/plans/{plan_id}/items/{item_id}'
     templ = pco.template('Item', {'title': sched_spec.title})
     templ['data']['relationships'] = { }
@@ -244,44 +287,74 @@ def api_approve_service_item(current_user: Person, service_id: str, item_id: str
         }
     
     pco.patch(url, templ)
-    
-    sched_spec.status = SchedSpecial.STATUS_APPROVED
-    db.session.commit()    
-    
-    return { 'result': 'OK' }
 
-@app.route('/services/<service_id>/<item_id>', methods=['POST'])
+@app.route('/services/<service_id>/<item_id>/import', methods=['POST'])
 @token_required
-def api_update_service_item(current_user: Person, service_id: str, item_id: str):
-    service_type_id, plan_id = service_id.split('-')
-    
-    item_data = get_plan_item(int(service_type_id), int(plan_id), int(item_id))
+def api_import_service_item(current_user: Person, service_id: str, item_id: str):
+    if current_user.user_type != Person.USER_TYPE_ADMIN:
+        return { 'result': 'Unauthorized' }, 401
+
+    service_type_id, plan_id = service_id.split('-')    
+
+    sched_spec = SchedSpecial.query.filter_by(
+            service_type_id=service_type_id,
+            plan_id=plan_id,
+            item_id=item_id).first()
+
+    if not sched_spec:
+        return { 'result': 'Not found' }, 404
+
     data = request.json
+    import_arrangement_name = data['import_arrangement_name']
 
-    if save_item(current_user, item_data, int(service_type_id), int(plan_id), int(item_id), 
-        version_no=data.get('version_no'),
-        song_id=data.get('song_id'), 
-        arrangement_id=data.get('arrangement_id'),
-        arrangement_name=data.get('arrangement_name'),
-        title=data.get('title'), 
-        copyright_year=data.get('copyright_year'), 
-        copyright_holder=data.get('copyright_holder'), 
-        author=data.get('author'), 
-        translator=data.get('translator'), 
-        composer=data.get('composer'), 
-        arranger=data.get('arranger'), 
-        genre_note=data.get('genre_note'), 
-        solo_instruments=data.get('solo_instruments'), 
-        accomp_instruments=data.get('accomp_instruments'), 
-        other_performers=data.get('other_performers'), 
-        staging_notes=data.get('staging_notes'), 
-        song_text=data.get('song_text'),
-        start_key=data.get('start_key'),
-        end_key=data.get('end_key')):
+    url = f'/services/v2/service_types/{service_type_id}/plans/{plan_id}/items/{item_id}'
 
-        return { 'result': 'OK' }
+    authors = []
+    if sched_spec.author:
+        authors.append(f"{sched_spec.author} (text)")
+    if sched_spec.composer:
+        authors.append(f"{sched_spec.composer} (tune)")
+    author = ', '.join(authors)
+    copyright = ''
+    if sched_spec.copyright_year:
+        copyright = f'Copyright {sched_spec.copyright_year} '
+    if sched_spec.copyright_holder:
+        copyright += sched_spec.copyright_holder
+
+    payload = pco.template('Song', {
+        'title': sched_spec.title,
+        'author': author,
+        'copyright': copyright
+    })
+
+    if sched_spec.song_id:
+        song = pco.patch(f'/services/v2/songs/{sched_spec.song_id}', payload)
     else:
-        return { 'result': 'Record Changed' }
+        song = pco.post('/services/v2/songs', payload)
+        sched_spec.song_id = song['data']['id']
+        arrangements = pco.get(f'/services/v2/songs/{sched_spec.song_id}/arrangements')
+        arrangement = arrangements['data'][0]
+        sched_spec.arrangement_id = arrangement['id']
+
+    sched_spec.arrangement_name = import_arrangement_name
+
+    payload = pco.template('Arrangement', {
+        'name': sched_spec.arrangement_name,
+        'chord_chart': sched_spec.song_text,
+        'chord_chart_key': 'C'
+    })
+
+    if sched_spec.arrangement_id:
+        pco.patch(f'/services/v2/songs/{sched_spec.song_id}/arrangements/{sched_spec.arrangement_id}', payload)
+    else:
+        arrangement = pco.post(f'/services/v2/songs/{sched_spec.song_id}/arrangements', payload)
+        sched_spec.arrangement_id = arrangement['id']
+
+    db.session.commit()
+
+    pco_assign_song_to_plan_item(item_id, service_type_id, plan_id, sched_spec)    
+
+    return { 'result': 'OK' }
 
 @app.route('/song_search')
 def api_song_search():

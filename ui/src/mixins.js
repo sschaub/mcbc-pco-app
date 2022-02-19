@@ -11,7 +11,7 @@ export default {
         },
 
         isPending() {
-            return this.sched_item.status == ITEM_STATUS_PENDING
+            return this.sched_item.status == ITEM_STATUS_PENDING && this.sched_item.title
         },
         isCopyrightOk() {
             return this.sched_item.copyright_license_status == COPYRIGHT_STATUS_APPROVED

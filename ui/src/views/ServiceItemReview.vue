@@ -14,6 +14,7 @@
           <br>
           <v-btn @click="editClicked()">Edit</v-btn> &nbsp;
           <v-btn :disabled="loading" @click="submitClicked()">Submit</v-btn> &nbsp;
+          <v-btn v-if="isAdmin()" :disabled="loading" @click="saveClicked()">Save</v-btn> &nbsp;
           <v-btn @click="cancelClicked()">Cancel</v-btn>
         </div>
 
@@ -60,13 +61,24 @@ export default {
   }),  
 
   methods: {
-    async submitClicked() {
+    saveClicked() {
+      this.updateItem(false)
+    },
+
+    submitClicked() {
+      this.updateItem(true)
+    },
+
+    async updateItem(sendEmail) {
       console.log(`Version: ${this.sched_item.version_no}`)
       try {
         this.loading = true
-        let response = await this.$api.updateServiceItem(this.service_id, this.item_id, this.sched_item)
+        let response = await this.$api.updateServiceItem(this.service_id, this.item_id, this.sched_item, sendEmail)
         if (response.result == 'OK') {
-          this.mode = 'finished'
+          if (sendEmail)
+            this.mode = 'finished'
+          else
+            this.$router.go(-2)
         } else {
           alert('Someone else has changed this entry while you were editing it. Click Cancel, then try again.')
         }

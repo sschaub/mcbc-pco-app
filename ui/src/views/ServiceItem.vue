@@ -31,7 +31,24 @@
             <v-btn @click="emailClicked()">Send Email</v-btn>
             &nbsp;
             <v-btn v-if="isPending()" @click="approveClicked()">Approve</v-btn>
+            &nbsp;
+            <v-btn v-if="!isPending() && sched_item.title" @click="showImport = true">Import to PCO</v-btn>
           </span>
+
+          <div v-if="showImport">
+            <v-container>
+              <v-row>
+                <v-col>
+                  <v-text-field v-model="sched_item.arrangement_name" label="Arrangement Name (ex. SATB - Forrest)" />
+                </v-col>
+                <v-col cols="4">
+                  <v-btn :disabled="!sched_item.arrangement_name.length" @click="doImport()">Import</v-btn>&nbsp;
+                  <v-btn @click="showImport = false">Cancel</v-btn>
+                </v-col>
+              </v-row>
+            </v-container>
+          </div>
+
           <br>
           <service-item-details v-if="sched_item.title" :sched_item="sched_item"  /> 
           <br>
@@ -75,7 +92,8 @@ export default {
     item: {},
     service: {}, 
     sched_item: {},
-    loading: true
+    loading: true,
+    showImport: false
   }),  
 
   methods: {
@@ -105,6 +123,7 @@ export default {
       siStore.item = siStore.sched_item = siStore.service = {}
       this.$router.push({ path: `/service/${this.service_id}/${this.item_id}/edit` })
     },
+
     emailClicked() {
       let toList = this.item.assigned_to.map(p => p.email).join(',')
       let body = location.href
@@ -127,6 +146,16 @@ export default {
           let subject = this.service.name + " " + this.item.description
           location = "mailto:" + toList + "?subject=" + encodeURI(subject) + "&body=" + encodeURI(body)
         }
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async doImport() {
+      try {
+        this.loading = true
+        let response = await this.$api.importServiceItem(this.service_id, this.item_id, this.sched_item.arrangement_name)
+        this.showImport = false
       } finally {
         this.loading = false
       }
