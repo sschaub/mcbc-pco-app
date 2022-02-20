@@ -1,7 +1,7 @@
 import pypco
 import logging
 import os
-from config import PCO_APP_ID, PCO_SECRET, PCO_WEBAPP_LOGIN_USERNAME, PCO_WEBAPP_LOGIN_PASSWORD
+from config import PCO_APP_ID, PCO_SECRET, PCO_WEBAPP_LOGIN_USERNAME, PCO_WEBAPP_LOGIN_PASSWORD, LOG_LEVEL
 
 pco = pypco.PCO(PCO_APP_ID, PCO_SECRET)
 
@@ -26,5 +26,6 @@ SERVICE_TYPES = { 1060129: 'Sunday AM', 1060132: 'Sunday PM', 1060133: 'Wednesda
 EDITABLE_ITEMS = ['Prelude Opener', 'Vocal Special', 'Service Opener', 'Instrumental Special', 'Organ Special']
 SERVICE_POSITIONS = ['Songleader', 'Organ', 'Piano', 'Piano 2']
 
+
 # Configure log message format
-logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s %(message)s', level=getattr(logging, LOG_LEVEL.upper()))

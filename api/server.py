@@ -85,7 +85,7 @@ def api_login():
     # generate the JWT Token
     token = jwt.encode({
         'public_id': user.userid,
-        'exp' : datetime.utcnow() + timedelta(days = 30)
+        'exp' : datetime.utcnow() + timedelta(days = 365)
     }, app.config['SECRET_KEY'], algorithm="HS256")
 
     return jsonify({'token' : token, 'user': { 'user_type': user.user_type, 'email': user.email }}), 201
@@ -127,10 +127,8 @@ def get_upcoming_plans():
 def api_services():
 
     def get_plans(url, service_type_name, service_type_id):
-        logging.info(f'Getting plans for {url}')
         for plan in pco.iterate(url):
             plans.append([service_type_id, service_type_name, plan['data']])
-        logging.info(f'Finished getting plans for {url}')
 
     threads = []
     plans = []
@@ -145,7 +143,8 @@ def api_services():
         t.join()
                     
     services = list(
-        { 'id': f"{service_type_id}-{plan['id']}", 'name': service_type_name + ' ' + plan['attributes']['dates'] }
+        { 'id': f"{service_type_id}-{plan['id']}", 'name': service_type_name + ' ' + plan['attributes']['dates'], 
+            'service_date': plan['attributes']['dates'], 'service_type': service_type_name, 'plan_theme': plan['attributes']['title'] }
         for (service_type_id, service_type_name, plan) in sorted(plans, key=lambda plan_tuple: plan_tuple[2]['attributes']['sort_date']))
 
     return jsonify(services)
@@ -156,6 +155,41 @@ def api_service(id: str):
     
     data = get_plan(service_type_id, plan_id)
     return jsonify(data)
+
+@app.route('/services/<service_id>/recommended_songs', methods=['GET'])
+def api_service_recommended_songs(service_id: str):
+    service_type_id, plan_id = service_id.split('-')
+
+    tag_ids = [str(tag.tag_id) for tag in ServiceTag.query.filter_by(service_type_id=service_type_id, plan_id=plan_id)]
+
+    if len(tag_ids):
+        data = get_songs({
+            'where[song_tag_ids]': ','.join(tag_ids),        
+        })
+    else:
+        data = []
+
+    return jsonify(data)
+
+@app.route('/services/<service_id>/tags', methods=['POST'])
+@token_required
+def api_update_service_tags(current_user: Person, service_id: str):
+    if current_user.user_type != Person.USER_TYPE_ADMIN:
+        return { 'result': 'Unauthorized' }, 401
+
+    service_type_id, plan_id = service_id.split('-')
+
+    tags = request.json['tags']
+
+    db.session.execute('''delete from service_tag where service_type_id = :service_type_id and plan_id = :plan_id''',
+        { 'service_type_id': service_type_id, 'plan_id': plan_id })
+
+    for tag_id in tags:
+        db.session.add(ServiceTag(service_type_id=service_type_id, plan_id=plan_id, tag_id=tag_id))
+
+    db.session.commit()
+
+    return { 'result': 'OK' }
 
 @app.route('/services/<service_id>/<item_id>', methods=['GET'])
 def api_service_item(service_id: str, item_id: str):
@@ -202,6 +236,7 @@ def api_update_service_item(current_user: Person, service_id: str, item_id: str)
         accomp_instruments=item_new_data.get('accomp_instruments'), 
         other_performers=item_new_data.get('other_performers'), 
         staging_notes=item_new_data.get('staging_notes'), 
+        ministry_location=item_new_data.get('ministry_location'), 
         song_text=item_new_data.get('song_text'),
         start_key=item_new_data.get('start_key'),
         end_key=item_new_data.get('end_key'),
@@ -220,8 +255,7 @@ def api_begin_edit_service_item(current_user: Person, service_id: str, item_id: 
     if data:
         item = data['item']
         sched_item = begin_edit_item(service_type_id, plan_id, item)
-        if item['title'] == item['description']:
-            item['title'] = ''
+        
         return jsonify({
             'service': data['service'],
             'item': item,
@@ -321,15 +355,20 @@ def api_import_service_item(current_user: Person, service_id: str, item_id: str)
     if sched_spec.copyright_holder:
         copyright += sched_spec.copyright_holder
 
-    payload = pco.template('Song', {
+    song_attrs = {        
         'title': sched_spec.title,
-        'author': author,
-        'copyright': copyright
-    })
+        'author': author
+    }
+    if not sched_spec.song_id:
+        # Only do copyright for a new song (don't want to override song-wide copyright for existing song)
+        song_attrs['copyright'] = copyright
+    payload = pco.template('Song', song_attrs)
 
     if sched_spec.song_id:
+        new_song = False
         song = pco.patch(f'/services/v2/songs/{sched_spec.song_id}', payload)
     else:
+        new_song = True
         song = pco.post('/services/v2/songs', payload)
         sched_spec.song_id = song['data']['id']
         arrangements = pco.get(f'/services/v2/songs/{sched_spec.song_id}/arrangements')
@@ -337,43 +376,57 @@ def api_import_service_item(current_user: Person, service_id: str, item_id: str)
         sched_spec.arrangement_id = arrangement['id']
 
     sched_spec.arrangement_name = import_arrangement_name
-
-    payload = pco.template('Arrangement', {
+    if sched_spec.arrangement_id and not new_song:
+        arrangement = pco.get(f'/services/v2/songs/{sched_spec.song_id}/arrangements/{sched_spec.arrangement_id}')
+        notes = arrangement['data']['attributes']['notes'] or ''
+    else:
+        notes = ''
+        
+    arr_attrs = {
         'name': sched_spec.arrangement_name,
-        'chord_chart': sched_spec.song_text,
-        'chord_chart_key': 'C'
-    })
+    }
+    if sched_spec.song_text:
+        arr_attrs['chord_chart'] = sched_spec.song_text
+        arr_attrs['chord_chart_key'] = 'C'
+
+    notes_lines = notes.split('\n')
+    # Remove lines from notes that contain information we're going to add
+    notes_lines = [line for line in notes_lines if line and not (
+        line.startswith('Arranger:') or line.startswith('Copyright') or line.startswith('Translator:')
+        or line.startswith('Author:') or line.startswith('Composer')
+        )]
+    if sched_spec.arranger:
+        notes_lines.append(f'Arranger: {sched_spec.arranger}')
+    if sched_spec.translator:
+        notes_lines.append(f'Translator: {sched_spec.translator}')
+    if sched_spec.author:
+        notes_lines.append(f'Author: {sched_spec.author}')
+    if sched_spec.composer:
+        notes_lines.append(f'Composer: {sched_spec.composer}')
+    if copyright:
+        notes_lines.append(f'{copyright}')
+
+    arr_attrs['notes'] = '\n'.join(notes_lines)    
+    payload = pco.template('Arrangement', arr_attrs)
 
     if sched_spec.arrangement_id:
         pco.patch(f'/services/v2/songs/{sched_spec.song_id}/arrangements/{sched_spec.arrangement_id}', payload)
     else:
         arrangement = pco.post(f'/services/v2/songs/{sched_spec.song_id}/arrangements', payload)
-        sched_spec.arrangement_id = arrangement['id']
+        sched_spec.arrangement_id = arrangement['data']['id']
 
     db.session.commit()
 
     pco_assign_song_to_plan_item(item_id, service_type_id, plan_id, sched_spec)    
 
-    return { 'result': 'OK' }
+    return { 'result': 'OK', 'song_id': sched_spec.song_id, 'arrangement_id': sched_spec.arrangement_id, 'arrangement_name': sched_spec.arrangement_name }
 
 @app.route('/song_search')
 def api_song_search():
-    title = request.args['title']
-    params = {
-        'where[title]': title
-    }
-    songs = pco.get('/services/v2/songs', **params)
-    song_list = [{
-        'id': song['id'],
-        'title': song['attributes']['title'],
-        'author': song['attributes']['author'],
-        'copyright': song['attributes']['copyright'],
-    } for song in songs['data']]
 
-    # for song in song_list:
-    #     song['last_used'] = get_song_last_used(song['id'])
-
-    song_list.sort(key=lambda song: song['title'])
+    song_list = get_songs({
+        'where[title]': request.args['title']
+    })
     
     return jsonify(song_list)
 
@@ -410,6 +463,12 @@ def api_song(song_id):
     song = get_song(int(song_id))
 
     return jsonify(song)
+
+@app.route('/tags')
+def api_tags():
+    tags = [sqlorm_object_as_dict(tag) for tag in SongTag.query.all()]
+    
+    return jsonify(tags)
 
 
 @app.route('/menu')

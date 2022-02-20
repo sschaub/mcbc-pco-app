@@ -2,13 +2,16 @@
   <v-app>
           <v-app-bar
             color="blue">
-            <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
-            <v-app-bar-title @click="$router.push('/')">MCBC Music</v-app-bar-title>
+            <v-icon v-if="$route.name != 'Home'" @click="$router.go(-1)" class="back-arrow">mdi-chevron-left</v-icon>
             <v-spacer></v-spacer>
+            <v-app-bar-title>MCBC Music</v-app-bar-title>
+            <v-spacer></v-spacer>
+            <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
           </v-app-bar>
 
           <v-navigation-drawer
             v-model="drawer"
+            position="right"
             temporary>
             <v-list>
               <v-list-item @click="navToPage('/')">
@@ -36,11 +39,16 @@
   </v-app>
 </template>
 
+<style scoped>
+.back-arrow { cursor: pointer }
+</style>
+
 <style>
-.v-app-bar-title { cursor: pointer }
+.app-list { max-width: 400px; }
+.subhead { margin-top: 20px; margin-bottom: 10px;  }
+.error { color: red } /* color: var(--v-error-base) */
 .ssbreadcrumb { margin-top: 10px; }
 .ssbreadcrumb a { color: black;  }
-.error { color: red } /* color: var(--v-error-base) */
 </style>
 
 <script>

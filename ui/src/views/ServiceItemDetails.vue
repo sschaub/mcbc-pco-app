@@ -11,7 +11,7 @@
       Accompaniment instruments: {{sched_item.accomp_instruments}}
     </div>
     <div v-if="sched_item.other_performers">
-      Other performers: {{sched_item.other_performers}}
+      Other musicians: {{sched_item.other_performers}}
     </div>
 
     <h3 class="newsection">Song Details</h3>
@@ -30,7 +30,7 @@
     <div v-if="sched_item.copyright_year || sched_item.copyright_holder">
       Copyright: {{sched_item.copyright_year}} {{sched_item.copyright_holder}}
       <span v-if="show_copyright_status">
-        <span v-if="isCopyrightOk()">
+        <span v-if="isCopyrightOk(sched_item)">
           <img src="/public/pass.png">
         </span>
         <span v-else>
@@ -39,16 +39,15 @@
         </span>
       </span>
     </div>
-    <div v-if="sched_item.start_key">
-      Starting Key: {{sched_item.start_key}}
-    </div>
-    <div v-if="sched_item.end_key">
-      Ending Key: {{sched_item.end_key}}
+    <div v-if="sched_item.start_key || sched_item.end_key">
+      Keys: {{sched_item.start_key}} - {{sched_item.end_key}}
     </div>
 
-    <h3 v-if="sched_item.staging_notes || sched_item.song_text" class="newsection">Other Details</h3>
-    <div v-if="sched_item.staging_notes">
+    <h3 class="newsection">Other Details</h3>
+    
+    <div>
       <h4>Staging Notes</h4>
+      <div>Location: {{sched_item.ministry_location}}</div>
       {{sched_item.staging_notes}}
     </div>
     <div v-if="sched_item.song_text">

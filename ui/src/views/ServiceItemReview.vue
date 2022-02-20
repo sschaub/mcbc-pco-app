@@ -2,15 +2,15 @@
   <v-container>
     <v-row class="text-center">
       <v-col cols="12">
-        <div v-if="service.name && mode == 'review'">
+        <div v-if="siStore.service.name && mode == 'review'">
           <h2>Please Review Your Entries</h2>
           <p>Review the information below and click Submit, or click Edit to change.</p>
-          <h3>{{ service.name }} {{ item.description }}</h3>
+          <h3>{{ siStore.service.name }} {{ siStore.item.description }}</h3>
           <div>
-            Proposed Title: {{ sched_item.title }}
+            Proposed Title: {{ siStore.sched_item.title }}
           </div>
-          <p v-if="sched_item.arrangement_name">Arrangement: {{ sched_item.arrangement_name }}</p>
-          <service-item-details :sched_item="sched_item" :show_copyright_status="false" /> 
+          <p v-if="siStore.sched_item.arrangement_name">Arrangement: {{ siStore.sched_item.arrangement_name }}</p>
+          <service-item-details :sched_item="siStore.sched_item" :show_copyright_status="false" /> 
           <br>
           <v-btn @click="editClicked()">Edit</v-btn> &nbsp;
           <v-btn :disabled="loading" @click="submitClicked()">Submit</v-btn> &nbsp;
@@ -54,9 +54,7 @@ export default {
 
   data: () => ({
     loading: false,
-    item: siStore.item,
-    service: siStore.service, 
-    sched_item: siStore.sched_item,
+    siStore: siStore,
     mode: 'review'
   }),  
 
@@ -70,10 +68,11 @@ export default {
     },
 
     async updateItem(sendEmail) {
-      console.log(`Version: ${this.sched_item.version_no}`)
+      console.log(`Version: ${siStore.sched_item.version_no}`)
       try {
         this.loading = true
-        let response = await this.$api.updateServiceItem(this.service_id, this.item_id, this.sched_item, sendEmail)
+
+        let response = await this.$api.updateServiceItem(this.service_id, this.item_id, siStore.sched_item, sendEmail)
         if (response.result == 'OK') {
           if (sendEmail)
             this.mode = 'finished'
@@ -99,7 +98,7 @@ export default {
 
   mounted() {
     //console.log(`Version: ${this.sched_item.version_no}`)
-    if (!this.item.id) {
+    if (!siStore.item.id) {
       this.$router.go(-1)
     }
     scrollTo(0,0)

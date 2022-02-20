@@ -5,16 +5,17 @@
       <v-list-item :to="`/service/${service_id}`">{{service.name}}</v-list-item>
     </v-list>
   </v-breadcrumbs> -->
-  <v-container>
+  <v-container fluid>
+    <div v-if="loading" class="text-center">
+      <v-progress-circular indeterminate  />
+    </div>
     <v-row class="text-center">
-      <div class="ssbreadcrumb"><a href="/">Services</a> &gt; <a :href="`/service/${service_id}`">{{service.name}}</a></div>
-      <v-col cols="12">        
-        <div v-if="loading">
-          <v-progress-circular indeterminate />
-        </div>
-        <div v-if="service.name">
-          <h3>{{service.name}} {{ item.description}}</h3>
-          <div v-if="item.assigned_to.length">{{ itemPeople(item.assigned_to) }}</div>
+      <!-- <div class="ssbreadcrumb"><a href="/">Services</a> &gt; <a :href="`/service/${service_id}`">{{service.name}}</a></div> -->
+      <v-col cols="12" sm="6" md="6">
+        <div v-if="siStore.service.name">
+          <h3><a @click="toService()" style="text-decoration: underline">{{siStore.service.name}}</a></h3>
+          <h2>{{ siStore.item.description}}</h2>
+          <div v-if="siStore.item.assigned_to.length">{{ itemPeople(siStore.item.assigned_to) }}</div>
           <br>
           <div v-if="scheduledTitle()">
             Scheduled Title: {{ scheduledTitle() }}
@@ -23,26 +24,31 @@
             Proposed Title: {{ proposedTitle() }} <a v-if="songUrl()" :href="songUrl()" target="_blank">[pco]</a>
             <span class="pending"> (Approval Pending)</span>
           </div>
-          <p v-if="sched_item.arrangement_name">Arrangement: {{ sched_item.arrangement_name }} <a v-if="arrangementUrl()" :href="arrangementUrl()" target="_blank">[pco]</a></p>
+          <p v-if="siStore.sched_item.arrangement_name">Arrangement: {{ siStore.sched_item.arrangement_name }} <a :href="arrangementUrl()" target="_blank">[pco]</a></p>
           <br>
           <v-btn @click="editClicked()">Edit</v-btn>
           <span v-if="isAdmin()">
             &nbsp;
             <v-btn @click="emailClicked()">Send Email</v-btn>
             &nbsp;
-            <v-btn v-if="isPending()" @click="approveClicked()">Approve</v-btn>
+            <v-btn v-if="isPending(siStore.sched_item)" @click="approveClicked()">Approve <v-icon
+                dark
+                right
+              >
+                mdi-checkbox-marked-circle
+              </v-icon></v-btn>
             &nbsp;
-            <v-btn v-if="!isPending() && sched_item.title" @click="showImport = true">Import to PCO</v-btn>
+            <v-btn v-if="!isPending(siStore.sched_item) && siStore.sched_item.title" @click="showImport = true">Import to PCO</v-btn>            
           </span>
 
           <div v-if="showImport">
             <v-container>
               <v-row>
                 <v-col>
-                  <v-text-field v-model="sched_item.arrangement_name" label="Arrangement Name (ex. SATB - Forrest)" />
+                  <v-text-field v-model="importArrangementName" label="Arrangement Name (ex. SATB - Forrest)" />
                 </v-col>
                 <v-col cols="4">
-                  <v-btn :disabled="!sched_item.arrangement_name.length" @click="doImport()">Import</v-btn>&nbsp;
+                  <v-btn :disabled="!importArrangementName" @click="doImport()">Import</v-btn>&nbsp;
                   <v-btn @click="showImport = false">Cancel</v-btn>
                 </v-col>
               </v-row>
@@ -50,28 +56,35 @@
           </div>
 
           <br>
-          <service-item-details v-if="sched_item.title" :sched_item="sched_item"  /> 
-          <br>
-          <div v-if="service.theme">
-            <h3>Service Theme</h3>
-            {{ service.theme }}
-          </div>
-          <div v-if="service.songs.length">
-            <h3>Note Other Songs In This Service</h3>
-            <div v-for="song in service.songs" :key="song.id">
-                  <p>{{song.description}}: {{ song.title }} <span v-if="song.arrangement">- {{ song.arrangement }}</span></p>
-            </div>
-          </div>
+          <service-item-details v-if="siStore.sched_item.title" :sched_item="siStore.sched_item"  /> 
         </div>
       </v-col>
+      <v-col cols="12" sm="6" md="6">
+          <div v-if="siStore.service.theme">
+            <h3>Service Theme</h3>
+            {{ siStore.service.theme }}
+          </div>
+          <div v-if="songs.length">
+            <h3>Other Songs In This Service</h3>
+            <v-list v-for="song in songs" :key="song.id" class="mx-auto app-list">
+              <v-list-item lines="three" density="compact" class="text-left">
+                <v-list-item-header>
+                  <v-list-item-title>{{ song.title }}</v-list-item-title>
+                  <v-list-item-subtitle>{{song.description}} <br> {{ song.arrangement }}</v-list-item-subtitle>
+                </v-list-item-header>
+              </v-list-item>
+            </v-list>            
+          </div>
 
+      </v-col>
     </v-row>
   </v-container>
 </template>
 
 <style scoped>
-  h3 { margin-top: 20px }
-  .pending { color: red }
+h3 { margin-top: 20px }
+.pending { color: red }
+.v-list, .v-list-item { padding: 4px !important; }  
 </style>
 
 <script>
@@ -89,47 +102,59 @@ export default {
   },
 
   data: () => ({
-    item: {},
-    service: {}, 
-    sched_item: {},
+    siStore: siStore,
     loading: true,
-    showImport: false
+    showImport: false,
+    importArrangementName: ''
   }),  
 
+  computed: {
+    songs() {
+      if (!siStore.service.songs) {
+        return []
+      }
+      return siStore.service.songs.filter( song => song.title )
+    }
+  },
+
   methods: {
+    toService() {
+      this.$router.push( { path: `/service/${this.service_id}` })
+    },
 
     scheduledTitle() {
-        if (this.item.title) {
-            return this.item.title
+        if (siStore.item.title) {
+            return siStore.item.title
         }
     },
 
     proposedTitle() {
-        if (this.sched_item.title && this.item.title != this.sched_item.title) {
-            return this.sched_item.title
+        if (siStore.sched_item.title && siStore.item.title != siStore.sched_item.title) {
+            return siStore.sched_item.title
         }
     },
 
     songUrl() {
-      if (this.sched_item.song_id)
-        return `https://services.planningcenteronline.com/songs/${this.sched_item.song_id}`
+      if (siStore.sched_item.song_id)
+        return `https://services.planningcenteronline.com/songs/${siStore.sched_item.song_id}`
     },
 
     arrangementUrl() {
-      return `https://services.planningcenteronline.com/songs/${this.sched_item.song_id}/arrangements/${this.sched_item.arrangement_id}`
+      return `https://services.planningcenteronline.com/songs/${siStore.sched_item.song_id}/arrangements/${siStore.sched_item.arrangement_id}`
     },
         
     editClicked() {
-      siStore.item = siStore.sched_item = siStore.service = {}
+      siStore.init()
       this.$router.push({ path: `/service/${this.service_id}/${this.item_id}/edit` })
     },
 
     emailClicked() {
-      let toList = this.item.assigned_to.map(p => p.email).join(',')
-      let body = location.href
-      let subject = this.service.name + " " + this.item.description
+      let toList = siStore.item.assigned_to.map(p => p.email).join(',')
+      let toListNames = siStore.item.assigned_to.map(p => p.name.split(' ')[0]).join(', ')
+      let body = `Dear ${toListNames},\n\n${location.href}`
+      let subject = siStore.service.name + " " + siStore.item.description
       // launch email client
-      location = "mailto:" + toList + "?subject=" + encodeURI(subject) + "&body=" + body
+      location = "mailto:" + toList + "?subject=" + encodeURI(subject) + "&body=" + encodeURI(body)
     },
     
     async approveClicked() {
@@ -137,13 +162,13 @@ export default {
         this.loading = true
         let response = await this.$api.approveServiceItem(this.service_id, this.item_id)
         if (response.result == 'OK') {
-          this.sched_item.status = ITEM_STATUS_APPROVED
-          this.item.title = this.sched_item.title
-          let toList = this.item.assigned_to.map(p => p.email).join(',')
-          let body = `Thank you for submitting the title: ${this.item.title}\n\nThis is fine with me.\n\n`
+          siStore.sched_item.status = ITEM_STATUS_APPROVED
+          siStore.item.title = siStore.sched_item.title
+          let toList = siStore.item.assigned_to.map(p => p.email).join(',')
+          let body = `Thank you for submitting the title: ${siStore.item.title}\n\nThis is fine with me.\n\n`
           body += `If you haven't already done so, please submit the additional details by Wednesday night using the website:\n\n${location.href}\n\n`
           body += `Gratefully,\nSam`
-          let subject = this.service.name + " " + this.item.description
+          let subject = siStore.service.name + " " + siStore.item.description
           location = "mailto:" + toList + "?subject=" + encodeURI(subject) + "&body=" + encodeURI(body)
         }
       } finally {
@@ -154,7 +179,12 @@ export default {
     async doImport() {
       try {
         this.loading = true
-        let response = await this.$api.importServiceItem(this.service_id, this.item_id, this.sched_item.arrangement_name)
+        let response = await this.$api.importServiceItem(this.service_id, this.item_id, this.importArrangementName)
+        if (response.result == 'OK') {
+          siStore.sched_item.arrangement_name = response.arrangement_name
+          siStore.sched_item.arrangement_id = response.arrangement_id
+          siStore.sched_item.song_id = response.song_id
+        }        
         this.showImport = false
       } finally {
         this.loading = false
@@ -164,11 +194,13 @@ export default {
   
   async mounted() {
     try {
+      siStore.init()
       let res = await this.$api.getServiceItem(this.service_id, this.item_id)
-      this.item = res.item
-      this.service = res.service
-      this.sched_item = res.sched_item || {}
-      document.title = this.service.name + ' ' + this.item.description
+      siStore.item = res.item
+      siStore.service = res.service
+      siStore.sched_item = res.sched_item || {}
+      this.importArrangementName = siStore.sched_item.arrangement_name      
+      document.title = siStore.service.name + ' ' + siStore.item.description
     } finally {
       this.loading = false
     }

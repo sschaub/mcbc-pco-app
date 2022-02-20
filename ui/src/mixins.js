@@ -10,11 +10,11 @@ export default {
                 return people.map(p => p.name).join(", ")
         },
 
-        isPending() {
-            return this.sched_item.status == ITEM_STATUS_PENDING && this.sched_item.title
+        isPending(sched_item) {
+            return sched_item.status == ITEM_STATUS_PENDING && sched_item.title
         },
-        isCopyrightOk() {
-            return this.sched_item.copyright_license_status == COPYRIGHT_STATUS_APPROVED
+        isCopyrightOk(sched_item) {
+            return sched_item.copyright_license_status == COPYRIGHT_STATUS_APPROVED
         },
 
         // authentication utilities

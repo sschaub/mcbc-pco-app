@@ -1,8 +1,13 @@
-import { reactive } from 'vue'
+import { reactive } from "vue";
 
 export const siStore = reactive({
-    item: {},
-    sched_item: {},
-    service: {},
-    searchCancelled: false
-})
+  item: {},
+  sched_item: {},
+  service: {},
+
+  init() {
+    this.item = {};
+    this.sched_item = {};
+    this.service = {};
+  },
+});

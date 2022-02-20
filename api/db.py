@@ -47,6 +47,7 @@ class SchedSpecial(db.Model):
     solo_instruments = db.Column(db.String(80), nullable=True)
     accomp_instruments = db.Column(db.String(80), nullable=True)
     other_performers = db.Column(db.String(256), nullable=True)
+    ministry_location = db.Column(db.String(20), nullable=True)
     staging_notes = db.Column(db.String(4096), nullable=True)
     song_text = db.Column(db.String(4096), nullable=True)
     copyright_license_status = db.Column(db.Integer, nullable=False, default=COPYRIGHT_STATUS_UNKNOWN)
@@ -102,5 +103,19 @@ class ServiceItemPerson(db.Model):
 class LicensedPublishers(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     publisher_name = db.Column(db.String(80), nullable=False)
+
+class SongTag(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    tag_group_id = db.Column(db.Integer, nullable=False)
+    tag_group_name = db.Column(db.String(80), nullable=False)
+    tag_name = db.Column(db.String(80), nullable=False)
+
+class ServiceTag(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    service_type_id = db.Column(db.Integer, nullable=False) 
+    plan_id = db.Column(db.Integer, nullable=False)
+    tag_id = db.Column(db.Integer, db.ForeignKey('song_tag.id'))  
+
+    song_tag = db.relationship("SongTag", lazy='joined')
 
 db.create_all() # Create tables from model classes

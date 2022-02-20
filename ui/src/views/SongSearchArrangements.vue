@@ -1,0 +1,100 @@
+<template>
+  <v-container fluid>
+    <v-row class="text-center">
+      <v-col cols="12" sm="6" md="6">
+        <!-- <v-progress-circular indeterminate v-if="loading" /> -->
+
+        <h2 class="subhead">{{ ssStore.song.title }} </h2>
+        
+        <div v-if="ssStore.song.author">{{ ssStore.song.author }}</div>
+        <h3 class="subhead">Recent Usage</h3>
+        <v-list v-for="sh in ssStore.song.history" :key="sh.id" class="text-left mx-auto app-list">
+          <v-list-item two-line class="text-left">
+            <v-list-item-header>
+              <v-list-item-title>{{ sh.service_date }} {{ sh.service_time.substring(0, 5) }}</v-list-item-title>
+              <v-list-item-subtitle>{{ sh.event }} - {{ sh.arrangement }} [{{ sh.person_names }}]</v-list-item-subtitle>
+            </v-list-item-header>
+          </v-list-item>                       
+        </v-list>
+        <div v-if="ssStore.song.history && !ssStore.song.history.length">This song has not been used.</div>
+      </v-col>
+    
+      <v-col cols="12" sm="6" md="6">
+        <h3 class="subhead">Select Arrangement</h3>
+        <p>Here are the arrangements we have on file:</p>
+
+        <v-list v-for="arr in ssStore.arrList" :key="arr.id" class="text-left mx-auto app-list">
+          <v-list-item @click="arrangementSelected(arr)" class="text-left">
+            <v-list-item-header>
+              <v-list-item-title>{{ arr.name }}</v-list-item-title>
+            </v-list-item-header>
+            <v-icon color="indigo">
+              mdi-chevron-right
+            </v-icon>
+          </v-list-item>
+        </v-list> 
+
+        <br><br>
+        <v-btn @click="arrangementSelected()">
+              I am using a different arrangement
+        </v-btn>
+
+        
+      </v-col>
+
+    </v-row>
+  </v-container>
+
+</template>
+
+<style scoped>
+  .v-list, .v-list-item { padding: 0px !important; }  
+</style>
+
+<script>
+
+import { ssStore } from './SongSearchState.js'
+import { siStore } from './ServiceItemState.js'
+
+export default {
+  name: 'SongSearchArrangements',
+
+  data: () => ({
+    // loading: false,
+    ssStore: ssStore
+  }),
+
+  methods: {
+
+    async arrangementSelected(arrangement) {
+      if (arrangement) {
+        console.log(arrangement, 'selected')
+        ssStore.arrangement = arrangement
+        // this.loading = true
+        try {
+          ssStore.arrangement = await this.$api.getArrangement(ssStore.song.id, ssStore.arrangement.id)      
+
+        } finally {
+          // this.loading = false
+        }        
+        this.$router.push( { name: 'SongSearchArrangementsDetail' })
+      } else {
+        ssStore.arrangement = {}
+        this.finishEntry()
+      }
+
+    },
+
+    async finishEntry() {
+      ssStore.finishEntry(this.$api, siStore)
+      this.$router.go(-2)
+    },
+
+  },
+
+  async mounted() {
+
+
+  }
+}
+</script>

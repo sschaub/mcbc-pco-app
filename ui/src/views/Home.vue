@@ -7,11 +7,24 @@
         </div>
         <div v-if="!loading">
           <h2>Upcoming Services</h2>
-          <ul v-for="service in serviceList" :key="service.id">
-            <v-btn :href="toPath(service.id)">
-              {{ service.name }}
-            </v-btn>
-          </ul>
+          <v-list v-for="service in serviceList" :key="service.id" class="text-left mx-auto app-list" density="compact">
+            <v-list-item lines="three" @click="toPath(service.id)">
+              <v-list-item-header>
+              <v-list-item-title>
+                {{ service.service_date }}
+              </v-list-item-title>
+              <v-list-item-subtitle>
+                {{ service.service_type }} <br>
+                {{ service.plan_theme }}
+              </v-list-item-subtitle>
+              </v-list-item-header>
+              
+              <v-icon color="indigo">
+                mdi-chevron-right
+              </v-icon>
+            
+            </v-list-item>
+          </v-list>
         </div>
       </v-col>
 
@@ -34,7 +47,9 @@ export default {
   }),
 
   methods: {
-    toPath: (service_id) => `/service/${service_id}`
+    toPath(service_id) {
+      this.$router.push({ path: `/service/${service_id}` })
+    }
   },
 
   async mounted() {

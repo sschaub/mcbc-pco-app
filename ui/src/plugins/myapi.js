@@ -133,6 +133,10 @@ class ApiService {
         return this.get(`/song_search?title=${title}`)
     }
 
+    recommendedSongs(service_id) {
+        return this.get(`/services/${service_id}/recommended_songs`)
+    }
+
     getArrangements(songId) {
         return this.get(`/songs/${songId}/arrangements`)
     }
@@ -143,6 +147,14 @@ class ApiService {
 
     getSong(songId) {
         return this.get(`/songs/${songId}`)
+    }
+
+    getTags() {
+        return this.get(`/tags`)
+    }
+
+    updateServiceTags(serviceId, tags) {
+        return this.post(`/services/${serviceId}/tags`, { tags: tags })
     }
 
 }

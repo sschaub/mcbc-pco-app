@@ -5,6 +5,8 @@ import ServiceItem from '../views/ServiceItem.vue'
 import ServiceItemEdit from '../views/ServiceItemEdit.vue'
 import ServiceItemReview from '../views/ServiceItemReview.vue'
 import SongSearch from '../views/SongSearch.vue'
+import SongSearchArrangements from '../views/SongSearchArrangements.vue'
+import SongSearchArrangementsDetail from '../views/SongSearchArrangementsDetail.vue'
 import About from '../views/About.vue'
 import Login from '../views/Login.vue'
 
@@ -57,6 +59,18 @@ const routes = [
     path: '/songs',
     name: 'SongSearch',
     component: SongSearch
+  },
+
+  {
+    path: '/songs/arrangements',
+    name: 'SongSearchArrangements',
+    component: SongSearchArrangements
+  },
+
+  {
+    path: '/songs/arrangements/detail',
+    name: 'SongSearchArrangementsDetail',
+    component: SongSearchArrangementsDetail
   },
 
   {

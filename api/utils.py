@@ -8,16 +8,8 @@ import re
 from datetime import datetime
 from sqlalchemy import update, select, func
 
-# def do_patch(uri: str, data: dict) -> requests.Response:
-#     logging.debug("Posting to " + uri + ":" + json.dumps(data))
-#     r = requests.patch(uri, auth=(PCO_APP_ID, PCO_SECRET), json=data)
-#     logging.debug("Result: " + r.text)
-#     r.raise_for_status()  # Check for good result
-#     return r
-
 def get_service_name(service_type_id):
     return SERVICE_TYPES.get(int(service_type_id), 'Unknown service type')
-
 
 def get_plan(service_type_id: int, plan_id: int) -> dict:
     """
@@ -50,12 +42,21 @@ def get_plan(service_type_id: int, plan_id: int) -> dict:
         if ('Song' in (row['description'] or '') or row['description'] in EDITABLE_ITEMS) and row['title'] != row['description']]
     rows = [row for row in rows if row['description'] in EDITABLE_ITEMS]
 
+    tags = [{
+        'id': tag.tag_id,
+        'tag_group_name': tag.song_tag.tag_group_name,
+        'tag_name': tag.song_tag.tag_name
+     } for tag in ServiceTag.query.filter_by(service_type_id=service_type_id, plan_id=plan_id) if tag.song_tag]
+        
+
     return {
         'service': {
+            'service_id': f'{service_type_id}-{plan_id}',
             'name': service_name,
             'theme': plan_theme,
             'songs': cong_songs,
-            'personnel': positions
+            'personnel': positions,
+            'tags': tags
         },
         'items': rows        
     }
@@ -123,11 +124,16 @@ def get_plan_items_with_team(plan_url: str, team_members: list):
                     person_email = ''
                     if person:
                         person_email = person.email
+                    if person_name.endswith(' Ensemble'):
+                        person_name = person_name[:-9]
                     item_assigned_to.append({
                         'id': person_id, 
                         'name': person_name, 
                         'email': person_email 
                     })
+
+        if item_title == item_description:
+            item_title = '' 
 
         rows.append({'id': item_id, 'item_seq': item_seq, 'description': item_description, 'title': item_title,
                         'song_id': song_id,
@@ -155,10 +161,10 @@ def parse_author(author: str) -> tuple:
 def parse_copyright(copyright: str) -> tuple:
     copyright_year = None
     copyright_holder = copyright
-    m = re.match(r'[Cc](opyright|\.) (\d+) (by )?(.+)', copyright)
+    m = re.match(r'[Cc]opyright (\d+) (by )?(.+)', copyright)
     if m:
-        copyright_year = m.group(2)
-        copyright_holder = m.group(4)
+        copyright_year = m.group(1)
+        copyright_holder = m.group(3)
     return copyright_year, copyright_holder
 
 def get_arrangement_history(arrangement_id: int) -> list:
@@ -179,6 +185,7 @@ def get_arrangement(song_id: int, arrangement_id: int) -> dict:
     starting_key = ''
     ending_key = ''
     arranger = ''
+    translator = ''
     
     arr_url = f'/services/v2/songs/{song_id}/arrangements'
     for arr in pco.iterate(arr_url, include='keys'):
@@ -208,6 +215,18 @@ def get_arrangement(song_id: int, arrangement_id: int) -> dict:
                     m = re.match(r'arr. (by )?(.+)', line)
                     if m:
                         arranger = m.group(2)
+                    m = re.match(r'Arranger:[ ]*(.+)', line)
+                    if m:
+                        arranger = m.group(1)
+                    m = re.match(r'Translator:[ ]*(.+)', line)
+                    if m:
+                        translator = m.group(1)
+                    m = re.match(r'Author:[ ]*(.+)', line)
+                    if m:
+                        author = m.group(1)
+                    m = re.match(r'Composer:[ ]*(.+)', line)
+                    if m:
+                        composer = m.group(1)
 
             for incl in included:
                 if incl['type'] == 'Key':
@@ -231,6 +250,7 @@ def get_arrangement(song_id: int, arrangement_id: int) -> dict:
         'end_key': ending_key,
         'author': author,
         'composer': composer,
+        'translator': translator,
         'arranger': arranger,
         'copyright_holder': copyright_holder,
         'copyright_year': copyright_year,
@@ -279,20 +299,39 @@ def get_song(song_id: int) -> dict:
         'history': history  # See get_song_history
     }
 
+def get_songs(params):
+    params["where[hidden]"] = "false"
+    songs = pco.get('/services/v2/songs', **params)
+    song_list = [{
+        'id': song['id'],
+        'title': song['attributes']['title'],
+        'author': song['attributes']['author'],
+        'copyright': song['attributes']['copyright'],
+    } for song in songs['data']]
+
+    song_list.sort(key=lambda song: song['title'])
+
+    return song_list
+
 def begin_edit_item(service_type_id: int, plan_id: int, item: dict) -> SchedSpecial:
     try:
         title = item['title'] if item['title'] != item['description'] else ''
 
         genre_note = ''
         solo_instruments = ''
+        ministry_location = 'Piano well'
         if 'Vocal' in item['description']:
             genre_note = 'Vocal solo'
-            solo_instruments = 'Voice'        
+            solo_instruments = 'Voice'
+            ministry_location = 'Pulpit'
         accomp_instruments = 'Piano'
         if 'Organ' in item['description']:
             genre_note = 'Organ solo'
             solo_instruments = 'Organ'
-            accomp_instruments = 'N/A'
+            accomp_instruments = ''
+            ministry_location = 'Other'
+
+        status = SchedSpecial.STATUS_APPROVED if item['song_id'] else SchedSpecial.STATUS_PENDING
 
         sched_spec = SchedSpecial(
             service_type_id=service_type_id,
@@ -304,8 +343,10 @@ def begin_edit_item(service_type_id: int, plan_id: int, item: dict) -> SchedSpec
             arrangement_name=item['arrangement'],
             description=item['description'],
             genre_note=genre_note,
+            ministry_location=ministry_location,
             solo_instruments=solo_instruments,
-            accomp_instruments=accomp_instruments
+            accomp_instruments=accomp_instruments,
+            status=status
         )
         db.session.add(sched_spec)
         db.session.commit()
@@ -317,6 +358,7 @@ def begin_edit_item(service_type_id: int, plan_id: int, item: dict) -> SchedSpec
             sched_spec.copyright_year = arr['copyright_year']
             sched_spec.author = arr['author']
             sched_spec.composer = arr['composer']
+            sched_spec.translator = arr['translator']
             sched_spec.arranger = arr['arranger']
             sched_spec.start_key = arr['start_key']
             sched_spec.end_key = arr['end_key']
@@ -330,7 +372,7 @@ def begin_edit_item(service_type_id: int, plan_id: int, item: dict) -> SchedSpec
 
 def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id, version_no, song_id, arrangement_id, 
                 arrangement_name, title, copyright_year, copyright_holder, author, translator, composer, 
-                arranger, genre_note, solo_instruments, accomp_instruments, other_performers,
+                arranger, genre_note, solo_instruments, accomp_instruments, other_performers, ministry_location,
                 staging_notes, song_text, start_key, end_key, do_send_email=False):
 
     def row(header, new_value, old_value, link='', extra_text=''):
@@ -392,7 +434,7 @@ def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id
     msg += row('Special type', genre_note, sched_spec.genre_note)
     msg += row('Instrument(s)', solo_instruments, sched_spec.solo_instruments)
     msg += row('Accompaniment', accomp_instruments, sched_spec.accomp_instruments)
-    msg += row('Other performers', other_performers, sched_spec.other_performers)
+    msg += row('Other musicians', other_performers, sched_spec.other_performers)
 
     msg += '</table>\n<h3>Song Details</h3>\n<table>\n'
 
@@ -414,6 +456,10 @@ def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id
         style = 'style="color:blue"' if song_text != sched_spec.song_text else ''
         song_text_html = song_text.replace('\n', '<br>\n')
         msg += f'''<h4>Song Text</h4><div {style}>{song_text_html}</div>'''
+
+    if ministry_location:
+        style = 'style="color:blue"' if ministry_location != sched_spec.ministry_location else ''
+        msg += f'''<h4>Ministry Location</h4><div {style}>{ministry_location}</div>'''
 
     if staging_notes:
         style = 'style="color:blue"' if staging_notes != sched_spec.staging_notes else ''
@@ -458,6 +504,7 @@ def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id
             accomp_instruments = accomp_instruments,
             other_performers = other_performers,
             staging_notes = staging_notes,
+            ministry_location = ministry_location,
             song_text = song_text,
             start_key = start_key,
             copyright_license_status = copyright_license_status,

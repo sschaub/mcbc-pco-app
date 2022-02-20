@@ -7,98 +7,53 @@
           <v-container>
             <v-row>
               <v-col>
-                <v-text-field v-model="keywords" label="Title"  />
+                <v-text-field ref="keywords" v-model="ssStore.keywords" label="Title" @keyup.enter="doSongSearch()" />
               </v-col>
               <v-col cols="2">
-                <v-btn @click="doSongSearch()">Search</v-btn>
+                <v-btn @click="doSongSearch()" :disabled="ssStore.keywords.length < 3">Search</v-btn>
               </v-col>
             </v-row>
           </v-container>
 
           <v-progress-circular indeterminate v-if="loading" />
 
-          <div v-if="songList.length &gt; 0">
+          <div v-if="ssStore.songList.length &gt; 0">
 
-            <div v-for="song in songList" :key="song.id">
-                <h4>{{ song.title }}</h4>
-                <div v-if="song.author">{{ song.author }}</div>                
-                <div v-if="song.history">
-                  <div v-if="song.history.length">
-                  <div><i>Recent Usage</i></div>
-                    <div v-for="sh in song.history" :key="sh.id">
-                      {{ sh.service_date }} {{ sh.service_time.substring(0, 5) }} {{ sh.event }} - {{ sh.arrangement }} [{{ sh.person_names }}]
-                    </div>
-                  </div>
-                  <div v-else><i>No recent usage</i></div>
-                </div>
-                <p v-else>
-                  <a href="javascript:" @click="showHistory($event.target, song)">Show History</a>
-                </p>
-                <v-btn @click="songSelected(song.id)" :disabled="keywords.length < 3">
-                  Select
-                </v-btn>
-            </div>
+            <v-list v-for="song in ssStore.songList" :key="song.id" class="text-left mx-auto app-list">
+              <v-list-item twoline @click="songSelected(song.id)" class="text-left">
+                <v-list-item-header>
+                  <v-list-item-title>{{ song.title }}</v-list-item-title>
+                  <v-list-item-subtitle>{{ song.author }}</v-list-item-subtitle>
+                </v-list-item-header>
+                <v-icon color="indigo">
+                  mdi-chevron-right
+                </v-icon>
+              </v-list-item>
+            </v-list>
 
               <br><br>
               <v-btn @click="mode = 'newsong'">
                     Other Song
-              </v-btn>              
+              </v-btn>
           </div>
+
+          <v-btn v-else @click="showRecommended">Suggested Titles</v-btn>
 
           <div v-if="notFound">
             <br>
-            <p>No songs found. You can try another search, or</p>
-            <v-btn @click="mode = 'newsong'">Continue with New Song</v-btn>
+            <p>{{notFound}}</p>
+            <v-btn v-if="ssStore.keywords" @click="newSongClicked()">Continue with New Song</v-btn>
           </div>
           <br>
-          <v-btn @click="searchCancelled()">Cancel</v-btn>
         </div>
 
         <div v-if="mode == 'newsong'">
           <p>Confirm new song title:</p>
-          <v-text-field v-model="keywords" label="Title"  />
+          <v-text-field ref="confirmTitle" v-model="ssStore.keywords" label="Title"  />
           <v-btn @click="confirmNewTitle()">Continue</v-btn>
           <v-btn @click="mode = 'song'">Cancel</v-btn>
         </div>
 
-        <div v-if="mode == 'arrangement'">
-          <div>
-            Selected Song: {{ song.title }} 
-            <v-btn @click="mode = 'song'">Change</v-btn>
-          </div>
-          <div v-if="song.author">{{ song.author }}</div>
-
-          <h3>Select Arrangement</h3>
-          <p>Here are the arrangements we have on file:</p>
-
-          <v-progress-circular indeterminate v-if="loading" />
-
-          <div v-for="arr in arrList" :key="arr.id">
-              <h4>{{ arr.name }}</h4>
-              <div v-if="arr.history">
-                <div v-if="arr.history.length">
-                <div><i>Recent Usage</i></div>
-                  <div v-for="sh in arr.history" :key="sh.id">
-                    {{ sh.service_date }} {{ sh.service_time.substring(0, 5) }} {{ sh.event }} [{{ sh.person_names }}]
-                  </div>
-                </div>
-                <div v-else><i>No recent usage</i></div>
-              </div>
-              <p v-else>
-                <a href="javascript:" @click="showArrHistory($event.target, arr)">Show History</a>
-              </p>
-
-              <v-btn @click="arrangementSelected(arr)">
-                Select
-              </v-btn>
-          </div>
-
-          <br><br>
-          <v-btn @click="arrangementSelected()">
-                Other Arrangement
-          </v-btn>
-
-        </div>
       </v-col>
 
     </v-row>
@@ -106,133 +61,96 @@
 
 </template>
 
-<style>
-  h4 { margin-top: 20px }
+<style scoped>
+  .v-list, .v-list-item { padding: 0px !important; }  
 </style>
 
 <script>
 
+import { ssStore } from './SongSearchState.js'
 import { siStore } from './ServiceItemState.js'
 
 export default {
   name: 'SongSearch',
 
   data: () => ({
-    keywords: "",
-    loading: false,
-    notFound: false,
-    songList: [],
     mode: 'song',
-    song: {},
-    arrangement: {},
-    arrList: []
+    loading: false,
+    notFound: '',
+    ssStore: ssStore
   }),
 
   methods: {
-    async showHistory(self, song) {
-      self.innerHTML = 'Loading'
-      let songDetails = await this.$api.getSong(song.id)
-      song.history = songDetails.history
-    },
-
-    async showArrHistory(self, arr) {
-      self.innerHTML = 'Loading'
-      let arrDetails = await this.$api.getArrangement(this.song.id, arr.id)
-      arr.history = arrDetails.history
-    },
 
     async doSongSearch() {
-      if (this.keywords.length < 3)
-        return
+      if (ssStore.keywords.length < 3)
+        return;
+
       this.notFound = false
       this.loading = true
-      this.songList = []
+      ssStore.songList = []
       try {
-        this.songList = await this.$api.searchSongs(this.keywords)
-        if (this.songList.length == 0) {
-          this.notFound = true
+        ssStore.songList = await this.$api.searchSongs(ssStore.keywords)
+        if (ssStore.songList.length == 0) {
+          this.notFound = 'No songs found. You can try another search, or'
         }
-      } catch (e) {
-        console.log(e)
-      }
-      this.loading = false
-    },
-
-    async songSelected(songId) {
-      this.song = this.songList.find( song => song.id == songId )
-      this.mode = 'arrangement'
-      this.loading = true
-      this.arrangement = {}
-      try {
-        this.arrList = [] // clear arrangement list from UI
-        this.arrList = await this.$api.getArrangements(songId)
-      } catch (e) {
-        console.log(e)
       } finally {
         this.loading = false
       }
+    },
+
+    async showRecommended() {
+      this.loading = true
+      this.notFound = false
+      ssStore.songList = []
+      try {
+        ssStore.songList = await this.$api.recommendedSongs(siStore.service.service_id)
+        if (ssStore.songList.length == 0) {
+          this.notFound = 'No recommended songs for this service.'
+        }
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async songSelected(songId) {
+      ssStore.song = ssStore.songList.find( song => song.id == songId )
+      ssStore.arrList = []
+      this.loading = true
+      try {
+        let songDetails = await this.$api.getSong(ssStore.song.id)
+        ssStore.arrList = await this.$api.getArrangements(ssStore.song.id)
+        ssStore.song.history = songDetails.history
+
+      } finally {
+        this.loading = false
+      }      
+      this.$router.push( { name: 'SongSearchArrangements' } )      
+    },
+
+    newSongClicked() {
+      this.mode = 'newsong'
+      var self = this
+      setTimeout(1000, () => self.$refs.confirmTitle.focus() )
       
     },
 
-    async arrangementSelected(arrangement) {
-      if (arrangement)
-        this.arrangement = arrangement
-      else
-        this.arrangement = {}
-      this.finishEntry()
-    },
-
     confirmNewTitle() {
-      this.song = { title: this.keywords }
-      this.arrangement = {}
+      ssStore.song = { title: ssStore.keywords }
+      ssStore.arrangement = {}
       this.finishEntry()
     },
 
     async finishEntry() {
-      siStore.sched_item.song_id = this.song.id
-      siStore.sched_item.title = this.song.title
-      siStore.sched_item.author = this.song.author
-      siStore.sched_item.arrangement_id = this.arrangement.id
-      siStore.sched_item.arrangement_name = this.arrangement.name        
-      if (this.arrangement.id) {
-        try {
-          this.loading = true
-          this.arrangement = await this.$api.getArrangement(this.song.id, this.arrangement.id)
-        } finally {
-          this.loading = false
-        }
-
-        siStore.sched_item.author = this.arrangement.author
-        siStore.sched_item.copyright_holder = this.arrangement.copyright_holder
-        siStore.sched_item.copyright_year = this.arrangement.copyright_year
-        siStore.sched_item.start_key = this.arrangement.start_key
-        siStore.sched_item.end_key = this.arrangement.end_key
-        siStore.sched_item.song_text = this.arrangement.lyrics
-        siStore.sched_item.composer = this.arrangement.composer
-        siStore.sched_item.arranger = this.arrangement.arranger        
-      } else if (this.song.id) {
-        try {
-          this.loading = true
-          this.song =  await this.$api.getSong(this.song.id)
-          siStore.sched_item.title = this.song.title
-          siStore.sched_item.author = this.song.author
-          siStore.sched_item.composer = this.song.composer
-          siStore.sched_item.song_text = this.song.lyrics
-          siStore.sched_item.copyright_holder = this.song.copyright_holder
-          siStore.sched_item.copyright_year = this.song.copyright_year
-        } finally {
-          this.loading = false
-        }
-      }
-      this.$router.go(-1)
-    },
-
-    searchCancelled() {
-      siStore.searchCancelled = true
+      ssStore.finishEntry(this.$api, siStore)
       this.$router.go(-1)
     }
 
 
   },
+
+  mounted() {
+    this.$refs.keywords.focus()
+  }
 }
 </script>
