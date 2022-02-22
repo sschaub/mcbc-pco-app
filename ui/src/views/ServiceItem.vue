@@ -38,7 +38,7 @@
                 mdi-checkbox-marked-circle
               </v-icon></v-btn>
             &nbsp;
-            <v-btn v-if="!isPending(siStore.sched_item) && siStore.sched_item.title" @click="showImport = true">Import to PCO</v-btn>            
+            <v-btn v-if="!isPending(siStore.sched_item) && siStore.sched_item.title" @click="showImport = true">Import</v-btn>            
           </span>
 
           <div v-if="showImport">

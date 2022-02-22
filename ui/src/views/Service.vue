@@ -43,7 +43,7 @@
       </v-col>
       <v-col cols="12" sm="6" md="6">
         <div v-if="service.name">
-          <div v-if="service.songs.length">
+          <div v-if="songs.length">
             <h3 class="subhead">Congregational Songs</h3>
             <v-list v-for="song in songs" :key="song.id" class="mx-auto app-list">
               <v-list-item two-line density="compact" class="text-left">
@@ -63,19 +63,25 @@
                   <v-list-item-subtitle>{{ tag.tag_group_name }}</v-list-item-subtitle>
                 </v-list-item-header>
               </v-list-item>
-            </v-list>
-          <v-btn v-if="isAdmin()" @click="assignTagsClicked()">Assign Tags</v-btn>
+            </v-list>          
 
         </div>
 
-        <div v-if="assignTags">
-          <div v-for="tag in tags" :key="tag.id">
-             <v-checkbox v-model="selected_tags" :label="`${tag.tag_group_name} - ${tag.tag_name}`" :value="tag.id" density="compact" />
+        <div v-if="isAdmin()">
+          <v-btn v-if="!assignTags" @click="assignTagsClicked()">Assign Song Tags</v-btn>
+
+          <div v-else>
+            <h2>Assign Tags</h2>
+            <p>Select the tags to assign to this service, then choose Save:</p>
+            <div v-for="tag in tags" :key="tag.id">
+              <v-checkbox v-model="selected_tags" :label="`${tag.tag_group_name} - ${tag.tag_name}`" :value="tag.id" density="compact"  hide-details="true" />
+            </div>
+
+            <v-btn @click="saveClicked()">Save</v-btn> &nbsp;
+            <v-btn @click="assignTags = false">Cancel</v-btn>
           </div>
-
-          <v-btn @click="saveClicked()">Save</v-btn> &nbsp;
-          <v-btn @click="assignTags = false">Cancel</v-btn>
         </div>
+        
 
       </v-col>
 

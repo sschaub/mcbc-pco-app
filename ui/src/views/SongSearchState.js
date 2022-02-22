@@ -18,7 +18,11 @@ export const ssStore = reactive({
         siStore.sched_item.title = this.song.title
         siStore.sched_item.author = this.song.author
         siStore.sched_item.arrangement_id = this.arrangement.id
-        siStore.sched_item.arrangement_name = this.arrangement.name        
+        siStore.sched_item.arrangement_name = this.arrangement.name
+        siStore.sched_item.arranger = ''
+        siStore.sched_item.translator = ''
+        siStore.sched_item.start_key = ''
+        siStore.sched_item.end_key = ''
         if (this.arrangement.id) {
             siStore.sched_item.author = this.arrangement.author
             siStore.sched_item.copyright_holder = this.arrangement.copyright_holder

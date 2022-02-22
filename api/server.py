@@ -417,7 +417,26 @@ def api_import_service_item(current_user: Person, service_id: str, item_id: str)
 
     db.session.commit()
 
-    pco_assign_song_to_plan_item(item_id, service_type_id, plan_id, sched_spec)    
+    pco_assign_song_to_plan_item(item_id, service_type_id, plan_id, sched_spec)
+
+    try:
+        keys = pco.get(f'/services/v2/songs/{sched_spec.song_id}/arrangements/{sched_spec.arrangement_id}/keys')
+
+        key_attrs = {}
+        if sched_spec.start_key:
+            key_attrs['starting_key'] = sched_spec.start_key
+            if sched_spec.start_key[0].islower():
+                key_attrs['starting_key'] = sched_spec.start_key[0].upper() + sched_spec.start_key[1:].lower() + 'm'
+            if sched_spec.end_key:
+                key_attrs['ending_key'] = sched_spec.end_key
+                if sched_spec.end_key[0].islower():
+                    key_attrs['ending_key'] = sched_spec.end_key[0].upper() + sched_spec.end_key[1:].lower() + 'm'
+            pco.post(f'/services/v2/songs/{sched_spec.song_id}/arrangements/{sched_spec.arrangement_id}/keys', pco.template('Key', key_attrs))
+            for key in keys['data']:
+                key_id = key['id']
+                pco.delete(f'/services/v2/songs/{sched_spec.song_id}/arrangements/{sched_spec.arrangement_id}/keys/{key_id}')
+    except:
+        logging.exception('Problem updating key')
 
     return { 'result': 'OK', 'song_id': sched_spec.song_id, 'arrangement_id': sched_spec.arrangement_id, 'arrangement_name': sched_spec.arrangement_name }
 
