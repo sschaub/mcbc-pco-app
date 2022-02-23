@@ -8,8 +8,15 @@ import re
 from datetime import datetime
 from sqlalchemy import update, select, func
 
-def get_service_name(service_type_id):
+def get_service_type_name(service_type_id: str):
     return SERVICE_TYPES.get(int(service_type_id), 'Unknown service type')
+
+def get_service_name(service_type_id: str, plan_sortdate_str: str):
+    plan_date_str, plan_time = plan_sortdate_str.split('T')
+    plan_date = datetime.strptime(plan_date_str, '%Y-%m-%d')
+    plan_date_formatted = plan_date.strftime('%b %-d, %Y')
+    return '{} - {}'.format(get_service_type_name(service_type_id), plan_date_formatted)
+
 
 def get_plan(service_type_id: int, plan_id: int) -> dict:
     """
@@ -21,11 +28,9 @@ def get_plan(service_type_id: int, plan_id: int) -> dict:
     plan = pco.get(plan_url)
     plan = plan['data']
     plan_theme = plan['attributes']['title'] or ''
-    plan_time = plan['attributes']['sort_date']
-    plan_date, plan_time = plan_time.split('T')
-    plan_time = plan_time.strip('Z')
+    plan_datetime_str = plan['attributes']['sort_date']
 
-    service_name = '{} {}'.format(plan_date, get_service_name(service_type_id))
+    service_name = get_service_name(service_type_id, plan_datetime_str)
 
     team_members = list(member['data'] for member in pco.iterate(plan_url + "/team_members", per_page=50))
 

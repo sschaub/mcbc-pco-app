@@ -1,18 +1,21 @@
 <template>
   <v-container fluid>
     <v-row class="text-center">
-      <v-col cols="12" sm="6" md="6">
-        <!-- <v-progress-circular indeterminate v-if="loading" /> -->
-
+      <v-col cols="12">
         <h2 class="subhead">{{ ssStore.song.title }} </h2>
         
         <div v-if="ssStore.song.author">{{ ssStore.song.author }}</div>
-        <h3 class="subhead">Recent Usage</h3>
+
+      </v-col>
+      <v-col cols="12" sm="6" md="6">
+        <!-- <v-progress-circular indeterminate v-if="loading" /> -->
+
+        <h3 class="subhead">Song Usage History</h3>
         <v-list v-for="sh in ssStore.song.history" :key="sh.id" class="text-left mx-auto app-list">
           <v-list-item two-line class="text-left">
             <v-list-item-header>
               <v-list-item-title>{{ sh.service_date }} {{ sh.service_time.substring(0, 5) }}</v-list-item-title>
-              <v-list-item-subtitle>{{ sh.event }} - {{ sh.arrangement }} [{{ sh.person_names }}]</v-list-item-subtitle>
+              <v-list-item-subtitle>{{ sh.event }} - {{ sh.arrangement }} <span v-if="sh.person_names != 'Sam Arnold'">[{{ sh.person_names }}]</span></v-list-item-subtitle>
             </v-list-item-header>
           </v-list-item>                       
         </v-list>
@@ -36,7 +39,7 @@
 
         <br><br>
         <v-btn @click="arrangementSelected()">
-              I am using a different arrangement
+              Use another arrangement
         </v-btn>
 
         

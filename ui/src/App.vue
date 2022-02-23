@@ -15,13 +15,13 @@
             temporary>
             <v-list>
               <v-list-item @click="navToPage('/')">
-                <v-list-item-header>Upcoming Services</v-list-item-header>
+                <v-list-item-header>Home</v-list-item-header>
               </v-list-item>
               <v-list-item @click="navigateTo('https://schedule.mcbcmusic.org/history')">
                 <v-list-item-header>History</v-list-item-header>
               </v-list-item>
               <v-list-item @click="navigateTo('https://schedule.mcbcmusic.org/pdf')">
-                <v-list-item-header>Print Schedule</v-list-item-header>
+                <v-list-item-header>View Schedule</v-list-item-header>
               </v-list-item>
               <v-list-item @click="navigateTo('https://www.mcbcmusic.org/')">
                 <v-list-item-header>Music Website</v-list-item-header>
@@ -29,6 +29,7 @@
               <v-list-item v-if="isAdmin()" @click="navigateTo('https://schedule.mcbcmusic.org/menu')">
                 <v-list-item-header>Admin</v-list-item-header>
               </v-list-item>
+              <!-- TODO: Add Song Search Here -->
             </v-list>
           </v-navigation-drawer>
           <v-main>

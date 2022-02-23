@@ -22,8 +22,12 @@
 
         <br><br>
         <v-btn @click="confirmArrangement()">
-              Confirm Arrangement
+          Choose Arrangement
         </v-btn>
+        <br><br>
+        <div v-html="ssStore.arrangement.lyrics.replace(/\n/g, '<br>')">
+        
+        </div>
 
         
       </v-col>

@@ -11,10 +11,9 @@
             <v-list-item lines="three" @click="toPath(service.id)">
               <v-list-item-header>
               <v-list-item-title>
-                {{ service.service_date }}
+                {{ service.name }}
               </v-list-item-title>
               <v-list-item-subtitle>
-                {{ service.service_type }} <br>
                 {{ service.plan_theme }}
               </v-list-item-subtitle>
               </v-list-item-header>

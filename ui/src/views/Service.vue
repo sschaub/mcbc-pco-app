@@ -10,14 +10,18 @@
     </div>
     <v-row class="text-center">
       <!-- <div class="ssbreadcrumb"><a href="/">Services</a></div> -->
-      <v-col cols="12"  sm="6" md="6">
+      <v-col cols="12">
         <div v-if="service.name">
           <h2>{{ service.name }}</h2>
           <h3 v-if="service.theme" >{{ service.theme }}</h3>
-
           <div v-for="position in positions">
             <div v-if="service.personnel[position.id]">{{position.title}}: {{ service.personnel[position.id] }}</div>
           </div>
+        </div>
+
+      </v-col>
+      <v-col cols="12"  sm="6" md="6">
+        <div v-if="service.name">
 
           <div v-if="items.length">
             <h3 class="subhead">Specials</h3>

@@ -21,10 +21,10 @@
             Scheduled Title: {{ scheduledTitle() }}
           </div>
           <div v-if="proposedTitle()">
-            Proposed Title: {{ proposedTitle() }} <a v-if="songUrl()" :href="songUrl()" target="_blank">[pco]</a>
+            Proposed Title: {{ proposedTitle() }} <a v-if="songUrl() && isAdmin()" :href="songUrl()" target="_blank">[pco]</a>
             <span class="pending"> (Approval Pending)</span>
           </div>
-          <p v-if="siStore.sched_item.arrangement_name">Arrangement: {{ siStore.sched_item.arrangement_name }} <a :href="arrangementUrl()" target="_blank">[pco]</a></p>
+          <p v-if="siStore.sched_item.arrangement_name">Arrangement: {{ siStore.sched_item.arrangement_name }} <a v-if="isAdmin()" :href="arrangementUrl()" target="_blank">[pco]</a></p>
           <br>
           <v-btn @click="editClicked()">Edit</v-btn>
           <span v-if="isAdmin()">
@@ -38,7 +38,7 @@
                 mdi-checkbox-marked-circle
               </v-icon></v-btn>
             &nbsp;
-            <v-btn v-if="!isPending(siStore.sched_item) && siStore.sched_item.title" @click="showImport = true">Import</v-btn>            
+            <v-btn v-if="!isPending(siStore.sched_item) && siStore.sched_item.title" @click="showImport = true">Import To PCO</v-btn>            
           </span>
 
           <div v-if="showImport">
@@ -62,7 +62,7 @@
       <v-col cols="12" sm="6" md="6">
           <div v-if="siStore.service.theme">
             <h3>Service Theme</h3>
-            {{ siStore.service.theme }}
+            <h2>{{ siStore.service.theme }}</h2>
           </div>
           <div v-if="songs.length">
             <h3>Other Songs In This Service</h3>
