@@ -71,7 +71,7 @@
 
         </div>
 
-        <div v-if="isAdmin()">
+        <div v-if="isAdmin() && !loading">
           <v-btn v-if="!assignTags" @click="assignTagsClicked()">Assign Song Tags</v-btn>
 
           <div v-else>

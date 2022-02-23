@@ -156,7 +156,7 @@ export default {
     },
 
     changeSong() {
-      ssStore.init()
+      ssStore.init(true)
       this.$router.push({ name: 'SongSearch' });
     },
 

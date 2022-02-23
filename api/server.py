@@ -442,10 +442,19 @@ def api_import_service_item(current_user: Person, service_id: str, item_id: str)
 
 @app.route('/song_search')
 def api_song_search():
+    search_type = request.args['search_type']
+    keywords = request.args['keywords']
+    if search_type == 'T':
+        search_attrs = {
+            'where[title]': keywords
+        }
+    else:
+        search_attrs = {
+            'where[lyrics]': keywords
+        }
+    song_list = get_songs(search_attrs)
 
-    song_list = get_songs({
-        'where[title]': request.args['title']
-    })
+
     
     return jsonify(song_list)
 

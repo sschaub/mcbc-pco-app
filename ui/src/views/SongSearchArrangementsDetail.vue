@@ -21,7 +21,7 @@
         <div v-if="ssStore.arrangement.history && !ssStore.arrangement.history.length">This arrangement has not been used.</div>
 
         <br><br>
-        <v-btn @click="confirmArrangement()">
+        <v-btn v-if="ssStore.isPicker" @click="confirmArrangement()">
           Choose Arrangement
         </v-btn>
         <br><br>

@@ -38,7 +38,7 @@
         </v-list> 
 
         <br><br>
-        <v-btn @click="arrangementSelected()">
+        <v-btn v-if="ssStore.isPicker" @click="arrangementSelected()">
               Use another arrangement
         </v-btn>
 

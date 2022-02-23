@@ -129,8 +129,8 @@ class ApiService {
         return this.post(`/services/${service_id}/${item_id}/import`, { import_arrangement_name: importArrangementName })
     }    
 
-    searchSongs(title) {
-        return this.get(`/song_search?title=${title}`)
+    searchSongs(searchType, keywords) {
+        return this.get(`/song_search?search_type=${searchType}&keywords=${encodeURIComponent(keywords)}`)
     }
 
     recommendedSongs(service_id) {

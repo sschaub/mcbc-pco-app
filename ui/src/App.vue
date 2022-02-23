@@ -17,6 +17,9 @@
               <v-list-item @click="navToPage('/')">
                 <v-list-item-header>Home</v-list-item-header>
               </v-list-item>
+              <v-list-item @click="toSongSearch()">
+                <v-list-item-header>Song Search</v-list-item-header>
+              </v-list-item>
               <v-list-item @click="navigateTo('https://schedule.mcbcmusic.org/history')">
                 <v-list-item-header>History</v-list-item-header>
               </v-list-item>
@@ -53,8 +56,8 @@
 </style>
 
 <script>
-// import Home from './views/Home.vue'
-// import About from './views/About.vue'
+
+import { ssStore } from './views/SongSearchState.js'
 
 export default {
   name: 'App',
@@ -79,6 +82,11 @@ export default {
     },
     navToPage(path) {
       this.$router.push(path)
+      this.drawer = false
+    },
+    toSongSearch() {
+      ssStore.init(false)
+      this.$router.push('/songs')
       this.drawer = false
     }
   },

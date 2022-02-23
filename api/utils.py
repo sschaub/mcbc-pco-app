@@ -14,7 +14,7 @@ def get_service_type_name(service_type_id: str):
 def get_service_name(service_type_id: str, plan_sortdate_str: str):
     plan_date_str, plan_time = plan_sortdate_str.split('T')
     plan_date = datetime.strptime(plan_date_str, '%Y-%m-%d')
-    plan_date_formatted = plan_date.strftime('%b %-d, %Y')
+    plan_date_formatted = plan_date.strftime('%b %d, %Y')
     return '{} - {}'.format(get_service_type_name(service_type_id), plan_date_formatted)
 
 

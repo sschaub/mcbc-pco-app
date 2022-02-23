@@ -6,14 +6,21 @@
         <div v-if="mode == 'song'">
           <v-container>
             <v-row>
-              <v-col>
-                <v-text-field ref="keywords" v-model="ssStore.keywords" label="Title" @keyup.enter="doSongSearch()" />
+              <v-col
+                class="flex-grow-1 flex-shrink-0"
+              >              
+                <v-text-field ref="keywords" v-model="ssStore.keywords" label="Search words" @keyup.enter="doSongSearch()" class="flex-grow" />
               </v-col>
-              <v-col cols="2">
-                <v-btn @click="doSongSearch()" :disabled="ssStore.keywords.length < 3">Search</v-btn>
+              <v-col class="flex-grow-0 flex-shrink-1">
+                  <v-btn @click="doSongSearch()" :disabled="ssStore.keywords.length < 3">Search</v-btn>
               </v-col>
             </v-row>
           </v-container>
+          <div class="text-left">Search what?</div>
+          <v-radio-group v-model="ssStore.searchType" direction="horizontal">
+            <v-radio label="Title" value="T" />
+            <v-radio label="Lyrics" value="L" />
+          </v-radio-group> 
 
           <v-progress-circular indeterminate v-if="loading" />
 
@@ -32,23 +39,23 @@
             </v-list>
 
               <br><br>
-              <v-btn @click="mode = 'newsong'">
+              <v-btn v-if="ssStore.isPicker" @click="mode = 'newsong'">
                     Other Song
               </v-btn>
           </div>
 
-          <v-btn v-else @click="showRecommended">Suggested Titles</v-btn>
+          <v-btn v-if="ssStore.isPicker" @click="showRecommended" style="margin-top: 10px">Suggested Titles</v-btn>
 
           <div v-if="notFound">
             <br>
             <p>{{notFound}}</p>
-            <v-btn v-if="ssStore.keywords" @click="newSongClicked()">Continue with New Song</v-btn>
+            <v-btn v-if="ssStore.keywords && ssStore.isPicker" @click="newSongClicked()">Continue with New Song</v-btn>
           </div>
           <br>
         </div>
 
         <div v-if="mode == 'newsong'">
-          <p>Confirm new song title:</p>
+          <h3>Confirm new song title</h3>
           <v-text-field ref="confirmTitle" v-model="ssStore.keywords" label="Title"  />
           <v-btn @click="confirmNewTitle()">Continue</v-btn>
           <v-btn @click="mode = 'song'">Cancel</v-btn>
@@ -90,9 +97,10 @@ export default {
       this.loading = true
       ssStore.songList = []
       try {
-        ssStore.songList = await this.$api.searchSongs(ssStore.keywords)
+        ssStore.songList = await this.$api.searchSongs(ssStore.searchType, ssStore.keywords)
         if (ssStore.songList.length == 0) {
-          this.notFound = 'No songs found. You can try another search, or'
+          this.notFound = 'No songs found.'
+          this.$refs.keywords.focus()
         }
       } finally {
         this.loading = false

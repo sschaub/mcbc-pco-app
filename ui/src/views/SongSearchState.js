@@ -1,16 +1,20 @@
 import { reactive } from 'vue'
 
 export const ssStore = reactive({
+    isPicker: false,
     keywords: "",
+    searchType: "T",  // T - Title, L - Lyrics
     songList: [],
     song: {},
     arrangement: {},
     arrList: [],
 
-    init() {
+    init(isPicker) {
+        this.isPicker = isPicker
         this.songList = []
         this.keywords = ''
         this.arrList = ''
+        this.searchType = 'T'
     },
 
     finishEntry(api, siStore) {
