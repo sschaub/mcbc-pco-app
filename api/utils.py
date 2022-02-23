@@ -11,9 +11,14 @@ from sqlalchemy import update, select, func
 def get_service_type_name(service_type_id: str):
     return SERVICE_TYPES.get(int(service_type_id), 'Unknown service type')
 
+def str_to_date(s: str) -> datetime:
+    """Converts a string in "YYYY-MM-DD" or "YYYY-MM-DDTHH:MM:SS form to a date"""
+
+    plan_date_str = s.split('T')[0]
+    return datetime.strptime(plan_date_str, '%Y-%m-%d')
+
 def get_service_name(service_type_id: str, plan_sortdate_str: str):
-    plan_date_str, plan_time = plan_sortdate_str.split('T')
-    plan_date = datetime.strptime(plan_date_str, '%Y-%m-%d')
+    plan_date = str_to_date(plan_sortdate_str)
     plan_date_formatted = plan_date.strftime('%b %d, %Y')
     return '{} - {}'.format(get_service_type_name(service_type_id), plan_date_formatted)
 
@@ -173,12 +178,17 @@ def parse_copyright(copyright: str) -> tuple:
     return copyright_year, copyright_holder
 
 def get_arrangement_history(arrangement_id: int) -> list:
-    return list(dict(row) for row in db.session.execute("""
-        select service_item.id, service_date, service_time, event, person_names
+    history_list = list(dict(row) for row in db.session.execute("""
+        select service_item.id, service_type_id, service_date, event, person_names
         from service join service_item on service.id = service_item.service_id 
         where arrangement_id = :arr_id
         order by service_date desc
         """, { 'arr_id': arrangement_id }))
+    for hi in history_list:
+        hi['service_name'] = get_service_name(hi['service_type_id'], hi['service_date'])
+        hi['is_future'] = str_to_date(hi['service_date']) > datetime.now()
+
+    return history_list
 
 def get_arrangement(song_id: int, arrangement_id: int) -> dict:
     song_url = f'/services/v2/songs/{song_id}'
@@ -263,12 +273,19 @@ def get_arrangement(song_id: int, arrangement_id: int) -> dict:
     }
 
 def get_song_history(song_id: int) -> list:
-    return list(dict(row) for row in db.session.execute("""
-        select service_item.id, service_date, service_time, event, person_names, arrangement
+    history_list = list(dict(row) for row in db.session.execute("""
+        select service_item.id, service_type_id, service_date, event, person_names, arrangement
         from service join service_item on service.id = service_item.service_id 
         where song_id = :song_id
         order by service_date desc
         """, { 'song_id': song_id }))
+
+    for hi in history_list:
+        hi['service_name'] = get_service_name(hi['service_type_id'], hi['service_date'])
+        hi['is_future'] = str_to_date(hi['service_date']) > datetime.now()
+        
+    return history_list
+
 
 def get_song(song_id: int) -> dict:
     song_url = f'/services/v2/songs/{song_id}'

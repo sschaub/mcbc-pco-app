@@ -8,18 +8,19 @@
 
       </v-col>
       <v-col cols="12" sm="6" md="6">
-        <!-- <v-progress-circular indeterminate v-if="loading" /> -->
 
-        <h3 class="subhead">Song Usage History</h3>
+        <h3 class="subhead">Song Usage</h3>
         <v-list v-for="sh in ssStore.song.history" :key="sh.id" class="text-left mx-auto app-list">
           <v-list-item two-line class="text-left">
             <v-list-item-header>
-              <v-list-item-title>{{ sh.service_date }} {{ sh.service_time.substring(0, 5) }}</v-list-item-title>
-              <v-list-item-subtitle>{{ sh.event }} - {{ sh.arrangement }} <span v-if="sh.person_names != 'Sam Arnold'">[{{ sh.person_names }}]</span></v-list-item-subtitle>
+              <v-list-item-title>{{ sh.service_name }}<span v-if="sh.is_future">*</span></v-list-item-title>
+              <v-list-item-subtitle>                
+                {{ sh.event }} - {{ sh.arrangement }} <span v-if="sh.person_names != 'Sam Arnold'">[{{ sh.person_names }}]</span></v-list-item-subtitle>
             </v-list-item-header>
-          </v-list-item>                       
+          </v-list-item>
         </v-list>
-        <div v-if="ssStore.song.history && !ssStore.song.history.length">This song has not been used.</div>
+        <div v-if="ssStore.song.history && ssStore.song.history.length"><br>* indicates planned future use</div>
+        <div v-else>This song has not been used.</div>
       </v-col>
     
       <v-col cols="12" sm="6" md="6">
