@@ -392,6 +392,58 @@ def begin_edit_item(service_type_id: int, plan_id: int, item: dict) -> SchedSpec
 
     return sched_spec
 
+def pco_assign_song_to_plan_item(item_id, service_type_id, plan_id, sched_spec):
+    url = f'/services/v2/service_types/{service_type_id}/plans/{plan_id}/items/{item_id}'
+
+    templ = pco.template('Item', { 'title': sched_spec.title })
+
+    templ['data']['relationships'] = { }
+    if sched_spec.song_id:
+        templ['data']['relationships']['song'] = {
+            'data': {
+                'type': 'Song',
+                'id': sched_spec.song_id
+            }
+        }
+    if sched_spec.arrangement_id:
+        templ['data']['relationships']['arrangement'] = {
+            'data': {
+                'type': 'Song',
+                'id': sched_spec.arrangement_id
+            }
+        }
+    
+    pco.patch(url, templ)
+
+    found_notes = False
+    found_location = False
+    item_notes = pco.get(f'{url}/item_notes')
+    for item_note in item_notes['data']:
+        if item_note['attributes']['category_name'] == 'Service Order Note' and sched_spec.solo_instruments:
+            item_note_id = item_note['id']
+            pco.patch(f'{url}/item_notes/{item_note_id}', pco.template('ItemNote', { 'content': sched_spec.solo_instruments }))
+            found_notes = True
+        if item_note['attributes']['category_name'] == 'Location' and sched_spec.ministry_location:
+            item_note_id = item_note['id']
+            loc_url = f'{url}/item_notes/{item_note_id}'
+            pco.patch(loc_url, pco.template('ItemNote', { 'content': sched_spec.ministry_location }))
+            found_location = True
+
+    if sched_spec.solo_instruments and not found_notes:
+        service_order_category_id = SERVICE_ORDER_NOTE_CATEGORIES[int(service_type_id)]
+        pco.post(f'{url}/item_notes', pco.template("ItemNote", {
+                    "content": sched_spec.solo_instruments,
+                    "item_note_category_id": service_order_category_id
+                }))
+
+    if sched_spec.ministry_location and not found_location:
+        service_order_category_id = LOCATION_NOTE_CATEGORIES[int(service_type_id)]
+        pco.post(f'{url}/item_notes', pco.template("ItemNote", {
+                    "content": sched_spec.ministry_location,
+                    "item_note_category_id": service_order_category_id
+                }))
+
+
 def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id, version_no, song_id, arrangement_id, 
                 arrangement_name, title, copyright_year, copyright_holder, author, translator, composer, 
                 arranger, genre_note, solo_instruments, accomp_instruments, other_performers, ministry_location,
@@ -493,14 +545,14 @@ def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id
         if len(history):
             msg += '\n<h3>Song Last Used</h3>'
             for hi in history:
-                msg += f'''<p>{hi['service_date']} {to12hour(hi['service_time'])} {hi['event']} - {hi['arrangement']} [{hi['person_names']}]</p>'''
+                msg += f'''<p>{hi['service_name']} {hi['event']} - {hi['arrangement']} [{hi['person_names']}]</p>'''
 
     if arrangement_id:
         history = get_arrangement_history(arrangement_id)
         if len(history):
             msg += '\n<h3>Arrangement Last Used</h3>'
             for hi in history:
-                msg += f'''<p>{hi['service_date']} {to12hour(hi['service_time'])} {hi['event']} [{hi['person_names']}]</p>'''
+                msg += f'''<p>{hi['service_name']} {hi['event']} [{hi['person_names']}]</p>'''
 
     msg += '<p style="color: blue">New information is in blue</p>'
     msg += '</body></html>'

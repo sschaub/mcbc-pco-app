@@ -301,27 +301,6 @@ def api_approve_service_item(current_user: Person, service_id: str, item_id: str
     
     return { 'result': 'OK' }
 
-def pco_assign_song_to_plan_item(item_id, service_type_id, plan_id, sched_spec):
-    url = f'/services/v2/service_types/{service_type_id}/plans/{plan_id}/items/{item_id}'
-    templ = pco.template('Item', {'title': sched_spec.title})
-    templ['data']['relationships'] = { }
-    if sched_spec.song_id:
-        templ['data']['relationships']['song'] = {
-            'data': {
-                'type': 'Song',
-                'id': sched_spec.song_id
-            }
-        }
-    if sched_spec.arrangement_id:
-        templ['data']['relationships']['arrangement'] = {
-            'data': {
-                'type': 'Song',
-                'id': sched_spec.arrangement_id
-            }
-        }
-    
-    pco.patch(url, templ)
-
 @app.route('/services/<service_id>/<item_id>/import', methods=['POST'])
 @token_required
 def api_import_service_item(current_user: Person, service_id: str, item_id: str):
@@ -357,11 +336,15 @@ def api_import_service_item(current_user: Person, service_id: str, item_id: str)
 
     song_attrs = {        
         'title': sched_spec.title,
-        'author': author
     }
-    if not sched_spec.song_id:
+
+    if author:
+        song_attrs['author'] = author
+
+    if not sched_spec.song_id and copyright:
         # Only do copyright for a new song (don't want to override song-wide copyright for existing song)
         song_attrs['copyright'] = copyright
+
     payload = pco.template('Song', song_attrs)
 
     if sched_spec.song_id:
@@ -407,6 +390,9 @@ def api_import_service_item(current_user: Person, service_id: str, item_id: str)
         notes_lines.append(f'{copyright}')
 
     arr_attrs['notes'] = '\n'.join(notes_lines)    
+    if new_song or not sched_spec.arrangement_id:
+        arr_attrs['length'] = 180   # 3 minute default length
+
     payload = pco.template('Arrangement', arr_attrs)
 
     if sched_spec.arrangement_id:
