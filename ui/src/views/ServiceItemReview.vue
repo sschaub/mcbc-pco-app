@@ -6,9 +6,7 @@
           <h2>Please Review Your Entries</h2>
           <p>Review the information below and click Submit, or click Edit to change.</p>
           <h3>{{ siStore.service.name }} {{ siStore.item.description }}</h3>
-          <div>
-            Proposed Title: {{ siStore.sched_item.title }}
-          </div>
+          <h2>{{ siStore.sched_item.title }}</h2>
           <p v-if="siStore.sched_item.arrangement_name">Arrangement: {{ siStore.sched_item.arrangement_name }}</p>
           <service-item-details :sched_item="siStore.sched_item" :show_copyright_status="false" /> 
           <br>
@@ -60,21 +58,22 @@ export default {
 
   methods: {
     saveClicked() {
-      this.updateItem(false)
+      this.updateItem(0)
     },
 
     submitClicked() {
-      this.updateItem(true)
+      this.updateItem(1)
     },
 
-    async updateItem(sendEmail) {
+    // emailType: 0 = none, 1 = standard
+    async updateItem(emailType) {
       console.log(`Version: ${siStore.sched_item.version_no}`)
       try {
         this.loading = true
-
-        let response = await this.$api.updateServiceItem(this.service_id, this.item_id, siStore.sched_item, sendEmail)
+        siStore.sched_item.details_provided = 1
+        let response = await this.$api.updateServiceItem(this.service_id, this.item_id, siStore.sched_item, emailType)
         if (response.result == 'OK') {
-          if (sendEmail)
+          if (emailType)
             this.mode = 'finished'
           else
             this.$router.go(-2)

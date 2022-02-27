@@ -23,6 +23,8 @@ class SchedSpecial(db.Model):
     STATUS_APPROVED = 1
     COPYRIGHT_STATUS_UNKNOWN = 0
     COPYRIGHT_STATUS_APPROVED = 1
+    DETAILS_NO = 0
+    DETAILS_YES = 1
 
     id = db.Column(db.Integer, primary_key=True)
     service_type_id = db.Column(db.Integer, nullable=False)   # From PCO
@@ -30,6 +32,8 @@ class SchedSpecial(db.Model):
     item_id = db.Column(db.Integer, nullable=False)           # From PCO
     status = db.Column(db.Integer, nullable=False, 
                 default=STATUS_PENDING)                       # STATUS_PENDING / STATUS_APPROVED
+    details_provided = db.Column(db.Integer, nullable=False, 
+                default=DETAILS_NO)                         # DETAILS_NO / DETAILS_YES
     version_no =  db.Column(db.Integer, nullable=False, default=1) # Record version no
     description = db.Column(db.String(80), nullable=True)     # PCO Item Description
     assigned_to = db.Column(db.String(80), nullable=True)     # Name of person(s) assigned to minister

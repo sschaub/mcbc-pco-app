@@ -73,7 +73,7 @@ export default {
   },
 
   async mounted() {
-
+    scrollTo(0,0)
   }
 }
 </script>

@@ -113,8 +113,8 @@ class ApiService {
         return this.post(`/services/${service_id}/${item_id}/edit`)
     }
 
-    updateServiceItem(service_id, item_id, itemData, sendEmail) {
-        return this.post(`/services/${service_id}/${item_id}`, { item: itemData, sendEmail: sendEmail })
+    updateServiceItem(service_id, item_id, itemData, emailType) {
+        return this.post(`/services/${service_id}/${item_id}`, { item: itemData, emailType: emailType })
     }
 
     approveServiceItem(service_id, item_id) {

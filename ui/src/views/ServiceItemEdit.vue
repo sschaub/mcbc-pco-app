@@ -1,30 +1,47 @@
 <template>
-  <div v-if="!siStore.service.name" class="text-center">
+  <div v-if="loading || !siStore.service.name" class="text-center">
     <v-progress-circular indeterminate />
   </div>
+  <v-container v-else-if="mode=='askfordetails'">
+    <v-row class="text-center">
+      <v-col cols="12">
+        <h2>{{ siStore.sched_item.title }}</h2>
+        <p v-if="siStore.sched_item.arrangement_name">Arrangement: {{ siStore.sched_item.arrangement_name }}</p>
+        <br>
+        <v-btn @click="changeSong()">Change Song</v-btn>
+        <br><br>
+        <div>Do you wish to provide additional details at this time?</div>
+        <div><v-btn @click="mode=''">Yes</v-btn>&nbsp;<v-btn @click="noDetailsNowClicked()">No</v-btn></div>
+      </v-col>
+    </v-row>
+  </v-container>
+  <v-container v-else-if="mode=='thankyou'">
+    <v-row class="text-center">
+      <v-col cols="12">
+          <h2>Thank You</h2>
+          <div>Your proposed title has been submitted. You will receive an email when it is confirmed.</div>
+          <div><v-btn @click="this.$router.go(-1)">Ok</v-btn></div>
+      </v-col>
+    </v-row>
+  </v-container>
   <v-container v-else fluid>
     <v-row class="text-center">
       <v-col cols="12">
 
         <h4>{{ siStore.service.name }}</h4>
         <h3>{{ siStore.item.description}}</h3>
-        <h2 v-if="siStore.item.title">
-          Scheduled Title: {{ siStore.item.title }}
-        </h2>
-        <div>
-          Proposed Title: {{ siStore.sched_item.title }}
-          <v-btn @click="changeSong()">Change Title</v-btn>
-        </div>
+        <h2>{{ siStore.sched_item.title }}</h2>
         <p v-if="siStore.sched_item.arrangement_name">Arrangement: {{ siStore.sched_item.arrangement_name }}</p>
-                  
+        <br>
+        <v-btn @click="changeSong()">Change Song</v-btn>        
       </v-col>
     </v-row>
     <v-row>
       <v-col>
-        <div class="notice" >Please supply as much of the following as you are able.
+        <!-- <div class="notice" >Please supply as much of the following as you are able.
           If it is early and you are proposing a title, all you need to do is
           provide the starting and ending key.
-          You can come back and provide more details after the title is approved.</div>
+          You can come back and provide more details after the title is approved.</div> -->
 
         <h3 class="subhead">Composer / Author Details</h3>
         <p style="color: red">Due Tuesday p.m.</p>
@@ -143,6 +160,8 @@ export default {
 
   data: () => ({
     siStore: siStore,
+    loading: false,
+    mode: '',
     keys: ['A', 'C', 'Bb'],
     possible_locations: ['Pulpit', 'Piano well', 'Brass well', 'Orchestra pit', 'Choir loft', 'Bell loft', 'Other']
   }),  
@@ -160,23 +179,45 @@ export default {
       this.$router.push({ name: 'SongSearch' });
     },
 
+    async noDetailsNowClicked() {
+      try {
+        this.loading = true
+        await this.$api.updateServiceItem(this.service_id, this.item_id, siStore.sched_item, 2)
+        this.mode = 'thankyou'
+      } finally {
+        this.loading = false
+      }
+    }
+
   },
   
   async mounted() {
     try {
-      let initialEntry = !siStore.item.description; // true if entering from ServiceItem screen
-      if (!siStore.sched_item.id) {
-        let res = await this.$api.beginEditServiceItem(this.service_id, this.item_id)
-        siStore.sched_item = res.sched_item
-        siStore.service = res.service
-        siStore.item = res.item
+      let cameFromServiceItemScreen = !siStore.item.description; // true if entering from ServiceItem screen
+      if (cameFromServiceItemScreen) {
+        try {
+          this.loading = true
+          let res = await this.$api.beginEditServiceItem(this.service_id, this.item_id)
+          siStore.sched_item = res.sched_item
+          siStore.service = res.service
+          siStore.item = res.item
+        } finally {
+          this.loading = false
+        }
       }
 
       document.title = siStore.service.name + ' ' + siStore.item.description
 
-      if (!siStore.sched_item.title) {
-        if (initialEntry) {
+      if (siStore.sched_item.title) {
+        if (!siStore.sched_item.details_provided) {
+          // ask if user wishes to enter details
+          this.mode = "askfordetails"
+        }
+      } else {
+        // No title 
+        if (cameFromServiceItemScreen) {
           // no title assigned yet; display search UI
+          ssStore.init(true)
           this.$router.push({ name: 'SongSearch' })
         } else {
           // Search was cancelled; exit edit

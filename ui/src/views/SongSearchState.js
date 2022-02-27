@@ -19,6 +19,7 @@ export const ssStore = reactive({
 
     finishEntry(api, siStore) {
         siStore.sched_item.song_id = this.song.id
+        siStore.sched_item.details_provided = 0
         siStore.sched_item.title = this.song.title
         siStore.sched_item.author = this.song.author
         siStore.sched_item.arrangement_id = this.arrangement.id

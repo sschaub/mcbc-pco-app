@@ -1,50 +1,73 @@
 <template>
   <div>
-    <h3 class="newsection">Instrumentation / Personnel</h3>
-    <div>
-      Special type: {{sched_item.genre_note}} <span class="missing" v-if="!sched_item.genre_note">Missing info</span>
-    </div>
-    <div>
-      Solo instrument(s): {{sched_item.solo_instruments}} <span class="missing" v-if="!sched_item.solo_instruments">Missing info</span>
-    </div>
-    <div>
-      Accompaniment instrument(s): {{sched_item.accomp_instruments}} <span v-if="!sched_item.accomp_instruments">(Unaccompanied)</span>
-    </div>
-    <div>
-      Other musician(s): {{sched_item.other_performers}} <span v-if="!sched_item.other_performers">None</span>
-    </div>
-
     <h3 class="newsection">Song Details</h3>
-    <div>
-      Author: {{sched_item.author}}  <span class="missing" v-if="!sched_item.author">Missing info</span>
-    </div>
-    <div v-if="sched_item.translator">
-      Translator: {{sched_item.translator}}
-    </div>
-    <div>
-      Composer: {{sched_item.composer}} <span class="missing" v-if="!sched_item.composer">Missing info</span>
-    </div>
-    <div>
-      Arranger: {{sched_item.arranger}} <span class="missing" v-if="!sched_item.arranger">None</span>
-    </div>
-    <div v-if="sched_item.copyright_year && sched_item.copyright_holder">
-      Copyright: {{sched_item.copyright_year}} {{sched_item.copyright_holder}}
-      <span v-if="show_copyright_status">
-        <span v-if="isCopyrightOk(sched_item)">
-          <img src="/public/pass.png">
-        </span>
-        <span v-else>
-          <img src="/public/fail.png">
-          <v-btn v-if="isAdmin()" @click="approveCopyrightClicked()">Mark Ok</v-btn>
-        </span>
-      </span>
-    </div>
-    <div v-else>
-      Copyright: <span class="missing">Missing info</span>
-    </div>
-    <div>
-      Keys: {{sched_item.start_key}} - {{sched_item.end_key}}  <span class="missing" v-if="!sched_item.start_key || !sched_item.end_key">Missing info</span>
-    </div>
+    <table class="table-center">
+      <tr>
+        <th>Text:</th>
+        <td>{{sched_item.author}}  <span class="missing" v-if="!sched_item.author">Missing info</span></td>
+      </tr>
+      <tr v-if="sched_item.translator">
+        <th>Translator:</th>
+        <td>{{sched_item.translator}}</td>
+      </tr>
+      <tr>
+        <th>Tune:</th>
+        <td>{{sched_item.composer}} <span class="missing" v-if="!sched_item.composer">Missing info</span></td>
+      </tr>
+      <tr>
+        <th>Arranger:</th>
+        <td>{{sched_item.arranger}} <span v-if="!sched_item.arranger">None</span></td>
+      </tr>
+      <tr >
+        <th>Copyright:</th>
+        <td v-if="sched_item.copyright_year && sched_item.copyright_holder">{{sched_item.copyright_year}} {{sched_item.copyright_holder}}
+          <span v-if="show_copyright_status">
+            <span v-if="isCopyrightOk(sched_item)">
+              <img src="/public/pass.png">
+            </span>
+            <span v-else>
+              <img src="/public/fail.png">
+              <v-btn v-if="isAdmin()" @click="approveCopyrightClicked()">Mark Ok</v-btn>
+            </span>
+          </span>
+        </td>
+        <td v-else>
+          <span class="missing">Missing info</span>
+        </td>
+      </tr>
+      <tr>
+        <th>Keys:</th>
+        <td v-if="sched_item.start_key && sched_item.end_key">{{sched_item.start_key}} - {{sched_item.end_key}}</td>
+        <td v-else><span class="missing">Missing info</span></td>
+      </tr>
+
+    </table>
+
+    <h3 class="newsection">Instrumentation / Personnel</h3>
+    <table class="table-center">
+      <tr>
+        <th>Special type:</th>
+        <td>{{sched_item.genre_note}} <span class="missing" v-if="!sched_item.genre_note">Missing info</span></td>
+      </tr>
+      <tr>
+        <th>Solo instrument:</th>
+        <td>
+          {{sched_item.solo_instruments}} <span class="missing" v-if="!sched_item.solo_instruments">Missing info</span>
+        </td>
+      </tr>
+      <tr>
+        <th>Accompaniment:</th>
+        <td>
+          {{sched_item.accomp_instruments}} <span v-if="!sched_item.accomp_instruments">(Unaccompanied)</span>
+        </td>
+      </tr>
+      <tr>
+        <th>Other musician(s):</th>
+        <td>
+          {{sched_item.other_performers}} <span v-if="!sched_item.other_performers">None</span>
+        </td>
+      </tr>
+    </table>
 
     <h3 class="newsection">Other Details</h3>
     
@@ -55,7 +78,9 @@
     </div>
     <div>
       <h4>Song Text</h4>
-      <div v-html="sched_item.song_text.replace(/\n/g, '<br>')"></div>
+      <table class="table-center">
+        <tr><td v-html="sched_item.song_text.replace(/\n/g, '<br>')"></td></tr>
+      </table>
       <div class="missing" v-if="!sched_item.song_text">Missing info</div>
     </div>
   </div>
@@ -64,6 +89,18 @@
 <style scoped>
 .newsection { margin-top: 30px; }
 .missing { background-color: yellow; padding-left: 5px; padding-right: 5px; }
+.table-center {
+  margin-left: auto;
+  margin-right: auto;
+}
+.table-center th {
+  text-align: right;
+  font-weight: normal;
+}
+.table-center td {
+  text-align: left;
+}
+
 </style>
 
 <script>

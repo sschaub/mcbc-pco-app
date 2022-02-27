@@ -14,30 +14,25 @@
       <v-col cols="12" sm="6" md="6">
         <div v-if="siStore.service.name">
           <h3><a @click="toService()" style="text-decoration: underline">{{siStore.service.name}}</a></h3>
-          <h2>{{ siStore.item.description}}</h2>
+          <h3>{{ siStore.item.description}}</h3>
           <div v-if="siStore.item.assigned_to.length">{{ itemPeople(siStore.item.assigned_to) }}</div>
           <br>
-          <div v-if="scheduledTitle()">
-            Scheduled Title: {{ scheduledTitle() }}
+          <div v-if="title()">
+            <span class="title">{{ title() }}</span> <a v-if="songUrl() && isAdmin()" :href="songUrl()" target="_blank">[pco]</a>
+            <p v-if="siStore.sched_item.arrangement_name">Arrangement: {{ siStore.sched_item.arrangement_name }} <a v-if="isAdmin()" :href="arrangementUrl()" target="_blank">[pco]</a></p>
+            <div v-if="isPending(siStore.sched_item)" class="pending">(Approval Pending)</div>
           </div>
-          <div v-if="proposedTitle()">
-            Proposed Title: {{ proposedTitle() }} <a v-if="songUrl() && isAdmin()" :href="songUrl()" target="_blank">[pco]</a>
-            <span class="pending"> (Approval Pending)</span>
-          </div>
-          <p v-if="siStore.sched_item.arrangement_name">Arrangement: {{ siStore.sched_item.arrangement_name }} <a v-if="isAdmin()" :href="arrangementUrl()" target="_blank">[pco]</a></p>
           <br>
           <v-btn @click="editClicked()">Edit</v-btn>
           <span v-if="isAdmin()">
             &nbsp;
             <v-btn @click="emailClicked()">Send Email</v-btn>
             &nbsp;
-            <v-btn v-if="isPending(siStore.sched_item)" @click="approveClicked()">Approve <v-icon
-                dark
-                right
-              >
+            <v-btn v-if="isPending(siStore.sched_item)" @click="approveClicked()">Approve 
+              <v-icon dark right>
                 mdi-checkbox-marked-circle
-              </v-icon></v-btn>
-            &nbsp;
+              </v-icon>
+            </v-btn>
             <v-btn v-if="!isPending(siStore.sched_item) && siStore.sched_item.title" @click="showImport = true">Import To PCO</v-btn>            
           </span>
 
@@ -56,7 +51,7 @@
           </div>
 
           <br>
-          <service-item-details v-if="siStore.sched_item.title" :sched_item="siStore.sched_item"  /> 
+          <service-item-details v-if="siStore.sched_item.details_provided" :sched_item="siStore.sched_item"  /> 
         </div>
       </v-col>
       <v-col cols="12" sm="6" md="6">
@@ -83,6 +78,7 @@
 
 <style scoped>
 h3 { margin-top: 20px }
+.title { font-size: 24px; font-weight: bold;}
 .pending { color: red }
 .v-list, .v-list-item { padding: 4px !important; }  
 </style>
@@ -122,16 +118,8 @@ export default {
       this.$router.push( { path: `/service/${this.service_id}` })
     },
 
-    scheduledTitle() {
-        if (siStore.item.title) {
-            return siStore.item.title
-        }
-    },
-
-    proposedTitle() {
-        if (siStore.sched_item.title && siStore.item.title != siStore.sched_item.title) {
-            return siStore.sched_item.title
-        }
+    title() {
+      return siStore.sched_item.title || siStore.item.title
     },
 
     songUrl() {

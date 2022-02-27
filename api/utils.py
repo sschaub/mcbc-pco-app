@@ -444,10 +444,10 @@ def pco_assign_song_to_plan_item(item_id, service_type_id, plan_id, sched_spec):
                 }))
 
 
-def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id, version_no, song_id, arrangement_id, 
+def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id, details_provided, version_no, song_id, arrangement_id, 
                 arrangement_name, title, copyright_year, copyright_holder, author, translator, composer, 
                 arranger, genre_note, solo_instruments, accomp_instruments, other_performers, ministry_location,
-                staging_notes, song_text, start_key, end_key, do_send_email=False):
+                staging_notes, song_text, start_key, end_key, email_type=0):
 
     def row(header, new_value, old_value, link='', extra_text=''):
         if new_value or old_value:
@@ -504,55 +504,62 @@ def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id
     msg += row('Title', title, sched_spec.title, link, extra_text=title_approval)
     link = f'/songs/{song_id}/arrangements/{arrangement_id}' if arrangement_id else ''
     msg += row('Arrangement', arrangement_name, sched_spec.arrangement_name, link)
-    msg += '</table>\n<h3>Instrumentation / Personnel</h3>\n<table>\n'    
-    msg += row('Special type', genre_note, sched_spec.genre_note)
-    msg += row('Instrument(s)', solo_instruments, sched_spec.solo_instruments)
-    msg += row('Accompaniment', accomp_instruments, sched_spec.accomp_instruments)
-    msg += row('Other musicians', other_performers, sched_spec.other_performers)
 
-    msg += '</table>\n<h3>Song Details</h3>\n<table>\n'
+    if details_provided:
 
-    orig_copyright = f'{sched_spec.copyright_year or ""} by {sched_spec.copyright_holder or "?"}'
+        msg += '</table>\n<h3>Instrumentation / Personnel</h3>\n<table>\n'    
+        msg += row('Special type', genre_note, sched_spec.genre_note)
+        msg += row('Instrument(s)', solo_instruments, sched_spec.solo_instruments)
+        msg += row('Accompaniment', accomp_instruments, sched_spec.accomp_instruments)
+        msg += row('Other musicians', other_performers, sched_spec.other_performers)
 
-    copyright = f'{copyright_year or ""} by {copyright_holder or "?"}'
-    copyright_status_html = ''
-    if copyright_license_status == SchedSpecial.COPYRIGHT_STATUS_UNKNOWN:
-        copyright_status_html = ' <span style="color:red">(Unknown approval status)</span>'
-    msg += row('Author', author, sched_spec.author)
-    msg += row('Translator', translator, sched_spec.translator)
-    msg += row('Composer', composer, sched_spec.composer)
-    msg += row('Arranger', arranger, sched_spec.arranger)
-    msg += row('Copyright', copyright, orig_copyright, extra_text=copyright_status_html)
+        msg += '</table>\n<h3>Song Details</h3>\n<table>\n'
 
-    msg += '</table>\n<h3>Other Details</h3>\n'
+        orig_copyright = f'{sched_spec.copyright_year or ""} by {sched_spec.copyright_holder or "?"}'
 
-    if song_text:
-        style = 'style="color:blue"' if song_text != sched_spec.song_text else ''
-        song_text_html = song_text.replace('\n', '<br>\n')
-        msg += f'''<h4>Song Text</h4><div {style}>{song_text_html}</div>'''
+        copyright = f'{copyright_year or ""} by {copyright_holder or "?"}'
+        copyright_status_html = ''
+        if copyright_license_status == SchedSpecial.COPYRIGHT_STATUS_UNKNOWN:
+            copyright_status_html = ' <span style="color:red">(Unknown approval status)</span>'
+        msg += row('Author', author, sched_spec.author)
+        msg += row('Translator', translator, sched_spec.translator)
+        msg += row('Composer', composer, sched_spec.composer)
+        msg += row('Arranger', arranger, sched_spec.arranger)
+        msg += row('Copyright', copyright, orig_copyright, extra_text=copyright_status_html)
 
-    if ministry_location:
-        style = 'style="color:blue"' if ministry_location != sched_spec.ministry_location else ''
-        msg += f'''<h4>Ministry Location</h4><div {style}>{ministry_location}</div>'''
+    msg += '</table>\n'
+        
+    if details_provided:
 
-    if staging_notes:
-        style = 'style="color:blue"' if staging_notes != sched_spec.staging_notes else ''
-        staging_notes_html = staging_notes.replace('\n', '<br>\n')
-        msg += f'''<h4>Staging Notes</h4><div {style}>{staging_notes_html}</div>'''
+        msg += '<h3>Other Details</h3>\n'
+
+        if song_text:
+            style = 'style="color:blue"' if song_text != sched_spec.song_text else ''
+            song_text_html = song_text.replace('\n', '<br>\n')
+            msg += f'''<h4>Song Text</h4><div {style}>{song_text_html}</div>'''
+
+        if ministry_location:
+            style = 'style="color:blue"' if ministry_location != sched_spec.ministry_location else ''
+            msg += f'''<h4>Ministry Location</h4><div {style}>{ministry_location}</div>'''
+
+        if staging_notes:
+            style = 'style="color:blue"' if staging_notes != sched_spec.staging_notes else ''
+            staging_notes_html = staging_notes.replace('\n', '<br>\n')
+            msg += f'''<h4>Staging Notes</h4><div {style}>{staging_notes_html}</div>'''
 
     if song_id:
         history = get_song_history(song_id)
         if len(history):
-            msg += '\n<h3>Song Last Used</h3>'
+            msg += '\n<h3>Song Usage</h3>'
             for hi in history:
-                msg += f'''<p>{hi['service_name']} {hi['event']} - {hi['arrangement']} [{hi['person_names']}]</p>'''
+                msg += f'''<p>{hi['service_name']}: {hi['event']} - {hi['arrangement']} [{hi['person_names']}]</p>'''
 
     if arrangement_id:
         history = get_arrangement_history(arrangement_id)
         if len(history):
-            msg += '\n<h3>Arrangement Last Used</h3>'
+            msg += '\n<h3>Arrangement Usage</h3>'
             for hi in history:
-                msg += f'''<p>{hi['service_name']} {hi['event']} [{hi['person_names']}]</p>'''
+                msg += f'''<p>{hi['service_name']}: {hi['event']} [{hi['person_names']}]</p>'''
 
     msg += '<p style="color: blue">New information is in blue</p>'
     msg += '</body></html>'
@@ -563,6 +570,7 @@ def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id
         where(SchedSpecial.id == sched_spec.id, SchedSpecial.version_no == version_no).
         values(version_no = version_no + 1, 
             status = sched_spec.status,
+            details_provided = details_provided,
             song_id = song_id,
             arrangement_id = arrangement_id,
             arrangement_name = arrangement_name,
@@ -587,7 +595,7 @@ def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id
     db.session.commit()
     success = result.rowcount == 1
 
-    if success and do_send_email:
+    if success and email_type:
         
         send_email(replyEmail=current_user.email, replyName=current_user.name,
             subject=f'{service_name} {sched_spec.description}',

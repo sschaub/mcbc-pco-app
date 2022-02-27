@@ -217,10 +217,11 @@ def api_update_service_item(current_user: Person, service_id: str, item_id: str)
     item_data = get_plan_item(int(service_type_id), int(plan_id), int(item_id))
     data = request.json
     item_new_data = data['item']
-    do_send_email = data['sendEmail']
+    email_type = int(data['emailType'])
 
     if save_item(current_user, item_data, int(service_type_id), int(plan_id), int(item_id), 
         version_no=item_new_data.get('version_no'),
+        details_provided=item_new_data.get('details_provided'),
         song_id=item_new_data.get('song_id'), 
         arrangement_id=item_new_data.get('arrangement_id'),
         arrangement_name=item_new_data.get('arrangement_name'),
@@ -240,7 +241,7 @@ def api_update_service_item(current_user: Person, service_id: str, item_id: str)
         song_text=item_new_data.get('song_text'),
         start_key=item_new_data.get('start_key'),
         end_key=item_new_data.get('end_key'),
-        do_send_email=do_send_email):
+        email_type=email_type):
 
         return { 'result': 'OK' }
     else:
