@@ -596,10 +596,15 @@ def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id
     success = result.rowcount == 1
 
     if success and email_type:
+        if details_provided:
+            to_list = ALL_EMAIL_LIST
+        else:
+            to_list = INITIAL_EMAIL_LIST
         
         send_email(replyEmail=current_user.email, replyName=current_user.name,
             subject=f'{service_name} {sched_spec.description}',
             msg=msg,
+            toEmails = to_list,
             ccEmails = [current_user.email]
         )
 
@@ -609,11 +614,11 @@ def send_email(subject: str, msg: str, replyEmail: str = '', replyName: str = ''
     if not ccEmails:
         ccEmails = []
     if not toEmails:
-        toEmails = EMAIL_LIST
+        toEmails = INITIAL_EMAIL_LIST
     
     cc_email_list = [{"email": email} for email in ccEmails if email not in toEmails]
-    toEmail_list = [{"email": email} for email in toEmails]
-    personalizations = {"to": toEmail_list, "subject": subject}
+    to_email_list = [{"email": email} for email in toEmails]
+    personalizations = {"to": to_email_list, "subject": subject}
     
     if len(cc_email_list):
         personalizations["cc"] = cc_email_list
