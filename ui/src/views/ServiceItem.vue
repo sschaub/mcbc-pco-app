@@ -34,6 +34,9 @@
               </v-icon>
             </v-btn>
             <v-btn v-if="!isPending(siStore.sched_item) && siStore.sched_item.title" @click="showImport = true">Import To PCO</v-btn>            
+            <span v-if="siStore.sched_item.title">&nbsp;
+              <v-btn @click="resetClicked()">Reset</v-btn>
+            </span>
           </span>
 
           <div v-if="showImport">
@@ -62,10 +65,10 @@
           <div v-if="songs.length">
             <h3>Other Songs In This Service</h3>
             <v-list v-for="song in songs" :key="song.id" class="mx-auto app-list">
-              <v-list-item lines="three" density="compact" class="text-left">
+              <v-list-item two-line density="compact" class="text-left">
                 <v-list-item-header>
                   <v-list-item-title>{{ song.title }}</v-list-item-title>
-                  <v-list-item-subtitle>{{song.description}} <br> {{ song.arrangement }}</v-list-item-subtitle>
+                  <v-list-item-subtitle>{{song.description}} - {{ song.arrangement }}</v-list-item-subtitle>
                 </v-list-item-header>
               </v-list-item>
             </v-list>            
@@ -109,7 +112,7 @@ export default {
       if (!siStore.service.songs) {
         return []
       }
-      return siStore.service.songs.filter( song => song.title )
+      return siStore.service.songs.filter( song => song.title && (song.description != siStore.item.description) )
     }
   },
 
@@ -143,6 +146,19 @@ export default {
       let subject = siStore.service.name + " " + siStore.item.description
       // launch email client
       location = "mailto:" + toList + "?subject=" + encodeURI(subject) + "&body=" + encodeURI(body)
+    },
+
+    async resetClicked() {
+      if (confirm("Are you sure you wish to reset this entry?")) {
+        try {
+          this.loading = true
+          await this.$api.resetServiceItem(this.service_id, this.item_id)
+          siStore.sched_item = {}
+          siStore.item.title = ''
+        } finally {
+          this.loading = false
+        }
+      }
     },
     
     async approveClicked() {

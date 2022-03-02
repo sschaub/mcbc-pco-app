@@ -282,13 +282,48 @@ def api_approve_copyright(current_user: Person, service_id: str, item_id: str):
 
     return 'OK'
 
+@app.route('/services/<service_id>/<item_id>/reset', methods=['POST'])
+@token_required
+def api_reset_service_item(current_user: Person, service_id: str, item_id: str):
+    if current_user.user_type != Person.USER_TYPE_ADMIN:
+        return { 'result': 'Unauthorized' }, 401
+
+    service_type_id, plan_id = service_id.split('-')
+
+    sched_spec = SchedSpecial.query.filter_by(
+            service_type_id=service_type_id,
+            plan_id=plan_id,
+            item_id=item_id).first()
+
+    db.session.delete(sched_spec)
+    db.session.commit()
+
+    url = f'/services/v2/service_types/{service_type_id}/plans/{plan_id}/items/{item_id}'
+
+    templ = pco.template('Item', { 'title': sched_spec.description })
+
+    templ['data']['relationships'] = { }
+    if sched_spec.song_id:
+        templ['data']['relationships']['song'] = {
+            'data': None
+        }
+    if sched_spec.arrangement_id:
+        templ['data']['relationships']['arrangement'] = {
+            'data': None
+        }
+    
+    pco.patch(url, templ)    
+
+    return { 'result': 'OK' }
+
+
 @app.route('/services/<service_id>/<item_id>/approve', methods=['POST'])
 @token_required
 def api_approve_service_item(current_user: Person, service_id: str, item_id: str):
     if current_user.user_type != Person.USER_TYPE_ADMIN:
         return { 'result': 'Unauthorized' }, 401
 
-    service_type_id, plan_id = service_id.split('-')    
+    service_type_id, plan_id = service_id.split('-')
 
     sched_spec = SchedSpecial.query.filter_by(
             service_type_id=service_type_id,
@@ -320,8 +355,6 @@ def api_import_service_item(current_user: Person, service_id: str, item_id: str)
 
     data = request.json
     import_arrangement_name = data['import_arrangement_name']
-
-    url = f'/services/v2/service_types/{service_type_id}/plans/{plan_id}/items/{item_id}'
 
     authors = []
     if sched_spec.author:

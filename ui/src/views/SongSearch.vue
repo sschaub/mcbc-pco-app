@@ -2,13 +2,11 @@
   <v-container>
     <v-row class="text-center">
       <v-col cols="12">
-        <h2>Song Search</h2>
+        <h2 v-if="mode == 'song'">Song Search</h2>
         <div v-if="mode == 'song'">
           <v-container>
             <v-row>
-              <v-col
-                class="flex-grow-1 flex-shrink-0"
-              >              
+              <v-col class="flex-grow-1 flex-shrink-0">              
                 <v-text-field ref="keywords" v-model="ssStore.keywords" label="Search words" @keyup.enter="doSongSearch()" class="flex-grow" />
               </v-col>
               <v-col class="flex-grow-0 flex-shrink-1">
@@ -39,8 +37,8 @@
             </v-list>
 
               <br><br>
-              <v-btn v-if="ssStore.isPicker" @click="mode = 'newsong'">
-                    Other Song
+              <v-btn v-if="ssStore.isPicker" @click="newSongClicked()">
+                  Add New Song
               </v-btn>
           </div>
 
@@ -48,16 +46,16 @@
 
           <div v-if="notFound">
             <br>
-            <p>{{notFound}}</p>
-            <v-btn v-if="ssStore.keywords && ssStore.isPicker" @click="newSongClicked()">Continue with New Song</v-btn>
+            <p>No songs found.</p>
+            <v-btn v-if="ssStore.keywords && ssStore.isPicker" @click="newSongClicked()">Add New Song</v-btn>
           </div>
           <br>
         </div>
 
         <div v-if="mode == 'newsong'">
-          <h3>Confirm new song title</h3>
+          <h2>New Song Title</h2>
           <v-text-field ref="confirmTitle" v-model="ssStore.keywords" label="Title"  />
-          <v-btn @click="confirmNewTitle()">Continue</v-btn>
+          <v-btn @click="confirmNewTitle()">Confirm Title</v-btn>
           <v-btn @click="mode = 'song'">Cancel</v-btn>
         </div>
 
@@ -99,7 +97,7 @@ export default {
       try {
         ssStore.songList = await this.$api.searchSongs(ssStore.searchType, ssStore.keywords)
         if (ssStore.songList.length == 0) {
-          this.notFound = 'No songs found.'
+          this.notFound = true
           this.$refs.keywords.focus()
         }
       } finally {
@@ -113,11 +111,11 @@ export default {
       ssStore.songList = []
       try {
         ssStore.songList = await this.$api.recommendedSongs(siStore.service.service_id)
-        if (ssStore.songList.length == 0) {
-          this.notFound = 'No recommended songs for this service.'
-        }
       } finally {
         this.loading = false
+      }
+      if (ssStore.songList.length == 0) {
+        alert('No recommended songs for this service.')
       }
     },
 

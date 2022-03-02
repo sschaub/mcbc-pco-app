@@ -121,6 +121,10 @@ class ApiService {
         return this.post(`/services/${service_id}/${item_id}/approve`)
     }
 
+    resetServiceItem(service_id, item_id) {
+        return this.post(`/services/${service_id}/${item_id}/reset`)
+    }
+
     approveCopyright(service_type_id, plan_id, item_id) {
         return this.post(`/services/${service_type_id}-${plan_id}/${item_id}/approve_copyright`)
     }

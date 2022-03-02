@@ -48,8 +48,8 @@ def get_plan(service_type_id: int, plan_id: int) -> dict:
 
     rows.sort(key=lambda entry: entry['item_seq'])
 
-    cong_songs = [{ 'id': row['id'], 'title': row['title'], 'description': row['description'], 'arrangement': row['arrangement'] } for row in rows 
-        if ('Song' in (row['description'] or '') or row['description'] in EDITABLE_ITEMS) and row['title'] != row['description']]
+    all_songs = [{ 'id': row['id'], 'title': row['title'], 'description': row['description'], 'arrangement': row['arrangement'] } for row in rows 
+        if (row['arrangement'] or (row['description'] in EDITABLE_ITEMS)) and row['title'] != row['description']]
     rows = [row for row in rows if row['description'] in EDITABLE_ITEMS]
 
     tags = [{
@@ -64,7 +64,7 @@ def get_plan(service_type_id: int, plan_id: int) -> dict:
             'service_id': f'{service_type_id}-{plan_id}',
             'name': service_name,
             'theme': plan_theme,
-            'songs': cong_songs,
+            'songs': all_songs,
             'personnel': positions,
             'tags': tags
         },
@@ -344,7 +344,7 @@ def begin_edit_item(service_type_id: int, plan_id: int, item: dict) -> SchedSpec
         ministry_location = 'Piano well'
         if 'Vocal' in item['description']:
             genre_note = 'Vocal solo'
-            solo_instruments = 'Voice'
+            solo_instruments = 'N/A'
             ministry_location = 'Pulpit'
         accomp_instruments = 'Piano'
         if 'Organ' in item['description']:
@@ -429,7 +429,7 @@ def pco_assign_song_to_plan_item(item_id, service_type_id, plan_id, sched_spec):
             pco.patch(loc_url, pco.template('ItemNote', { 'content': sched_spec.ministry_location }))
             found_location = True
 
-    if sched_spec.solo_instruments and not found_notes:
+    if sched_spec.solo_instruments and sched_spec.solo_instruments != 'N/A' and not found_notes:
         service_order_category_id = SERVICE_ORDER_NOTE_CATEGORIES[int(service_type_id)]
         pco.post(f'{url}/item_notes', pco.template("ItemNote", {
                     "content": sched_spec.solo_instruments,

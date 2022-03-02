@@ -48,12 +48,12 @@
       <v-col cols="12" sm="6" md="6">
         <div v-if="service.name">
           <div v-if="songs.length">
-            <h3 class="subhead">Congregational Songs</h3>
+            <h3 class="subhead">Other Songs</h3>
             <v-list v-for="song in songs" :key="song.id" class="mx-auto app-list">
               <v-list-item two-line density="compact" class="text-left">
                 <v-list-item-header>
                   <v-list-item-title>{{ song.title }}</v-list-item-title>
-                  <v-list-item-subtitle v-if="song.arrangement">{{ song.arrangement }}</v-list-item-subtitle>
+                  <v-list-item-subtitle>{{song.description}} - {{ song.arrangement }}</v-list-item-subtitle>
                 </v-list-item-header>
               </v-list-item>
             </v-list>
@@ -157,7 +157,8 @@ export default {
 
   computed: {
     songs() {
-      return this.service.songs.filter( song => song.description.includes('Song') && song.title )
+      let item_descrs = this.items.map( item => item.description )
+      return this.service.songs.filter( song => song.title && !item_descrs.includes(song.description) )
     }
   },
   

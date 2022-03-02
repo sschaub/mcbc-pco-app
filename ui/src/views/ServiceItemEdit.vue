@@ -44,7 +44,7 @@
           You can come back and provide more details after the title is approved.</div> -->
 
         <h3 class="subhead">Composer / Author Details</h3>
-        <p style="color: red">Due Tuesday p.m.</p>
+        <p style="color: red">Due Wednesday p.m.</p>
 
       </v-col>
     </v-row>
@@ -85,7 +85,7 @@
     <v-row>
       <v-col>
         <h3 class="subhead">Instrumentation / Personnel</h3>
-        <p style="color: red">Due Tuesday p.m.</p>
+        <p style="color: red">Due Wednesday p.m.</p>
       </v-col>
     </v-row>
     <v-row>
@@ -93,7 +93,7 @@
         <v-text-field v-model="siStore.sched_item.genre_note" label="Type of Number (Vocal solo, violin duet, etc.)" />
       </v-col>
       <v-col cols="12" sm="6" md="6">    
-        <v-text-field v-model="siStore.sched_item.solo_instruments" label="Solo instrument(s)" />
+        <v-text-field v-model="siStore.sched_item.solo_instruments" label="Solo instrument(s) if applicable (ex. Violin)" />
       </v-col>
     </v-row>
     <v-row>
