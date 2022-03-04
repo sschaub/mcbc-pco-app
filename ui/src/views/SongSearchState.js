@@ -2,6 +2,7 @@ import { reactive } from 'vue'
 
 export const ssStore = reactive({
     isPicker: false,
+    showHelp: true,
     keywords: "",
     searchType: "T",  // T - Title, L - Lyrics
     songList: [],
@@ -11,6 +12,7 @@ export const ssStore = reactive({
 
     init(isPicker) {
         this.isPicker = isPicker
+        this.showHelp = isPicker
         this.songList = []
         this.keywords = ''
         this.arrList = ''

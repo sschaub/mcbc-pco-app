@@ -20,7 +20,7 @@
             <v-radio label="Lyrics" value="L" />
           </v-radio-group> 
 
-          <v-progress-circular indeterminate v-if="loading" />
+          <div><v-progress-circular indeterminate v-if="loading" /></div>
 
           <div v-if="ssStore.songList.length &gt; 0">
 
@@ -52,6 +52,24 @@
           <br>
         </div>
 
+        <div v-if="ssStore.showHelp" class="help">
+          <h2>Need Help?</h2>
+          <p>Here's how it works:</p>
+          <h3>Step One: Search For Song</h3>
+          <p>Enter the title of your song to see if it is in our database of songs. If you find your
+          song when you search, select it! That will auto-fill details we have about the
+          author, song text, etc. If we don't have your song, you will see an option to add a new song to our
+          database. You can also click the "Suggested Titles" button to see a list of songs that fit
+          the theme.
+          </p>
+          <h3>Step Two: Select Your Arrangement</h3>
+          <p>If your song is in our database, we might also have a record of the arrangement you are using. You can select an 
+            arrangement from our list, or indicate that you are using a different arrangement.
+          </p>
+          <h3>Step Three: Enter Details</h3>
+          <p>After you've selected your song / arrangement, you'll be asked to enter details.</p>
+        </div>
+
         <div v-if="mode == 'newsong'">
           <h2>New Song Title</h2>
           <v-text-field ref="confirmTitle" v-model="ssStore.keywords" label="Title"  />
@@ -68,6 +86,8 @@
 
 <style scoped>
   .v-list, .v-list-item { padding: 0px !important; }  
+  .help { max-width: 600px; margin: 0 auto; text-align: left; }
+  .help h3, .help h2 { margin-top: 20px; }
 </style>
 
 <script>
@@ -94,6 +114,7 @@ export default {
       this.notFound = false
       this.loading = true
       ssStore.songList = []
+      ssStore.showHelp = false
       try {
         ssStore.songList = await this.$api.searchSongs(ssStore.searchType, ssStore.keywords)
         if (ssStore.songList.length == 0) {

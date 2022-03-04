@@ -33,11 +33,7 @@
         </v-btn>
       </v-col>
       <v-col cols="12" sm="6" md="6">
-        <div v-html="ssStore.arrangement.lyrics.replace(/\n/g, '<br>')">
-        
-        </div>
-
-        
+        <div v-html="ssStore.arrangement.lyrics.replace(/\n/g, '<br>')"></div>
       </v-col>
 
     </v-row>
