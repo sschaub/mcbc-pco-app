@@ -20,6 +20,9 @@
           <v-progress-circular indeterminate />
         </div>
 
+        <br><br><h3>First time logging in?</h3>
+        <div>Click the Password Reminder link above for help.</div>
+
       </v-col>
 
     </v-row>
@@ -79,7 +82,7 @@ export default {
     async passwordReminder() {
       this.errmsg = ''
       this.msg = ''
-      if (this.username.trim().length == 0 || this.password.trim().length == 0) {
+      if (this.username.trim().length == 0) {
         this.msg = 'Enter your email address, then click Password Reminder.'
         this.$refs.username.focus()
         return
@@ -88,7 +91,7 @@ export default {
       this.loading = true
       try {
           let response = await this.$api.passwordReminder(this.username.trim())
-          this.msg = response
+          alert(response)
       } finally {
         this.loading = false
       }

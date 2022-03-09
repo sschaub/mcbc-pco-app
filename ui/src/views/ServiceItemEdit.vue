@@ -169,10 +169,10 @@ export default {
   methods: {
 
     continueClicked() {
-      siStore.sched_item.song_text = siStore.sched_item.song_text.trim()
-      siStore.sched_item.composer = siStore.sched_item.composer.trim()
-      siStore.sched_item.arranger = siStore.sched_item.arranger.trim()        
-      siStore.sched_item.translator = siStore.sched_item.translator.trim()
+      siStore.sched_item.song_text = siStore.sched_item.song_text ? siStore.sched_item.song_text.trim() : ''
+      siStore.sched_item.composer = siStore.sched_item.composer ? siStore.sched_item.composer.trim() : ''
+      siStore.sched_item.arranger = siStore.sched_item.arranger ? siStore.sched_item.arranger.trim() : ''
+      siStore.sched_item.translator = siStore.sched_item.translator ? siStore.sched_item.translator.trim() : ''
       this.$router.push({
         name: 'ServiceItemReview'
       })

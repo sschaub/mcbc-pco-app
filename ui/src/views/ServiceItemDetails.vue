@@ -1,47 +1,32 @@
 <template>
   <div>
     <h3 class="newsection">Song Details</h3>
-    <table class="table-center">
-      <tr>
-        <th>Text:</th>
-        <td>{{sched_item.author}}  <span class="missing" v-if="!sched_item.author">Missing info</span></td>
-      </tr>
-      <tr v-if="sched_item.translator">
-        <th>Translator:</th>
-        <td>{{sched_item.translator}}</td>
-      </tr>
-      <tr>
-        <th>Tune:</th>
-        <td>{{sched_item.composer}} <span class="missing" v-if="!sched_item.composer">Missing info</span></td>
-      </tr>
-      <tr>
-        <th>Arranger:</th>
-        <td>{{sched_item.arranger}} <span v-if="!sched_item.arranger">None</span></td>
-      </tr>
-      <tr >
-        <th>Copyright:</th>
-        <td v-if="sched_item.copyright_year && sched_item.copyright_holder">{{sched_item.copyright_year}} {{sched_item.copyright_holder}}
-          <span v-if="show_copyright_status">
-            <span v-if="isCopyrightOk(sched_item)">
-              <img src="/public/pass.png">
-            </span>
-            <span v-else>
-              <img src="/public/fail.png">
-              <v-btn v-if="isAdmin()" @click="approveCopyrightClicked()">Mark Ok</v-btn>
-            </span>
-          </span>
-        </td>
-        <td v-else>
-          <span class="missing">Missing info</span>
-        </td>
-      </tr>
-      <tr>
-        <th>Keys:</th>
-        <td v-if="sched_item.start_key && sched_item.end_key">{{sched_item.start_key}} - {{sched_item.end_key}}</td>
-        <td v-else><span class="missing">Missing info</span></td>
-      </tr>
+    <div>Words by {{sched_item.author}}  <span class="missing" v-if="!sched_item.author">Missing info</span></div>
+    <div v-if="sched_item.translator">
+      Translated by {{sched_item.translator}}
+      </div>
+    <div>Music by {{sched_item.composer}} <span class="missing" v-if="!sched_item.composer">Missing info</span></div>
+    <div>Arranged by {{sched_item.arranger}} <span v-if="!sched_item.arranger">None</span></div>
+    <div v-if="sched_item.copyright_year && sched_item.copyright_holder">© {{sched_item.copyright_year}} {{sched_item.copyright_holder}}
+      <span v-if="show_copyright_status">
+        <span v-if="isCopyrightOk(sched_item)">
+          <img src="/public/pass.png">
+        </span>
+        <span v-else>
+          <img src="/public/fail.png">
+          <v-btn v-if="isAdmin()" @click="approveCopyrightClicked()">Mark Ok</v-btn>
+        </span>
+      </span>
+    </div>
+    <div v-else>
+      <span class="missing">Missing copyright info</span>
+    </div>
+    <div>
+      Keys: 
+      <span v-if="sched_item.start_key && sched_item.end_key">{{sched_item.start_key}} - {{sched_item.end_key}}</span>
+      <span v-else><span class="missing">Missing info</span></span>
+    </div>
 
-    </table>
 
     <h3 class="newsection">Instrumentation / Personnel</h3>
     <table class="table-center">

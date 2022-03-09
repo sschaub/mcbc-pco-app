@@ -188,7 +188,9 @@ export default {
           siStore.sched_item.arrangement_name = response.arrangement_name
           siStore.sched_item.arrangement_id = response.arrangement_id
           siStore.sched_item.song_id = response.song_id
-        }        
+        } else {
+          alert(response.msg)
+        }
         this.showImport = false
       } finally {
         this.loading = false
