@@ -2,8 +2,9 @@
 import os
 
 from flask import Flask, Response, escape, request, jsonify, make_response
+from flask_cors import CORS, cross_origin
 from pypco import PCORequestException
-
+from werkzeug.exceptions import HTTPException
 import requests
 import logging
 import re
@@ -18,6 +19,27 @@ from datetime import datetime, timedelta
 from threading import Thread
 from utils import *
 from db import *
+
+@cross_origin()
+@app.errorhandler(Exception)
+def ise_handler(e):
+    if isinstance(e, PCORequestException):
+        # e.response_body is something like {"errors":[{"detail":"has already been taken","status":"422","title":"Validation Error","source":{"parameter":"title"},"meta":{"resource":"Song","associated_resources":[]}}]}
+        logging.exception(f'PCO Request Exception: {e.status_code}\n-\n{e.message}\n-\n{e.response_body}')
+        try:
+            json_error = json.loads(e.response_body)
+            error = json_error['errors'][0]
+            msg = error['title'] + ': ' + error['source']['parameter'] + ' ' + error['detail']
+        except:
+            msg = e.response_body
+        return { 'result': 'Error', 'error': msg }, e.status_code
+    elif isinstance(e, HTTPException):
+        return { 'result': 'Error', 'error': e.description }, e.code
+    else:
+        logging.exception(f'Unhandled Exception:')
+        return { 'result': 'Error', 'error': str(e) }, 500
+
+
 
 # From https://www.geeksforgeeks.org/using-jwt-for-user-authentication-in-flask/
 # decorator for verifying the JWT
@@ -351,7 +373,7 @@ def api_import_service_item(current_user: Person, service_id: str, item_id: str)
             item_id=item_id).first()
 
     if not sched_spec:
-        return { 'result': 'Not found' }, 404
+        return { 'result': 'Fail', 'error': 'Unexpected error: Invalid scheduled special ID' }, 404
 
     data = request.json
     import_arrangement_name = data['import_arrangement_name']
@@ -381,79 +403,63 @@ def api_import_service_item(current_user: Person, service_id: str, item_id: str)
 
     payload = pco.template('Song', song_attrs)
 
-    try:
+    if sched_spec.song_id:
+        new_song = False
+        song = pco.patch(f'/services/v2/songs/{sched_spec.song_id}', payload)
+    else:
+        new_song = True
+        song = pco.post('/services/v2/songs', payload)
+        sched_spec.song_id = song['data']['id']
+        arrangements = pco.get(f'/services/v2/songs/{sched_spec.song_id}/arrangements')
+        arrangement = arrangements['data'][0]
+        sched_spec.arrangement_id = arrangement['id']
 
-        if sched_spec.song_id:
-            new_song = False
-            song = pco.patch(f'/services/v2/songs/{sched_spec.song_id}', payload)
-        else:
-            new_song = True
-            song = pco.post('/services/v2/songs', payload)
-            sched_spec.song_id = song['data']['id']
-            arrangements = pco.get(f'/services/v2/songs/{sched_spec.song_id}/arrangements')
-            arrangement = arrangements['data'][0]
-            sched_spec.arrangement_id = arrangement['id']
-
-        sched_spec.arrangement_name = import_arrangement_name
-        if sched_spec.arrangement_id and not new_song:
-            arrangement = pco.get(f'/services/v2/songs/{sched_spec.song_id}/arrangements/{sched_spec.arrangement_id}')
-            notes = arrangement['data']['attributes']['notes'] or ''
-        else:
-            notes = ''
-            
-        arr_attrs = {
-            'name': sched_spec.arrangement_name,
-        }
-        if sched_spec.song_text:
-            arr_attrs['chord_chart'] = sched_spec.song_text
-            arr_attrs['chord_chart_key'] = 'C'
-
-        notes_lines = notes.split('\n')
-        # Remove lines from notes that contain information we're going to add
-        notes_lines = [line for line in notes_lines if line and not (
-            line.startswith('Arranger:') or line.startswith('Copyright') or line.startswith('Translator:')
-            or line.startswith('Author:') or line.startswith('Composer')
-            )]
-        if sched_spec.arranger:
-            notes_lines.append(f'Arranger: {sched_spec.arranger}')
-        if sched_spec.translator:
-            notes_lines.append(f'Translator: {sched_spec.translator}')
-        if sched_spec.author:
-            notes_lines.append(f'Author: {sched_spec.author}')
-        if sched_spec.composer:
-            notes_lines.append(f'Composer: {sched_spec.composer}')
-        if copyright:
-            notes_lines.append(f'{copyright}')
-
-        arr_attrs['notes'] = '\n'.join(notes_lines)    
-        if new_song or not sched_spec.arrangement_id:
-            arr_attrs['length'] = 180   # 3 minute default length
-
-        payload = pco.template('Arrangement', arr_attrs)
-
-        if sched_spec.arrangement_id:
-            pco.patch(f'/services/v2/songs/{sched_spec.song_id}/arrangements/{sched_spec.arrangement_id}', payload)
-        else:
-            arrangement = pco.post(f'/services/v2/songs/{sched_spec.song_id}/arrangements', payload)
-            sched_spec.arrangement_id = arrangement['data']['id']
-
-        db.session.commit()
-
-        pco_assign_song_to_plan_item(item_id, service_type_id, plan_id, sched_spec)
-    except PCORequestException as e:
-        # e.response_body is something like {"errors":[{"detail":"has already been taken","status":"422","title":"Validation Error","source":{"parameter":"title"},"meta":{"resource":"Song","associated_resources":[]}}]}
-        logging.exception(f'PCO Request Exception: {e.status_code}\n-\n{e.message}\n-\n{e.response_body}')
-        try:
-            json_error = json.loads(e.response_body)
-            error = json_error['errors'][0]
-            msg = error['title'] + ': ' + error['source']['parameter'] + ' ' + error['detail']
-        except:
-            msg = e.response_body
-        return { 'result': 'Error', 'msg': msg }, e.status_code
-    except Exception as e:
-        logging.exception(f'Exception: {e.message}')
-        return { 'result': 'Error', 'msg': e.message }, 500
+    sched_spec.arrangement_name = import_arrangement_name
+    if sched_spec.arrangement_id and not new_song:
+        arrangement = pco.get(f'/services/v2/songs/{sched_spec.song_id}/arrangements/{sched_spec.arrangement_id}')
+        notes = arrangement['data']['attributes']['notes'] or ''
+    else:
+        notes = ''
         
+    arr_attrs = {
+        'name': sched_spec.arrangement_name,
+    }
+    if sched_spec.song_text:
+        arr_attrs['chord_chart'] = sched_spec.song_text
+        arr_attrs['chord_chart_key'] = 'C'
+
+    notes_lines = notes.split('\n')
+    # Remove lines from notes that contain information we're going to add
+    notes_lines = [line for line in notes_lines if line and not (
+        line.startswith('Arranger:') or line.startswith('Copyright') or line.startswith('Translator:')
+        or line.startswith('Author:') or line.startswith('Composer')
+        )]
+    if sched_spec.arranger:
+        notes_lines.append(f'Arranger: {sched_spec.arranger}')
+    if sched_spec.translator:
+        notes_lines.append(f'Translator: {sched_spec.translator}')
+    if sched_spec.author:
+        notes_lines.append(f'Author: {sched_spec.author}')
+    if sched_spec.composer:
+        notes_lines.append(f'Composer: {sched_spec.composer}')
+    if copyright:
+        notes_lines.append(f'{copyright}')
+
+    arr_attrs['notes'] = '\n'.join(notes_lines)    
+    if new_song or not sched_spec.arrangement_id:
+        arr_attrs['length'] = 180   # 3 minute default length
+
+    payload = pco.template('Arrangement', arr_attrs)
+
+    if sched_spec.arrangement_id:
+        pco.patch(f'/services/v2/songs/{sched_spec.song_id}/arrangements/{sched_spec.arrangement_id}', payload)
+    else:
+        arrangement = pco.post(f'/services/v2/songs/{sched_spec.song_id}/arrangements', payload)
+        sched_spec.arrangement_id = arrangement['data']['id']
+
+    db.session.commit()
+
+    pco_assign_song_to_plan_item(item_id, service_type_id, plan_id, sched_spec)
 
     try:
         keys = pco.get(f'/services/v2/songs/{sched_spec.song_id}/arrangements/{sched_spec.arrangement_id}/keys')

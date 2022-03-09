@@ -10,10 +10,10 @@
     <div v-if="sched_item.copyright_year && sched_item.copyright_holder">© {{sched_item.copyright_year}} {{sched_item.copyright_holder}}
       <span v-if="show_copyright_status">
         <span v-if="isCopyrightOk(sched_item)">
-          <img src="/public/pass.png">
+          <img src="/pass.png">
         </span>
         <span v-else>
-          <img src="/public/fail.png">
+          <img src="/fail.png">
           <v-btn v-if="isAdmin()" @click="approveCopyrightClicked()">Mark Ok</v-btn>
         </span>
       </span>

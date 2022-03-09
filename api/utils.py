@@ -344,7 +344,7 @@ def begin_edit_item(service_type_id: int, plan_id: int, item: dict) -> SchedSpec
         ministry_location = 'Piano well'
         if 'Vocal' in item['description']:
             genre_note = 'Vocal solo'
-            solo_instruments = 'N/A'
+            solo_instruments = ''
             ministry_location = 'Pulpit'
         accomp_instruments = 'Piano'
         if 'Organ' in item['description']:
@@ -429,7 +429,7 @@ def pco_assign_song_to_plan_item(item_id, service_type_id, plan_id, sched_spec):
             pco.patch(loc_url, pco.template('ItemNote', { 'content': sched_spec.ministry_location }))
             found_location = True
 
-    if sched_spec.solo_instruments and sched_spec.solo_instruments != 'N/A' and not found_notes:
+    if sched_spec.solo_instruments and not found_notes:
         service_order_category_id = SERVICE_ORDER_NOTE_CATEGORIES[int(service_type_id)]
         pco.post(f'{url}/item_notes', pco.template("ItemNote", {
                     "content": sched_spec.solo_instruments,

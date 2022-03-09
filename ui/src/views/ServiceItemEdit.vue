@@ -56,7 +56,7 @@
       </v-col>
       <v-col cols="12" sm="6" md="6">
         <v-text-field v-model="siStore.sched_item.composer" label="Tune (ex. Joseph Haydn)" />
-        <v-text-field v-model="siStore.sched_item.translator" label="Text Translator (ex. Fred Jones)" />
+        <v-text-field v-if="isAdmin()" v-model="siStore.sched_item.translator" label="Text Translator (ex. Fred Jones)" />
       </v-col>
     </v-row>
     <v-row>
@@ -92,7 +92,7 @@
       <v-col cols="12" sm="6" md="6">
         <v-text-field v-model="siStore.sched_item.genre_note" label="Type of Number (Vocal solo, violin duet, etc.)" />
       </v-col>
-      <v-col cols="12" sm="6" md="6">    
+      <v-col v-if="isAdmin()" cols="12" sm="6" md="6">    
         <v-text-field v-model="siStore.sched_item.solo_instruments" label="Solo instrument(s) if applicable (ex. Violin)" />
       </v-col>
     </v-row>

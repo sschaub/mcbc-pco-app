@@ -18,7 +18,11 @@
           <div v-if="siStore.item.assigned_to.length">{{ itemPeople(siStore.item.assigned_to) }}</div>
           <br>
           <div v-if="title()">
-            <span class="title">{{ title() }}</span> <a v-if="songUrl() && isAdmin()" :href="songUrl()" target="_blank">[pco]</a>
+            <span class="title">{{ title() }}</span>
+            <span v-if="isAdmin()" style="margin-left: 10px">              
+              <a v-if="songUrl()" :href="songUrl()" target="_blank">[pco]</a>
+              <span v-else>(new song)</span>
+            </span>
             <p v-if="siStore.sched_item.arrangement_name">Arrangement: {{ siStore.sched_item.arrangement_name }} <a v-if="isAdmin()" :href="arrangementUrl()" target="_blank">[pco]</a></p>
             <div v-if="isPending(siStore.sched_item)" class="pending">(Approval Pending)</div>
           </div>
@@ -184,14 +188,19 @@ export default {
       try {
         this.loading = true
         let response = await this.$api.importServiceItem(this.service_id, this.item_id, this.importArrangementName)
-        if (response.result == 'OK') {
-          siStore.sched_item.arrangement_name = response.arrangement_name
-          siStore.sched_item.arrangement_id = response.arrangement_id
-          siStore.sched_item.song_id = response.song_id
-        } else {
-          alert(response.msg)
-        }
+        siStore.sched_item.arrangement_name = response.arrangement_name
+        siStore.sched_item.arrangement_id = response.arrangement_id
+        siStore.sched_item.song_id = response.song_id
         this.showImport = false
+      } catch (err) {
+        if (err.response) {
+          console.log(err.response.data)
+          if (err.response.data.error)
+            alert(err.response.data.error)
+          else
+            alert(err.response.data)          
+        }
+          
       } finally {
         this.loading = false
       }
