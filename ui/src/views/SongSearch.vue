@@ -42,7 +42,7 @@
               </v-btn>
           </div>
 
-          <v-btn v-if="ssStore.isPicker" @click="showRecommended" style="margin-top: 10px">Suggested Titles</v-btn>
+          <!-- <v-btn v-if="ssStore.isPicker" @click="showRecommended" style="margin-top: 10px">Suggested Titles</v-btn> -->
 
           <div v-if="notFound">
             <br>
@@ -61,13 +61,7 @@
           author, song text, etc. If we don't have your song, you will see an option to add a new song to our
           database. You can also click the "Suggested Titles" button to see a list of songs that fit
           the theme.
-          </p>
-          <h3>Step Two: Select Your Arrangement</h3>
-          <p>If your song is in our database, we might also have a record of the arrangement you are using. You can select an 
-            arrangement from our list, or indicate that you are using a different arrangement.
-          </p>
-          <h3>Step Three: Enter Details</h3>
-          <p>After you've selected your song / arrangement, you'll be asked to enter details.</p>
+          </p>         
         </div>
 
         <div v-if="mode == 'newsong'">
@@ -93,7 +87,6 @@
 <script>
 
 import { ssStore } from './SongSearchState.js'
-import { siStore } from './ServiceItemState.js'
 
 export default {
   name: 'SongSearch',
@@ -148,7 +141,9 @@ export default {
         let songDetails = await this.$api.getSong(ssStore.song.id)
         ssStore.arrList = await this.$api.getArrangements(ssStore.song.id)
         ssStore.song.history = songDetails.history
-
+        ssStore.song.author = songDetails.author
+        ssStore.song.composer = songDetails.composer
+        ssStore.song.lyrics = songDetails.lyrics
       } finally {
         this.loading = false
       }      
@@ -169,7 +164,7 @@ export default {
     },
 
     async finishEntry() {
-      ssStore.finishEntry(this.$api, siStore)
+      ssStore.finishEntry()
       this.$router.go(-1)
     }
 
@@ -178,6 +173,7 @@ export default {
 
   mounted() {
     this.$refs.keywords.focus()
+    scrollTo(0, 0)
   }
 }
 </script>

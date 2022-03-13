@@ -496,8 +496,6 @@ def api_song_search():
         }
     song_list = get_songs(search_attrs)
 
-
-    
     return jsonify(song_list)
 
 @app.route('/songs/<song_id>/arrangements')

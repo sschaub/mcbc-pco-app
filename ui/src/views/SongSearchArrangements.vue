@@ -8,7 +8,13 @@
 
       </v-col>
       <v-col cols="12" sm="6" md="6">
-
+        <div v-if="ssStore.isPicker" class="help">
+          <h3>Step Two: Review Song Usage and Select Your Arrangement</h3>
+          <p>Look at the song usage report below to see how recently this song has been used (and if it is scheduled
+            to be used in the near future). Then, select your arrangement from our list, or pick "Use another arrangement"
+            if yours isn't listed.
+          </p>
+        </div>
         <h3 class="subhead">Song Usage</h3>
         <v-list v-for="sh in ssStore.song.history" :key="sh.id" class="text-left mx-auto app-list">
           <v-list-item two-line class="text-left">
@@ -25,7 +31,7 @@
     
       <v-col cols="12" sm="6" md="6">
         <h3 class="subhead">Select Arrangement</h3>
-        <p>Here are the arrangements we have on file:</p>
+        <p>Here are the arrangements in our database:</p>
 
         <v-list v-for="arr in ssStore.arrList" :key="arr.id" class="text-left mx-auto app-list">
           <v-list-item @click="arrangementSelected(arr)" class="text-left">
@@ -53,6 +59,7 @@
 
 <style scoped>
   .v-list, .v-list-item { padding: 0px !important; }  
+  .help { max-width: 600px; margin: 0 auto; text-align: left; }
 </style>
 
 <script>

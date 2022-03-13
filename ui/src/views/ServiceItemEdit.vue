@@ -8,10 +8,22 @@
         <h2>{{ siStore.sched_item.title }}</h2>
         <p v-if="siStore.sched_item.arrangement_name">Arrangement: {{ siStore.sched_item.arrangement_name }}</p>
         <br>
-        <v-btn @click="changeSong()">Change Song</v-btn>
+        <v-btn @click="openSearch()">Change Song</v-btn>
         <br><br>
         <div>Do you wish to provide additional details at this time?</div>
         <div><v-btn @click="mode=''">Yes</v-btn>&nbsp;<v-btn @click="noDetailsNowClicked()">No</v-btn></div>
+      </v-col>
+    </v-row>
+  </v-container>
+  <v-container v-else-if="mode=='asktoreplace'">
+    <v-row class="text-center">
+      <v-col cols="12">
+        <h2>{{ ssStore.song.title }}</h2>
+        <p v-if="ssStore.arrangement.name">Arrangement: {{ ssStore.arrangement.name }}</p>
+        <br>
+        <div>Do you wish to replace the details previously entered with what we have on file for this song?</div>
+        <br><br>
+        <v-btn @click="replaceDetails()">Yes</v-btn>&nbsp;<v-btn @click="mode = ''">No</v-btn>
       </v-col>
     </v-row>
   </v-container>
@@ -33,7 +45,7 @@
         <h2>{{ siStore.sched_item.title }}</h2>
         <p v-if="siStore.sched_item.arrangement_name">Arrangement: {{ siStore.sched_item.arrangement_name }}</p>
         <br>
-        <v-btn @click="changeSong()">Change Song</v-btn>        
+        <v-btn @click="openSearch()">Change Song</v-btn>        
       </v-col>
     </v-row>
     <v-row>
@@ -160,6 +172,7 @@ export default {
 
   data: () => ({
     siStore: siStore,
+    ssStore: ssStore,
     loading: false,
     mode: '',
     keys: ['A', 'C', 'Bb'],
@@ -178,11 +191,6 @@ export default {
       })
     },
 
-    changeSong() {
-      ssStore.init(true)
-      this.$router.push({ name: 'SongSearch' });
-    },
-
     async noDetailsNowClicked() {
       try {
         this.loading = true
@@ -191,14 +199,55 @@ export default {
       } finally {
         this.loading = false
       }
+    },
+
+    replaceDetails() {
+      siStore.sched_item.author = ssStore.song.author
+      siStore.sched_item.arranger = ''
+      siStore.sched_item.translator = ''
+      siStore.sched_item.start_key = ''
+      siStore.sched_item.end_key = ''
+      if (ssStore.arrangement.id) {
+          siStore.sched_item.author = ssStore.arrangement.author
+          siStore.sched_item.copyright_holder = ssStore.arrangement.copyright_holder
+          siStore.sched_item.copyright_year = ssStore.arrangement.copyright_year
+          siStore.sched_item.start_key = ssStore.arrangement.start_key
+          siStore.sched_item.end_key = ssStore.arrangement.end_key
+          siStore.sched_item.song_text = ssStore.arrangement.lyrics
+          siStore.sched_item.composer = ssStore.arrangement.composer
+          siStore.sched_item.arranger = ssStore.arrangement.arranger        
+          siStore.sched_item.translator = ssStore.arrangement.translator
+      } else if (ssStore.song.id) {
+          siStore.sched_item.title = ssStore.song.title
+          siStore.sched_item.author = ssStore.song.author
+          siStore.sched_item.composer = ssStore.song.composer
+          siStore.sched_item.song_text = ssStore.song.lyrics
+          siStore.sched_item.copyright_holder = ssStore.song.copyright_holder
+          siStore.sched_item.copyright_year = ssStore.song.copyright_year
+      }
+
+      if (!siStore.sched_item.details_provided) {
+          // ask if user wishes to enter details
+        this.mode = "askfordetails"
+      } else {
+        this.mode = ""
+      }
+
+    },
+
+    openSearch() {
+      ssStore.init(true)
+      this.$router.push({ name: 'SongSearch' })
     }
 
   },
   
   async mounted() {
+    scrollTo(0,0)
     try {
       let cameFromServiceItemScreen = !siStore.item.description; // true if entering from ServiceItem screen
       if (cameFromServiceItemScreen) {
+        ssStore.init(true)
         try {
           this.loading = true
           let res = await this.$api.beginEditServiceItem(this.service_id, this.item_id)
@@ -212,27 +261,47 @@ export default {
 
       document.title = siStore.service.name + ' ' + siStore.item.description
 
+      if (ssStore.selectionOccurred) {
+        // Coming from song picker
+        siStore.sched_item.title = ssStore.song.title
+        siStore.sched_item.song_id = ssStore.song.id
+        siStore.sched_item.arrangement_id = ssStore.arrangement.id
+        siStore.sched_item.arrangement_name = ssStore.arrangement.name
+        if (siStore.sched_item.song_id) {
+          // A song was selected from the PCO database
+          if (siStore.sched_item.details_provided) {
+            // Details previously entered; prompt user whether to replace
+            this.mode = 'asktoreplace'
+            return
+          } else {
+            // No details previously entered; just record the details
+            this.replaceDetails()          
+          }
+        }
+      }
+
       if (siStore.sched_item.title) {
         if (!siStore.sched_item.details_provided) {
           // ask if user wishes to enter details
           this.mode = "askfordetails"
+          return
         }
       } else {
         // No title 
         if (cameFromServiceItemScreen) {
           // no title assigned yet; display search UI
-          ssStore.init(true)
-          this.$router.push({ name: 'SongSearch' })
+          this.openSearch()
         } else {
           // Search was cancelled; exit edit
           this.$router.go(-1)
         }
       }
-      scrollTo(0,0)
+      
     } catch (err) {
-      console.log(err);      
       if (err.response && err.response.status == 401) {
         this.$router.push({ path:'/login' })
+      } else {
+        console.log(err);
       }
     }
   }

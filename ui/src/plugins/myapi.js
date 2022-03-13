@@ -16,9 +16,6 @@ class ApiService {
              'Content-Type': 'application/json',
              //'X-Requested-With': 'XMLHttpRequest', 
           },
-        //   validateStatus: function (status) {
-        //     return status < 500 && status != 401 /* unauthorized */; // See https://axios-http.com/docs/handling_errors
-        //   }
        })
        this.options = options
        this.bindInterceptors()
