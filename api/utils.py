@@ -344,12 +344,10 @@ def begin_edit_item(service_type_id: int, plan_id: int, item: dict) -> SchedSpec
         ministry_location = 'Piano well'
         if 'Vocal' in item['description']:
             genre_note = 'Vocal solo'
-            solo_instruments = ''
             ministry_location = 'Pulpit'
         accomp_instruments = 'Piano'
         if 'Organ' in item['description']:
             genre_note = 'Organ solo'
-            solo_instruments = 'Organ'
             accomp_instruments = ''
             ministry_location = 'Other'
 

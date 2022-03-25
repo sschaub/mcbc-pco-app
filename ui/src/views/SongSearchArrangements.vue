@@ -21,8 +21,8 @@
         </v-list>
         <div v-if="ssStore.song.history && ssStore.song.history.length"><br>* indicates planned future use</div>
         <div v-else>This song has not been used.</div>
-        <div v-if="ssStore.isPicker" class="help">
-          <h3><br>Step Two: Review Song Usage and Select Your Arrangement</h3>
+        <div v-if="ssStore.isPicker" class="search-help">
+          <h3>Step Three: Review Song Usage and Select Your Arrangement</h3>
           <p>Look at the song usage report above to see how recently this song has been used (and if it is scheduled
             to be used in the near future). Then, select your arrangement from our list, or pick "Use another arrangement"
             if yours isn't listed.
@@ -60,7 +60,6 @@
 
 <style scoped>
   .v-list, .v-list-item { padding: 0px !important; }  
-  .help { max-width: 600px; margin: 0 auto; text-align: left; font-style: italic; }
 </style>
 
 <script>

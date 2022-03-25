@@ -4,7 +4,7 @@
       <v-col cols="12">
         <h2 v-if="mode == 'song'">Song Search</h2>
         <div v-if="mode == 'song'">
-          <div v-if="ssStore.showHelp" class="help">
+          <div v-if="ssStore.showHelp" class="search-help">
             <h3>Step One: Search For Song</h3>
             <p>Enter the title of your song to see if it is in our database of songs.</p>         
           </div>
@@ -35,7 +35,12 @@
             </div>
 
             <div v-else>
-              <p>Select one of these matching songs in our database:</p>
+              <div v-if="ssStore.isPicker" class="search-help">
+                <h3>Step Two: Select Song</h3>
+                <p>Select one of these matching songs in our database:</p>
+              </div>
+
+              
               <v-list v-for="song in ssStore.songList" :key="song.id" class="text-left mx-auto app-list">
                 <v-list-item twoline @click="songSelected(song.id)" class="text-left">
                   <v-list-item-header>
@@ -49,7 +54,7 @@
               </v-list>
               <p v-if="ssStore.isPicker"><br>Don't see your song in the list above?</p>
             </div>
-
+            <br>
             <v-btn v-if="ssStore.isPicker" @click="newSongClicked()">
                 Add New Song
             </v-btn>
@@ -74,8 +79,6 @@
 
 <style scoped>
   .v-list, .v-list-item { padding: 0px !important; }  
-  .help { max-width: 600px; margin: 0 auto; text-align: left; font-style: italic; }
-  .help h3, .help h2 { margin-top: 20px; }
 </style>
 
 <script>

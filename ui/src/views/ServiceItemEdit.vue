@@ -65,15 +65,15 @@
         <v-text-field v-model="siStore.sched_item.author" label="Text (ex. Fanny Crosby)" />
       </v-col>
       <v-col cols="12" sm="6" md="6">
-        <v-text-field v-model="siStore.sched_item.composer" label="Tune (ex. Joseph Haydn)" />
+        <v-text-field v-model="siStore.sched_item.composer" label="Tune (ex. Joseph Haydn)"  />
       </v-col>
     </v-row>
     <v-row>      
       <v-col cols="12" sm="6" md="6">
-        <v-text-field v-model="siStore.sched_item.arranger" label="Arranger (ex. Craig Courtney)" />
+        <v-text-field v-model="siStore.sched_item.arranger" label="Arranger (ex. Craig Courtney)"  />
       </v-col>
       <v-col cols="12" sm="6" md="6">
-        <v-text-field v-if="isAdmin()" v-model="siStore.sched_item.translator" label="Text Translator (ex. Fred Jones)" />
+        <v-text-field v-if="isAdmin()" v-model="siStore.sched_item.translator" label="Text Translator (ex. Fred Jones)"  />
       </v-col>
     </v-row>
     <v-row>
@@ -115,7 +115,7 @@
     </v-row>
     <v-row>
       <v-col cols="12" sm="6" md="6">
-        <v-text-field v-model="siStore.sched_item.accomp_instruments" label="Accompanimental instrument(s)" />
+        <v-text-field v-model="siStore.sched_item.accomp_instruments" label="Accompanimental instrument(s)"  />
       </v-col>
       <v-col cols="12" sm="6" md="6">
         <v-text-field v-model="siStore.sched_item.other_performers" label="Other musicians (name of accompanist, other musicians)" />
@@ -130,7 +130,7 @@
         <p>Enter the text of the song, along with indications of lengths of introductions and interludes, and any
           scripture texts you might want displayed during long interludes.
         </p>
-        <v-textarea v-model="siStore.sched_item.song_text" label="Song Text" :auto-grow="true" max-rows="10" />
+        <v-textarea v-model="siStore.sched_item.song_text" label="Song Text" rows="10"  />
         <h4>Ministry Location</h4>
         <v-radio-group v-model="siStore.sched_item.ministry_location" 
           density="compact"

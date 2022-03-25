@@ -53,6 +53,18 @@
 .error { color: red } /* color: var(--v-error-base) */
 .ssbreadcrumb { margin-top: 10px; }
 .ssbreadcrumb a { color: black;  }
+
+.search-help { 
+  max-width: 600px; 
+  margin: 0 auto;
+  margin-top: 10px; 
+  text-align: left; 
+  font-style: italic; 
+  background-color: lightblue; 
+  border-color: black; 
+  padding: 20px; 
+}
+
 </style>
 
 <script>
