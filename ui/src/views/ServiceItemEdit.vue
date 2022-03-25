@@ -181,6 +181,7 @@ export default {
     siStore: siStore,
     ssStore: ssStore,
     loading: false,
+    songChanged: false,
     mode: '',
     keys: ['A', 'C', 'Bb'],
     possible_locations: ['Pulpit', 'Piano well', 'Brass well', 'Orchestra pit', 'Choir loft', 'Bell loft', 'Other']
@@ -199,6 +200,10 @@ export default {
     },
 
     async noDetailsNowClicked() {
+      if (!this.songChanged) {
+        this.$router.go(-1)
+        return
+      }
       try {
         this.loading = true
         await this.$api.updateServiceItem(this.service_id, this.item_id, siStore.sched_item, 2)
@@ -279,6 +284,7 @@ export default {
         siStore.sched_item.song_id = ssStore.song.id
         siStore.sched_item.arrangement_id = ssStore.arrangement.id
         siStore.sched_item.arrangement_name = ssStore.arrangement.name
+        this.songChanged = true
         if (siStore.sched_item.song_id) {
           // A song was selected from the PCO database
           if (siStore.sched_item.details_provided == DETAILS_YES) {
