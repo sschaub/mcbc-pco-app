@@ -21,6 +21,7 @@ def sqlorm_object_as_dict(obj):
 class SchedSpecial(db.Model):
     STATUS_PENDING = 0
     STATUS_APPROVED = 1
+    STATUS_NOT_SUBMITTED = 2 
     COPYRIGHT_STATUS_UNKNOWN = 0
     COPYRIGHT_STATUS_APPROVED = 1
     DETAILS_NO = 0
@@ -54,7 +55,7 @@ class SchedSpecial(db.Model):
     ministry_location = db.Column(db.String(20), nullable=True)
     staging_notes = db.Column(db.String(4096), nullable=True)
     song_text = db.Column(db.String(4096), nullable=True)
-    copyright_license_status = db.Column(db.Integer, nullable=False, default=COPYRIGHT_STATUS_UNKNOWN)
+    copyright_license_status = db.Column(db.Integer, nullable=False, default=COPYRIGHT_STATUS_UNKNOWN) # COPYRIGHT_STATUS_UNKNOWN, COPYRIGHT_STATUS_APPROVED
     start_key = db.Column(db.String(2), nullable=True)  # starting key (ex. Eb)
     end_key = db.Column(db.String(2), nullable=True)    # ending key (ex. F)
 
@@ -123,3 +124,4 @@ class ServiceTag(db.Model):
     song_tag = db.relationship("SongTag", lazy='joined')
 
 db.create_all() # Create tables from model classes
+

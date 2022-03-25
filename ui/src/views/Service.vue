@@ -28,7 +28,7 @@
             <v-list lines="three" v-for="item in items" :key="item.id" density="compact" class="mx-auto app-list">
               <v-list-item two-line @click="toPath(item.id)" density="compact" class="text-left" >
                 <v-list-item-header>
-                  <v-list-item-title>{{ item.description }}</v-list-item-title>
+                  <v-list-item-title>{{ item.description }} <span v-if="isAdmin()" :class="itemStyle(item)">({{ itemStatus(item) }})</span></v-list-item-title>
                   <v-list-item-subtitle>
                     <div v-if="item.assigned_to.length">{{ itemPeople(item.assigned_to) }}</div>
                     {{ item.title }}
@@ -96,10 +96,14 @@
 <style scoped>  
   .v-breadcrumbs { padding: 0px !important; }
   .v-list, .v-list-item { padding: 0px !important; }
-  
+  .itemstatus { font-style: italic; font-size: smaller; }
+  .status_ok { color: green; }
+  .status-notok { color: lightgray; }
 </style>
 
 <script>
+
+import {ITEM_STATUS_PENDING, ITEM_STATUS_APPROVED, ITEM_STATUS_NOT_SUBMITTED, COPYRIGHT_STATUS_APPROVED, DETAILS_NO, DETAILS_YES } from '../constants.js';
 
 export default {
   name: 'Service',
@@ -126,6 +130,35 @@ export default {
   methods: {
     toPath(item_id) { 
       this.$router.push( { path: `/service/${this.service_id}/${item_id}` }  )
+    },
+
+    itemStatus(item) {
+      let status
+      if (item.status == ITEM_STATUS_NOT_SUBMITTED) {
+        status = 'Not Submitted'
+      } else if (item.status == ITEM_STATUS_PENDING) {
+        status = 'Pending Approval'
+      } else if (item.status == ITEM_STATUS_APPROVED) {
+        if (item.details_provided == DETAILS_YES) {
+          status = 'Details Provided'
+        } else {
+          status = 'No Details'
+        }
+        if (item.copyright_status != COPYRIGHT_STATUS_APPROVED) {
+          status += ', Copyright?'
+        }
+      }
+      return status
+    },
+
+    itemStyle(item) {
+      let style
+      if (item.status == ITEM_STATUS_APPROVED && item.details_provided == DETAILS_YES && item.copyright_status == COPYRIGHT_STATUS_APPROVED) {
+        style = 'status_ok'
+      } else {
+        style = 'status_notok'
+      }
+      return 'itemstatus ' + style
     },
 
     async assignTagsClicked() {

@@ -52,12 +52,27 @@ def get_plan(service_type_id: int, plan_id: int) -> dict:
         if (row['arrangement'] or (row['description'] in EDITABLE_ITEMS)) and row['title'] != row['description']]
     rows = [row for row in rows if row['description'] in EDITABLE_ITEMS]
 
+    specials = SchedSpecial.query.filter(SchedSpecial.item_id.in_([
+        row['id'] for row in rows
+    ])).all()
+    specials = { spec.item_id: spec for spec in specials }
+
+    for row in rows:
+        special = specials.get(int(row['id']))
+        if special:
+            row['details_provided'] = special.details_provided
+            row['status'] = special.status
+            row['copyright_status'] = special.copyright_license_status
+        else:
+            row['details_provided'] = SchedSpecial.DETAILS_NO
+            row['status'] = SchedSpecial.STATUS_NOT_SUBMITTED
+            row['copyright_status'] = SchedSpecial.COPYRIGHT_STATUS_UNKNOWN
+
     tags = [{
         'id': tag.tag_id,
         'tag_group_name': tag.song_tag.tag_group_name,
         'tag_name': tag.song_tag.tag_name
      } for tag in ServiceTag.query.filter_by(service_type_id=service_type_id, plan_id=plan_id) if tag.song_tag]
-        
 
     return {
         'service': {
