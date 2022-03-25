@@ -19,9 +19,9 @@ def sqlorm_object_as_dict(obj):
 
 # Define model class
 class SchedSpecial(db.Model):
-    STATUS_PENDING = 0
+    STATUS_NOT_SUBMITTED = 0
+    STATUS_PENDING = 2
     STATUS_APPROVED = 1
-    STATUS_NOT_SUBMITTED = 2 
     COPYRIGHT_STATUS_UNKNOWN = 0
     COPYRIGHT_STATUS_APPROVED = 1
     DETAILS_NO = 0
@@ -32,7 +32,7 @@ class SchedSpecial(db.Model):
     plan_id = db.Column(db.Integer, nullable=False)           # From PCO
     item_id = db.Column(db.Integer, nullable=False)           # From PCO
     status = db.Column(db.Integer, nullable=False, 
-                default=STATUS_PENDING)                       # STATUS_PENDING / STATUS_APPROVED
+                default=STATUS_NOT_SUBMITTED)                       # STATUS_PENDING / STATUS_APPROVED / STATUS_NOT_SUBMITTED
     details_provided = db.Column(db.Integer, nullable=False, 
                 default=DETAILS_NO)                         # DETAILS_NO / DETAILS_YES
     version_no =  db.Column(db.Integer, nullable=False, default=1) # Record version no

@@ -366,7 +366,7 @@ def begin_edit_item(service_type_id: int, plan_id: int, item: dict) -> SchedSpec
             accomp_instruments = ''
             ministry_location = 'Other'
 
-        status = SchedSpecial.STATUS_APPROVED if item['song_id'] else SchedSpecial.STATUS_PENDING
+        status = SchedSpecial.STATUS_APPROVED if item['song_id'] else SchedSpecial.STATUS_NOT_SUBMITTED
 
         sched_spec = SchedSpecial(
             service_type_id=service_type_id,

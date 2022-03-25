@@ -163,7 +163,7 @@
 
 <script>
 
-import {DETAILS_YES, DETAILS_NO} from '../constants.js';
+import {ITEM_STATUS_PENDING, DETAILS_YES, DETAILS_NO} from '../constants.js';
 
 // import SongSearch from './SongSearch.vue'
 import { siStore } from './ServiceItemState.js'
