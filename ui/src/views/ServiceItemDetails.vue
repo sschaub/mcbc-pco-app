@@ -27,18 +27,11 @@
       <span v-else><span class="missing">Missing info</span></span>
     </div>
 
-
     <h3 class="newsection">Instrumentation / Personnel</h3>
     <table class="table-center">
       <tr>
         <th>Special type:</th>
         <td>{{sched_item.genre_note}} <span class="missing" v-if="!sched_item.genre_note">Missing info</span></td>
-      </tr>
-      <tr>
-        <th>Solo instrument:</th>
-        <td>
-          {{sched_item.solo_instruments}} <span class="missing" v-if="!sched_item.solo_instruments">Missing info</span>
-        </td>
       </tr>
       <tr>
         <th>Accompaniment:</th>
@@ -60,13 +53,6 @@
       <h4>Staging Notes</h4>
       <div>Location: {{sched_item.ministry_location}}</div>
       {{sched_item.staging_notes}}
-    </div>
-    <div>
-      <h4>Song Text</h4>
-      <table class="table-center">
-        <tr><td v-html="sched_item.song_text.replace(/\n/g, '<br>')"></td></tr>
-      </table>
-      <div class="missing" v-if="!sched_item.song_text">Missing info</div>
     </div>
   </div>
 </template>

@@ -8,14 +8,8 @@
 
       </v-col>
       <v-col cols="12" sm="6" md="6">
-        <div v-if="ssStore.isPicker" class="help">
-          <h3>Step Two: Review Song Usage and Select Your Arrangement</h3>
-          <p>Look at the song usage report below to see how recently this song has been used (and if it is scheduled
-            to be used in the near future). Then, select your arrangement from our list, or pick "Use another arrangement"
-            if yours isn't listed.
-          </p>
-        </div>
         <h3 class="subhead">Song Usage</h3>
+        <p>(Since August 2020)</p>
         <v-list v-for="sh in ssStore.song.history" :key="sh.id" class="text-left mx-auto app-list">
           <v-list-item two-line class="text-left">
             <v-list-item-header>
@@ -27,6 +21,13 @@
         </v-list>
         <div v-if="ssStore.song.history && ssStore.song.history.length"><br>* indicates planned future use</div>
         <div v-else>This song has not been used.</div>
+        <div v-if="ssStore.isPicker" class="help">
+          <h3><br>Step Two: Review Song Usage and Select Your Arrangement</h3>
+          <p>Look at the song usage report above to see how recently this song has been used (and if it is scheduled
+            to be used in the near future). Then, select your arrangement from our list, or pick "Use another arrangement"
+            if yours isn't listed.
+          </p>
+        </div>
       </v-col>
     
       <v-col cols="12" sm="6" md="6">
@@ -59,7 +60,7 @@
 
 <style scoped>
   .v-list, .v-list-item { padding: 0px !important; }  
-  .help { max-width: 600px; margin: 0 auto; text-align: left; }
+  .help { max-width: 600px; margin: 0 auto; text-align: left; font-style: italic; }
 </style>
 
 <script>

@@ -59,9 +59,10 @@
 
           <br>
           <service-item-details v-if="siStore.sched_item.details_provided" :sched_item="siStore.sched_item"  /> 
+          <song-lyrics v-if="siStore.sched_item.details_provided" :lyrics="siStore.sched_item.song_text" />
         </div>
       </v-col>
-      <v-col cols="12" sm="6" md="6">
+      <v-col cols="12" sm="6" md="6">          
           <div v-if="siStore.service.theme">
             <h3>Service Theme</h3>
             <h2>{{ siStore.service.theme }}</h2>
@@ -93,6 +94,7 @@ h3 { margin-top: 20px }
 <script>
 
 import ServiceItemDetails from './ServiceItemDetails.vue'
+import SongLyrics from './SongLyrics.vue'
 import {ITEM_STATUS_PENDING, ITEM_STATUS_APPROVED, COPYRIGHT_STATUS_APPROVED} from '../constants.js';
 import { siStore } from './ServiceItemState.js'
 
@@ -222,7 +224,8 @@ export default {
   },
 
   components: {
-    ServiceItemDetails
+    ServiceItemDetails,
+    SongLyrics
   }  
   
 }

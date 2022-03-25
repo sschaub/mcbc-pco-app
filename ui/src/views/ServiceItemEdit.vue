@@ -11,7 +11,7 @@
         <v-btn @click="openSearch()">Change Song</v-btn>
         <br><br>
         <div>Do you wish to provide additional details at this time?</div>
-        <div><v-btn @click="mode=''">Yes</v-btn>&nbsp;<v-btn @click="noDetailsNowClicked()">No</v-btn></div>
+        <div><v-btn @click="provideDetailsClicked()">Yes</v-btn>&nbsp;<v-btn @click="noDetailsNowClicked()">No</v-btn></div>
       </v-col>
     </v-row>
   </v-container>
@@ -60,14 +60,19 @@
 
       </v-col>
     </v-row>
-    <v-row>
-      
+    <v-row>      
       <v-col cols="12" sm="6" md="6">
         <v-text-field v-model="siStore.sched_item.author" label="Text (ex. Fanny Crosby)" />
-        <v-text-field v-model="siStore.sched_item.arranger" label="Arranger (ex. Craig Courtney)" />
       </v-col>
       <v-col cols="12" sm="6" md="6">
         <v-text-field v-model="siStore.sched_item.composer" label="Tune (ex. Joseph Haydn)" />
+      </v-col>
+    </v-row>
+    <v-row>      
+      <v-col cols="12" sm="6" md="6">
+        <v-text-field v-model="siStore.sched_item.arranger" label="Arranger (ex. Craig Courtney)" />
+      </v-col>
+      <v-col cols="12" sm="6" md="6">
         <v-text-field v-if="isAdmin()" v-model="siStore.sched_item.translator" label="Text Translator (ex. Fred Jones)" />
       </v-col>
     </v-row>
@@ -158,6 +163,8 @@
 
 <script>
 
+import {DETAILS_YES, DETAILS_NO} from '../constants.js';
+
 // import SongSearch from './SongSearch.vue'
 import { siStore } from './ServiceItemState.js'
 import { ssStore } from './SongSearchState.js'
@@ -201,6 +208,11 @@ export default {
       }
     },
 
+    provideDetailsClicked() {
+      siStore.sched_item.details_provided = DETAILS_YES;
+      this.mode='';
+    },
+
     replaceDetails() {
       siStore.sched_item.author = ssStore.song.author
       siStore.sched_item.arranger = ''
@@ -226,7 +238,7 @@ export default {
           siStore.sched_item.copyright_year = ssStore.song.copyright_year
       }
 
-      if (!siStore.sched_item.details_provided) {
+      if (siStore.sched_item.details_provided != DETAILS_YES) {
           // ask if user wishes to enter details
         this.mode = "askfordetails"
       } else {
@@ -269,7 +281,7 @@ export default {
         siStore.sched_item.arrangement_name = ssStore.arrangement.name
         if (siStore.sched_item.song_id) {
           // A song was selected from the PCO database
-          if (siStore.sched_item.details_provided) {
+          if (siStore.sched_item.details_provided == DETAILS_YES) {
             // Details previously entered; prompt user whether to replace
             this.mode = 'asktoreplace'
             return
@@ -279,9 +291,10 @@ export default {
           }
         }
       }
+      ssStore.selectionOccurred = false
 
       if (siStore.sched_item.title) {
-        if (!siStore.sched_item.details_provided) {
+        if (siStore.sched_item.details_provided == DETAILS_NO) {
           // ask if user wishes to enter details
           this.mode = "askfordetails"
           return

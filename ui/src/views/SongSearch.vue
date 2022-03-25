@@ -4,6 +4,11 @@
       <v-col cols="12">
         <h2 v-if="mode == 'song'">Song Search</h2>
         <div v-if="mode == 'song'">
+          <div v-if="ssStore.showHelp" class="help">
+            <h3>Step One: Search For Song</h3>
+            <p>Enter the title of your song to see if it is in our database of songs.</p>         
+          </div>
+
           <v-container>
             <v-row>
               <v-col class="flex-grow-1 flex-shrink-0">              
@@ -22,46 +27,35 @@
 
           <div><v-progress-circular indeterminate v-if="loading" /></div>
 
-          <div v-if="ssStore.songList.length &gt; 0">
+          <div v-if="ssStore.songList.length &gt; 0 || notFound">
 
-            <v-list v-for="song in ssStore.songList" :key="song.id" class="text-left mx-auto app-list">
-              <v-list-item twoline @click="songSelected(song.id)" class="text-left">
-                <v-list-item-header>
-                  <v-list-item-title>{{ song.title }}</v-list-item-title>
-                  <v-list-item-subtitle>{{ song.author }}</v-list-item-subtitle>
-                </v-list-item-header>
-                <v-icon color="indigo">
-                  mdi-chevron-right
-                </v-icon>
-              </v-list-item>
-            </v-list>
+            <div v-if="notFound">
+              <br>
+              <p>No songs found.</p>
+            </div>
 
-              <br><br>
-              <v-btn v-if="ssStore.isPicker" @click="newSongClicked()">
-                  Add New Song
-              </v-btn>
+            <div v-else>
+              <p>Select one of these matching songs in our database:</p>
+              <v-list v-for="song in ssStore.songList" :key="song.id" class="text-left mx-auto app-list">
+                <v-list-item twoline @click="songSelected(song.id)" class="text-left">
+                  <v-list-item-header>
+                    <v-list-item-title>{{ song.title }}</v-list-item-title>
+                    <v-list-item-subtitle>{{ song.author }}</v-list-item-subtitle>
+                  </v-list-item-header>
+                  <v-icon color="indigo">
+                    mdi-chevron-right
+                  </v-icon>
+                </v-list-item>
+              </v-list>
+              <p v-if="ssStore.isPicker"><br>Don't see your song in the list above?</p>
+            </div>
+
+            <v-btn v-if="ssStore.isPicker" @click="newSongClicked()">
+                Add New Song
+            </v-btn>
           </div>
 
           <!-- <v-btn v-if="ssStore.isPicker" @click="showRecommended" style="margin-top: 10px">Suggested Titles</v-btn> -->
-
-          <div v-if="notFound">
-            <br>
-            <p>No songs found.</p>
-            <v-btn v-if="ssStore.keywords && ssStore.isPicker" @click="newSongClicked()">Add New Song</v-btn>
-          </div>
-          <br>
-        </div>
-
-        <div v-if="ssStore.showHelp" class="help">
-          <h2>Need Help?</h2>
-          <p>Here's how it works:</p>
-          <h3>Step One: Search For Song</h3>
-          <p>Enter the title of your song to see if it is in our database of songs. If you find your
-          song when you search, select it! That will auto-fill details we have about the
-          author, song text, etc. If we don't have your song, you will see an option to add a new song to our
-          database. You can also click the "Suggested Titles" button to see a list of songs that fit
-          the theme.
-          </p>         
         </div>
 
         <div v-if="mode == 'newsong'">
@@ -80,7 +74,7 @@
 
 <style scoped>
   .v-list, .v-list-item { padding: 0px !important; }  
-  .help { max-width: 600px; margin: 0 auto; text-align: left; }
+  .help { max-width: 600px; margin: 0 auto; text-align: left; font-style: italic; }
   .help h3, .help h2 { margin-top: 20px; }
 </style>
 

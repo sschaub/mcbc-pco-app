@@ -1,36 +1,45 @@
 <template>
-  <v-container>
+  <div v-if="loading" class="text-center">
+    <v-progress-circular indeterminate />
+  </div>
+  <v-container v-if="siStore.service.name && mode == 'review'" fluid>
     <v-row class="text-center">
       <v-col cols="12">
-        <div v-if="siStore.service.name && mode == 'review'">
-          <h2>Please Review Your Entries</h2>
-          <p>Review the information below and click Submit, or click Edit to change.</p>
+        <h2>Please Review Your Entries</h2>
+        <p>Review the information below and click Submit, or click Edit to change.</p>
+        <p>Note: You can submit even if you are missing information.</p>
+      </v-col>
+    </v-row>
+    <v-row class="text-center">
+      <v-col cols="12" sm="6" md="6">
+        <div>
           <h3>{{ siStore.service.name }} {{ siStore.item.description }}</h3>
           <h2>{{ siStore.sched_item.title }}</h2>
           <p v-if="siStore.sched_item.arrangement_name">Arrangement: {{ siStore.sched_item.arrangement_name }}</p>
+
+          <!-- <v-btn @click="cancelClicked()">Cancel</v-btn> -->
+
           <service-item-details :sched_item="siStore.sched_item" :show_copyright_status="false" /> 
           <br>
           <v-btn @click="editClicked()">Edit</v-btn> &nbsp;
           <v-btn :disabled="loading" @click="submitClicked()">Submit</v-btn> &nbsp;
-          <v-btn v-if="isAdmin()" :disabled="loading" @click="saveClicked()">Save</v-btn> &nbsp;
-          <v-btn @click="cancelClicked()">Cancel</v-btn>
+          <v-btn v-if="isAdmin()" :disabled="loading" @click="saveClicked()">Save</v-btn> &nbsp;          
         </div>
-
-        <div v-if="mode == 'finished'">
-        <h3>Thank you for your submission!</h3>
-        <p>An email has been sent to the appropriate personnel, and you have been copied.</p>
-        <br>
-        <v-btn @click="cancelClicked()">Finish</v-btn>
-        </div>
-
-        <div v-if="loading">
-          <v-progress-circular indeterminate />
-        </div>
-
+      </v-col>
+      <v-col cols="12" sm="6" md="6">
+        <song-lyrics :lyrics="siStore.sched_item.song_text" missingClass="missing" />
       </v-col>
 
     </v-row>
   </v-container>
+
+  <div v-if="mode == 'finished'" class="text-center">
+    <h3>Thank you for your submission!</h3>
+    <p>An email has been sent to the appropriate personnel, and you have been copied.</p>
+    <br>
+    <v-btn @click="cancelClicked()">Finish</v-btn>
+  </div>
+
 </template>
 
 <style scoped>
@@ -40,6 +49,7 @@
 <script>
 
 import ServiceItemDetails from './ServiceItemDetails.vue'
+import SongLyrics from './SongLyrics.vue'
 import { siStore } from './ServiceItemState.js'
 
 export default {
@@ -69,8 +79,7 @@ export default {
     async updateItem(emailType) {
       console.log(`Version: ${siStore.sched_item.version_no}`)
       try {
-        this.loading = true
-        siStore.sched_item.details_provided = 1
+        this.loading = true        
         let response = await this.$api.updateServiceItem(this.service_id, this.item_id, siStore.sched_item, emailType)
         if (response.result == 'OK') {
           if (emailType)
@@ -104,7 +113,8 @@ export default {
   },
   
   components: {
-    ServiceItemDetails
+    ServiceItemDetails,
+    SongLyrics
   }
   
   

@@ -13,6 +13,7 @@ export default {
         isPending(sched_item) {
             return sched_item.status == ITEM_STATUS_PENDING && sched_item.title
         },
+
         isCopyrightOk(sched_item) {
             return sched_item.copyright_license_status == COPYRIGHT_STATUS_APPROVED
         },

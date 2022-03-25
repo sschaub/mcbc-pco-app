@@ -33,7 +33,7 @@
         </v-btn>
       </v-col>
       <v-col cols="12" sm="6" md="6">
-        <div v-html="ssStore.arrangement.lyrics.replace(/\n/g, '<br>')"></div>
+        <song-lyrics :lyrics="ssStore.arrangement.lyrics" />
       </v-col>
 
     </v-row>
@@ -47,6 +47,7 @@
 
 <script>
 
+import SongLyrics from './SongLyrics.vue'
 import { ssStore } from './SongSearchState.js'
 import { siStore } from './ServiceItemState.js'
 
@@ -70,6 +71,11 @@ export default {
 
   async mounted() {
     scrollTo(0,0)
-  }
+  },
+
+  
+  components: {
+    SongLyrics
+  }  
 }
 </script>
