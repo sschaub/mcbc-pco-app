@@ -23,10 +23,14 @@
         <div v-else>This song has not been used.</div>
         <div v-if="ssStore.isPicker" class="search-help">
           <h3>Step Three: Review Song Usage and Select Your Arrangement</h3>
-          <p>Look at the song usage report above to see how recently this song has been used (and if it is scheduled
-            to be used in the near future). Then, select your arrangement from our list, or pick "Use another arrangement"
-            if yours isn't listed.
-          </p>
+          <ol>
+            <li>Review Recent Usage - Check the “Song Usage” record (above) to see if the song has
+            been used within the last few months (or if it is scheduled to be used in the near
+            future).</li>
+            <li>Select Arrangement - From the “Select Arrangement” list (on the right),
+            choose the arrangement you would like to minister. Or if it is not listed choose "Use
+            another arrangement."</li>
+          </ol>
         </div>
       </v-col>
     
@@ -59,7 +63,8 @@
 </template>
 
 <style scoped>
-  .v-list, .v-list-item { padding: 0px !important; }  
+  .v-list, .v-list-item { padding: 0px !important; }
+  .search-help ol { margin-left: 20px; }
 </style>
 
 <script>
