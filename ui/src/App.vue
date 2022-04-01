@@ -35,7 +35,7 @@
               <v-list-item @click="navigateTo('https://www.mcbcmusic.org/home/lyrics-app-help')">
                 <v-list-item-header>Help</v-list-item-header>
               </v-list-item>
-              <v-list-item @click="logout()">
+              <v-list-item v-if="getUser()" @click="logout()">
                 <v-list-item-header>Logout</v-list-item-header>
               </v-list-item>
               <!-- TODO: Add Song Search Here -->
