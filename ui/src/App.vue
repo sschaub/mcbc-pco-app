@@ -32,6 +32,12 @@
               <v-list-item v-if="isAdmin()" @click="navigateTo('https://schedule.mcbcmusic.org/menu')">
                 <v-list-item-header>Admin</v-list-item-header>
               </v-list-item>
+              <v-list-item @click="navigateTo('https://www.mcbcmusic.org/home/lyrics-app-help')">
+                <v-list-item-header>Help</v-list-item-header>
+              </v-list-item>
+              <v-list-item @click="logout()">
+                <v-list-item-header>Logout</v-list-item-header>
+              </v-list-item>
               <!-- TODO: Add Song Search Here -->
             </v-list>
           </v-navigation-drawer>
@@ -53,6 +59,10 @@
 .error { color: red } /* color: var(--v-error-base) */
 .ssbreadcrumb { margin-top: 10px; }
 .ssbreadcrumb a { color: black;  }
+.ssdropdown {
+  appearance: auto; 
+  border: 2px solid black; 
+}
 
 .search-help { 
   max-width: 600px; 
@@ -100,6 +110,12 @@ export default {
       ssStore.init(false)
       this.$router.push('/songs')
       this.drawer = false
+    },
+    logout() {
+      localStorage.removeItem('api_auth')
+      localStorage.removeItem('user')
+      this.drawer = false
+      this.$router.replace('/login')
     }
   },
 

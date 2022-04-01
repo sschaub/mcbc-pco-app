@@ -9,7 +9,10 @@
         <h3>Arrangement: {{ ssStore.arrangement.name }}</h3>
         <div v-if="ssStore.arrangement.composer">Composer: {{ ssStore.arrangement.composer }}</div>
         <div v-if="ssStore.arrangement.arranger">Arranger: {{ ssStore.arrangement.arranger }}</div>
-
+        <br>
+        <v-btn v-if="ssStore.isPicker" @click="confirmArrangement()">
+          Choose Arrangement
+        </v-btn>
       </v-col>
       <v-col cols="12" sm="6" md="6">
 
@@ -27,10 +30,7 @@
         <div v-if="ssStore.arrangement.history && ssStore.arrangement.history.length"><br>* indicates planned future use</div>
         <div v-else>This arrangement has not been used.</div>
 
-        <br><br>
-        <v-btn v-if="ssStore.isPicker" @click="confirmArrangement()">
-          Choose Arrangement
-        </v-btn>
+
       </v-col>
       <v-col cols="12" sm="6" md="6">
         <song-lyrics :lyrics="ssStore.arrangement.lyrics" />

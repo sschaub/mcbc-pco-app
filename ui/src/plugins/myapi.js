@@ -157,6 +157,10 @@ class ApiService {
         return this.get(`/tags`)
     }
 
+    getPublishers() {
+        return this.get(`/publishers`)
+    }
+
     updateServiceTags(serviceId, tags) {
         return this.post(`/services/${serviceId}/tags`, { tags: tags })
     }

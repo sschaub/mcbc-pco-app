@@ -240,6 +240,9 @@ def api_update_service_item(current_user: Person, service_id: str, item_id: str)
     data = request.json
     item_new_data = data['item']
     email_type = int(data['emailType'])
+    copyright_holder=item_new_data.get('copyright_holder')
+    if copyright_holder == 'Other':
+        copyright_holder=item_new_data.get('copyright_holder_other')
 
     if save_item(current_user, item_data, int(service_type_id), int(plan_id), int(item_id), 
         version_no=item_new_data.get('version_no'),
@@ -248,8 +251,10 @@ def api_update_service_item(current_user: Person, service_id: str, item_id: str)
         arrangement_id=item_new_data.get('arrangement_id'),
         arrangement_name=item_new_data.get('arrangement_name'),
         title=item_new_data.get('title'), 
+        copyright=item_new_data.get('copyright'), 
         copyright_year=item_new_data.get('copyright_year'), 
-        copyright_holder=item_new_data.get('copyright_holder'), 
+        copyright_holder=copyright_holder,
+        ccli_num=item_new_data.get('ccli_num'), 
         author=item_new_data.get('author'), 
         translator=item_new_data.get('translator'), 
         composer=item_new_data.get('composer'), 
@@ -278,11 +283,14 @@ def api_begin_edit_service_item(current_user: Person, service_id: str, item_id: 
     if data:
         item = data['item']
         sched_item = begin_edit_item(service_type_id, plan_id, item)
+
+        copyright_holders = sorted(pub.publisher_name for pub in LicensedPublishers.query.all())
         
         return jsonify({
             'service': data['service'],
             'item': item,
-            'sched_item': sqlorm_object_as_dict(sched_item)             
+            'sched_item': sqlorm_object_as_dict(sched_item),
+            'copyright_holders': copyright_holders
         })
     else:
         return '{}'
@@ -384,11 +392,7 @@ def api_import_service_item(current_user: Person, service_id: str, item_id: str)
     if sched_spec.composer:
         authors.append(f"{sched_spec.composer} (tune)")
     author = ', '.join(authors)
-    copyright = ''
-    if sched_spec.copyright_year:
-        copyright = f'Copyright {sched_spec.copyright_year} '
-    if sched_spec.copyright_holder:
-        copyright += sched_spec.copyright_holder
+    copyright = sched_spec.copyright    
 
     song_attrs = {        
         'title': sched_spec.title,
@@ -444,6 +448,8 @@ def api_import_service_item(current_user: Person, service_id: str, item_id: str)
         notes_lines.append(f'Composer: {sched_spec.composer}')
     if copyright:
         notes_lines.append(f'{copyright}')
+    if sched_spec.ccli_num:
+        notes_lines.append(f'CCLI#: {sched_spec.ccli_num}')
 
     arr_attrs['notes'] = '\n'.join(notes_lines)    
     if new_song or not sched_spec.arrangement_id:

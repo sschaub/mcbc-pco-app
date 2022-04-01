@@ -55,7 +55,7 @@
           provide the starting and ending key.
           You can come back and provide more details after the title is approved.</div> -->
 
-        <h3 class="subhead">Composer / Author Details</h3>
+        <h3 class="subhead">Song Details</h3>
         <p style="color: red">Due Wednesday p.m.</p>
 
       </v-col>
@@ -78,25 +78,123 @@
     </v-row>
     <v-row>
       <v-col cols="12" sm="6" md="6">
-        <v-text-field v-model="siStore.sched_item.start_key" label="Starting Key (ex. A / Ab (A-flat major) / ab [a-flat minor])" />
+        <!-- <v-text-field v-model="siStore.sched_item.start_key" label="Starting Key (ex. A / Ab (A-flat major) / ab [a-flat minor])" /> -->
         <!-- <v-select :items="keys" v-model="siStore.sched_item.start_key" label="Starting Key"  /> -->
+        <div class="gray">
+        Starting Key: <select v-model="siStore.sched_item.start_key" class="ssdropdown">
+          <option value=""></option>
+          <option value="A">A major</option>
+          <option value="a">A minor</option>
+          <option value="Ab">A-flat major</option>
+          <option value="ab">A-flat minor</option>
+          <option value="A#">A-sharp major</option>
+          <option value="a#">A-sharp minor</option>
+          <option value="B">B major</option>
+          <option value="b">b minor</option>
+          <option value="Bb">B-flat major</option>
+          <option value="bb">B-flat minor</option>
+          <option value="C">C major</option>
+          <option value="c">C minor</option>
+          <option value="C#">C-sharp major</option>
+          <option value="c#">C-sharp minor</option>
+          <option value="D">D major</option>
+          <option value="d">D minor</option>
+          <option value="Db">D-flat major</option>
+          <option value="db">D-flat minor</option>
+          <option value="D#">D-sharp major</option>
+          <option value="d#">D-sharp minor</option>
+          <option value="E">E major</option>
+          <option value="Eb">E-flat major</option>
+          <option value="eb">E-flat minor</option>
+          <option value="e">E minor</option>
+          <option value="F">F major</option>
+          <option value="f">F minor</option>
+          <option value="F#">F-sharp major</option>
+          <option value="f#">F-sharp minor</option>
+          <option value="G">G major</option>
+          <option value="g">G minor</option>
+          <option value="Gb">G-flat major</option>
+          <option value="gb">G-flat minor</option>
+          <option value="G#">G-sharp major</option>
+          <option value="g#">G-sharp minor</option>
+        </select>
+
+        </div>
       </v-col>
       <v-col cols="12" sm="6" md="6">
-        <v-text-field v-model="siStore.sched_item.end_key" label="Ending Key" />
+        <!-- <v-text-field v-model="siStore.sched_item.end_key" label="Ending Key" /> -->
+        <div style="margin-bottom: 30px">
+          Ending Key: <select v-model="siStore.sched_item.end_key" class="ssdropdown">
+            <option value=""></option>
+            <option value="A">A major</option>
+            <option value="a">A minor</option>
+            <option value="Ab">A-flat major</option>
+            <option value="ab">A-flat minor</option>
+            <option value="A#">A-sharp major</option>
+            <option value="a#">A-sharp minor</option>
+            <option value="B">B major</option>
+            <option value="b">b minor</option>
+            <option value="Bb">B-flat major</option>
+            <option value="bb">B-flat minor</option>
+            <option value="C">C major</option>
+            <option value="c">C minor</option>
+            <option value="C#">C-sharp major</option>
+            <option value="c#">C-sharp minor</option>
+            <option value="D">D major</option>
+            <option value="d">D minor</option>
+            <option value="Db">D-flat major</option>
+            <option value="db">D-flat minor</option>
+            <option value="D#">D-sharp major</option>
+            <option value="d#">D-sharp minor</option>
+            <option value="E">E major</option>
+            <option value="Eb">E-flat major</option>
+            <option value="eb">E-flat minor</option>
+            <option value="e">E minor</option>
+            <option value="F">F major</option>
+            <option value="f">F minor</option>
+            <option value="F#">F-sharp major</option>
+            <option value="f#">F-sharp minor</option>
+            <option value="G">G major</option>
+            <option value="g">G minor</option>
+            <option value="Gb">G-flat major</option>
+            <option value="gb">G-flat minor</option>
+            <option value="G#">G-sharp major</option>
+            <option value="g#">G-sharp minor</option>
+          </select>
+        </div>
       </v-col>
     </v-row>
     <v-row class="text-center">
-      <v-col cols="12">
+      <v-col v-if="!siStore.sched_item.copyright" cols="12">
           Tip: To fill in the following, look for a copyright notice (ex. "Copyright 2004 Soundforth") on the bottom of the first page of the music.<br>
           If it's not there, look at the title page of the book.
       </v-col>
     </v-row>
-    <v-row>
+    <v-row v-if="!siStore.sched_item.copyright">
       <v-col cols="12" sm="6" md="6">
-        <v-text-field v-model="siStore.sched_item.copyright_holder" label="Copyright Holder (ex. Soundforth, Lorenz, Majesty Music)" />
+        Copyright Holder: <select v-model="siStore.sched_item.copyright_holder" class="ssdropdown">
+          <option></option>
+          <option v-for="holder in siStore.copyright_holders">{{holder}}</option>
+          <option>Other</option>
+        </select>
       </v-col>
       <v-col cols="12" sm="6" md="6">
-        <v-text-field v-model="siStore.sched_item.copyright_year" label="Copyright Year (ex. 1995)" />
+        <v-text-field v-if="siStore.sched_item.copyright_holder == 'Other'" v-model="siStore.sched_item.copyright_holder_other" label="Copyright Holder (ex. Soundforth)" />
+      </v-col>
+    </v-row>
+    <v-row v-if="!siStore.sched_item.copyright">
+      <v-col cols="12" sm="6" md="6">
+        <v-text-field v-model="siStore.sched_item.copyright_year" label="Copyright Year (ex. 1995)" type="number" />
+      </v-col>
+    </v-row>    
+    <v-row v-if="siStore.sched_item.copyright">
+      <v-col cols="12">
+        <v-text-field v-model="siStore.sched_item.copyright" label="Copyright Info" />
+      </v-col>
+    </v-row>    
+    <v-row v-if="isAdmin()">
+      <v-col cols="6" v-if="isAdmin()">
+        <v-text-field v-model="siStore.sched_item.ccli_num" label="CCLI Number" type="number" />
       </v-col>
     </v-row>    
     <v-row>
@@ -226,21 +324,20 @@ export default {
       siStore.sched_item.end_key = ''
       if (ssStore.arrangement.id) {
           siStore.sched_item.author = ssStore.arrangement.author
-          siStore.sched_item.copyright_holder = ssStore.arrangement.copyright_holder
-          siStore.sched_item.copyright_year = ssStore.arrangement.copyright_year
+          siStore.sched_item.copyright = ssStore.arrangement.copyright
           siStore.sched_item.start_key = ssStore.arrangement.start_key
           siStore.sched_item.end_key = ssStore.arrangement.end_key
           siStore.sched_item.song_text = ssStore.arrangement.lyrics
           siStore.sched_item.composer = ssStore.arrangement.composer
           siStore.sched_item.arranger = ssStore.arrangement.arranger        
           siStore.sched_item.translator = ssStore.arrangement.translator
+          siStore.sched_item.ccli_num = ssStore.arrangement.ccli_num
       } else if (ssStore.song.id) {
           siStore.sched_item.title = ssStore.song.title
           siStore.sched_item.author = ssStore.song.author
           siStore.sched_item.composer = ssStore.song.composer
           siStore.sched_item.song_text = ssStore.song.lyrics
-          siStore.sched_item.copyright_holder = ssStore.song.copyright_holder
-          siStore.sched_item.copyright_year = ssStore.song.copyright_year
+          siStore.sched_item.copyright = ssStore.arrangement.copyright
       }
 
       if (siStore.sched_item.details_provided != DETAILS_YES) {
@@ -271,6 +368,7 @@ export default {
           siStore.sched_item = res.sched_item
           siStore.service = res.service
           siStore.item = res.item
+          siStore.copyright_holders = res.copyright_holders
         } finally {
           this.loading = false
         }

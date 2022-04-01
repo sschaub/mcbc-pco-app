@@ -44,6 +44,8 @@ class SchedSpecial(db.Model):
     title = db.Column(db.String(40), nullable=False)          # Title of song
     copyright_year = db.Column(db.Integer, nullable=True)
     copyright_holder = db.Column(db.String(40), nullable=True)
+    copyright = db.Column(db.String(120), nullable=True)
+    ccli_num = db.Column(db.Integer, nullable=True)
     author = db.Column(db.String(40), nullable=True)
     composer = db.Column(db.String(40), nullable=True)
     arranger = db.Column(db.String(40), nullable=True)

@@ -185,12 +185,14 @@ def parse_author(author: str) -> tuple:
     
 def parse_copyright(copyright: str) -> tuple:
     copyright_year = None
-    copyright_holder = copyright
-    m = re.match(r'[Cc]opyright (\d+) (by )?(.+)', copyright)
+    copyright_holder = None
+    m = re.match(r'[Cc]opyright (\d+) (by +)?([^.]+)', copyright)
     if m:
         copyright_year = m.group(1)
         copyright_holder = m.group(3)
-    return copyright_year, copyright_holder
+    else:
+        copyright = ''
+    return copyright_year, copyright_holder, copyright
 
 def get_arrangement_history(arrangement_id: int) -> list:
     history_list = list(dict(row) for row in db.session.execute("""
@@ -209,13 +211,14 @@ def get_arrangement(song_id: int, arrangement_id: int) -> dict:
     song_url = f'/services/v2/songs/{song_id}'
     song_data = pco.get(song_url)
     song_data = song_data['data']['attributes']
-    copyright_year, copyright_holder = parse_copyright(song_data['copyright'] or '')
     author, composer = parse_author(song_data['author'] or '')
+    copyright = ''
     lyrics = ''
     starting_key = ''
     ending_key = ''
     arranger = ''
     translator = ''
+    ccli_num = ''
     
     arr_url = f'/services/v2/songs/{song_id}/arrangements'
     for arr in pco.iterate(arr_url, include='keys'):
@@ -241,7 +244,7 @@ def get_arrangement(song_id: int, arrangement_id: int) -> dict:
                 for line in notes_lines:
                     copyright_data = parse_copyright(line)
                     if copyright_data[1]:
-                        copyright_year, copyright_holder = copyright_data
+                        _, _, copyright = copyright_data
                     m = re.match(r'arr. (by )?(.+)', line)
                     if m:
                         arranger = m.group(2)
@@ -257,6 +260,9 @@ def get_arrangement(song_id: int, arrangement_id: int) -> dict:
                     m = re.match(r'Composer:[ ]*(.+)', line)
                     if m:
                         composer = m.group(1)
+                    m = re.match(r'CCLI#:[ ]*(.+)', line)
+                    if m:
+                        ccli_num = m.group(1)
 
             for incl in included:
                 if incl['type'] == 'Key':
@@ -282,8 +288,8 @@ def get_arrangement(song_id: int, arrangement_id: int) -> dict:
         'composer': composer,
         'translator': translator,
         'arranger': arranger,
-        'copyright_holder': copyright_holder,
-        'copyright_year': copyright_year,
+        'copyright': copyright,
+        'ccli_num': ccli_num,
         'history': history  # see get_arrangement_history
     }
 
@@ -306,7 +312,6 @@ def get_song(song_id: int) -> dict:
     song_url = f'/services/v2/songs/{song_id}'
     song_data = pco.get(song_url)
     song_data = song_data['data']['attributes']
-    copyright_year, copyright_holder = parse_copyright(song_data['copyright'] or '')
     song_title = song_data['title']
     author, composer = parse_author(song_data['author'] or '')
 
@@ -331,8 +336,7 @@ def get_song(song_id: int) -> dict:
         'lyrics': hymnal_lyrics or any_lyrics,
         'author': author,
         'composer': composer,
-        'copyright_holder': copyright_holder,
-        'copyright_year': copyright_year,
+        'copyright': (song_data['copyright'] or '').strip(),
         'history': history  # See get_song_history
     }
 
@@ -343,7 +347,7 @@ def get_songs(params):
         'id': song['id'],
         'title': song['attributes']['title'],
         'author': song['attributes']['author'],
-        'copyright': song['attributes']['copyright'],
+        'copyright': (song['attributes']['copyright'] or '').strip()
     } for song in songs['data']]
 
     song_list.sort(key=lambda song: song['title'])
@@ -458,7 +462,7 @@ def pco_assign_song_to_plan_item(item_id, service_type_id, plan_id, sched_spec):
 
 
 def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id, details_provided, version_no, song_id, arrangement_id, 
-                arrangement_name, title, copyright_year, copyright_holder, author, translator, composer, 
+                arrangement_name, title, copyright, copyright_year, copyright_holder, ccli_num, author, translator, composer, 
                 arranger, genre_note, solo_instruments, accomp_instruments, other_performers, ministry_location,
                 staging_notes, song_text, start_key, end_key, email_type=0):
 
@@ -485,6 +489,11 @@ def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id
         except:
             pass
         return timestr
+
+    if copyright:
+        copyright_year, copyright_holder, _ = parse_copyright(copyright)
+    elif copyright_holder and copyright_year:
+        copyright = f'Copyright {copyright_year} {copyright_holder}.'
 
     sched_spec = SchedSpecial.query.filter_by(
             service_type_id=service_type_id,
@@ -530,7 +539,6 @@ def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id
 
         orig_copyright = f'{sched_spec.copyright_year or ""} by {sched_spec.copyright_holder or "?"}'
 
-        copyright = f'{copyright_year or ""} by {copyright_holder or "?"}'
         copyright_status_html = ''
         if copyright_license_status == SchedSpecial.COPYRIGHT_STATUS_UNKNOWN:
             copyright_status_html = ' <span style="color:red">(Unknown approval status)</span>'
@@ -590,6 +598,8 @@ def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id
             title = title,
             copyright_holder = copyright_holder,
             copyright_year = copyright_year,
+            copyright = copyright,
+            ccli_num = ccli_num,
             author = author,
             translator = translator,
             composer = composer,

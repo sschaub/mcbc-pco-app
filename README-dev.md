@@ -45,6 +45,11 @@ npm run dev
 To start API module: In VSCode, in the debug tab, pick Python: Flask and choose Run > Start Debugging. This will import environment variables
 from .env and start server.py.
 
+Note: To expose the app to the local network:
+1. Edit .env.development and change VITE_APP_API_URL=http://192.168.2.50:9091
+2. Use `npm run public` 
+
+
 
 ## Development Setup: Docker
 

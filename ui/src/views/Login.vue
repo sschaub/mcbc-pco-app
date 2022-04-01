@@ -5,7 +5,7 @@
         <h2>Login</h2>
 
         <v-text-field ref="username" v-model="username" label="Email address" type="email" autocomplete="username" />
-        <v-text-field v-model="password" label="Password" type="password" autocomplete="current-password" />
+        <v-text-field v-model="password" label="Password" type="password" autocomplete="current-password"  @keyup.enter="login()" />
 
         <div v-if="errmsg" class="error">{{ errmsg }}</div>
         <div v-if="msg" >{{ msg }}</div>
@@ -45,7 +45,7 @@ export default {
   }),
 
   methods: {
-    async login() {
+    async login() {        
         this.loading = true
         this.errmsg = ''
         this.msg = ''
