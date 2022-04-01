@@ -54,10 +54,15 @@
               </v-list>
               <p v-if="ssStore.isPicker"><br>Don't see your song in the list above?</p>
             </div>
+          </div>
+
+          <div v-if="ssStore.isPicker">
             <br>
-            <v-btn v-if="ssStore.isPicker" @click="newSongClicked()">
+            <v-btn  @click="newSongClicked()">
                 Add New Song
             </v-btn>
+            <br>
+            (If not in the database)
           </div>
 
           <!-- <v-btn v-if="ssStore.isPicker" @click="showRecommended" style="margin-top: 10px">Suggested Titles</v-btn> -->

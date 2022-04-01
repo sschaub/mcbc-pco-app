@@ -15,6 +15,18 @@
       </v-col>
     </v-row>
   </v-container>
+  <v-container v-else-if="mode=='requiresomedetails'">
+    <v-row class="text-center">
+      <v-col cols="12">
+        <h2>{{ siStore.sched_item.title }}</h2>
+        <br>
+        <div>Since we do not have this song / arrangement in our database, please provide at least the
+          composer and arranger information on the next screen.
+        </div>
+        <div><v-btn @click="provideDetailsClicked()">Continue</v-btn></div>
+      </v-col>
+    </v-row>
+  </v-container>
   <v-container v-else-if="mode=='asktoreplace'">
     <v-row class="text-center">
       <v-col cols="12">
@@ -216,7 +228,7 @@
         <v-text-field v-model="siStore.sched_item.accomp_instruments" label="Accompanimental instrument(s)"  />
       </v-col>
       <v-col cols="12" sm="6" md="6">
-        <v-text-field v-model="siStore.sched_item.other_performers" label="Other musicians (name of accompanist, other musicians)" />
+        <v-text-field v-model="siStore.sched_item.other_performers" label="Other musicians" />
       </v-col>
     </v-row>
 
@@ -399,8 +411,12 @@ export default {
 
       if (siStore.sched_item.title) {
         if (siStore.sched_item.details_provided == DETAILS_NO) {
-          // ask if user wishes to enter details
-          this.mode = "askfordetails"
+          if (siStore.sched_item.song_id && siStore.sched_item.arrangement_id) {
+            // ask if user wishes to enter details
+            this.mode = "askfordetails"
+          } else {
+            this.mode = "requiresomedetails"
+          }
           return
         }
       } else {
