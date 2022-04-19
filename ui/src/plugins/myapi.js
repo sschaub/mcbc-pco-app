@@ -78,6 +78,10 @@ class ApiService {
         return this.get(`/services`)
     }    
 
+    getMyServices() {
+        return this.get(`/my-services`)
+    }    
+
     getService(service_id) {
         return this.get(`/services/${service_id}`)
     }

@@ -17,6 +17,9 @@
               <v-list-item @click="navToPage('/')">
                 <v-list-item-header>Home</v-list-item-header>
               </v-list-item>
+              <v-list-item @click="navToPage('/my-services')">
+                <v-list-item-header>My Services</v-list-item-header>
+              </v-list-item>
               <v-list-item @click="toSongSearch()">
                 <v-list-item-header>Song Search</v-list-item-header>
               </v-list-item>

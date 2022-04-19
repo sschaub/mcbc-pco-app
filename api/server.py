@@ -148,28 +148,23 @@ def get_upcoming_plans():
 @app.route('/services')
 def api_services():
 
-    def get_plans(url, service_type_name, service_type_id):
-        for plan in pco.iterate(url):
-            plans.append([service_type_id, service_type_name, plan['data']])
-
-    threads = []
-    plans = []
-    for service_type_id, service_type_name in SERVICE_TYPES.items():
-        url = BASE_SERVICE_TYPE_URL.format(service_type_id)
-
-        t = Thread(target=get_plans, args=[url, service_type_name, service_type_id])
-        t.start()
-        threads.append(t)
-        
-    for t in threads:
-        t.join()
-                    
-    services = list(
-        { 'id': f"{service_type_id}-{plan['id']}", 'name': get_service_name(service_type_id, plan['attributes']['sort_date']), 
-            'service_date': plan['attributes']['dates'], 'service_type': service_type_name, 'plan_theme': plan['attributes']['title'] }
-        for (service_type_id, service_type_name, plan) in sorted(plans, key=lambda plan_tuple: plan_tuple[2]['attributes']['sort_date']))
+    services = get_all_services()
 
     return jsonify(services)
+
+@app.route('/my-services')
+@token_required
+def api_my_services(current_user: Person):
+
+    all_services = get_all_services()
+
+    my_schedules = pco.get(f'/services/v2/people/{current_user.id}/schedules')
+
+    plan_ids = [schedule['relationships']['plan']['data']['id'] for schedule in my_schedules['data']]
+
+    my_services = [service for service in all_services if service['plan_id'] in plan_ids]
+    
+    return jsonify(my_services)    
 
 @app.route('/services/<id>')
 def api_service(id: str):

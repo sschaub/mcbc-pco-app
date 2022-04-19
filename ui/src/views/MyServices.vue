@@ -6,8 +6,8 @@
           <v-progress-circular indeterminate />
         </div>
         <div v-if="!loading">
-          <h2>Upcoming Services</h2>
-          <v-list v-for="service in serviceList" :key="service.id" class="text-left mx-auto app-list" density="compact">
+          <h2>My Services</h2>
+          <v-list v-if="serviceList.length" v-for="service in serviceList" :key="service.id" class="text-left mx-auto app-list" density="compact">
             <v-list-item lines="three" @click="toPath(service.id)">
               <v-list-item-header>
               <v-list-item-title>
@@ -24,6 +24,7 @@
             
             </v-list-item>
           </v-list>
+          <div v-else>You are not currently scheduled for any upcoming services.</div>
         </div>
       </v-col>
 
@@ -36,7 +37,7 @@
 <script>
 
 export default {
-  name: 'Home',
+  name: 'MyServices',
 
   data: () => ({
     serviceList: [],
@@ -51,7 +52,13 @@ export default {
 
   async mounted() {
     try {
-      this.serviceList = await this.$api.getServices()
+      this.serviceList = await this.$api.getMyServices()
+    } catch (err) {
+      if (err.response && err.response.status == 401) {
+        this.$router.push({ path:'/login' })
+      } else {
+        console.log(err);
+      }
     } finally {
       this.loading = false
     }

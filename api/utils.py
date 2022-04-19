@@ -5,6 +5,7 @@ from db import *
 import requests
 import sqlalchemy.exc
 import re
+from threading import Thread
 from datetime import datetime
 from sqlalchemy import update, select, func
 
@@ -22,6 +23,30 @@ def get_service_name(service_type_id: str, plan_sortdate_str: str):
     plan_date_formatted = plan_date.strftime('%b %d, %Y')
     return '{} - {}'.format(get_service_type_name(service_type_id), plan_date_formatted)
 
+def get_all_services():
+    def get_plans(url, service_type_name, service_type_id):
+        for plan in pco.iterate(url):
+            plans.append([service_type_id, service_type_name, plan['data']])
+
+    threads = []
+    plans = []
+    for service_type_id, service_type_name in SERVICE_TYPES.items():
+        url = BASE_SERVICE_TYPE_URL.format(service_type_id)
+
+        t = Thread(target=get_plans, args=[url, service_type_name, service_type_id])
+        t.start()
+        threads.append(t)
+        
+    for t in threads:
+        t.join()
+                    
+    services = list(
+        { 'id': f"{service_type_id}-{plan['id']}", 'name': get_service_name(service_type_id, plan['attributes']['sort_date']), 
+            'service_date': plan['attributes']['dates'], 'service_type': service_type_name, 'plan_theme': plan['attributes']['title'],
+            'plan_id': plan['id'] }
+        for (service_type_id, service_type_name, plan) in sorted(plans, key=lambda plan_tuple: plan_tuple[2]['attributes']['sort_date']))
+
+    return services
 
 def get_plan(service_type_id: int, plan_id: int) -> dict:
     """

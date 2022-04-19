@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
+import MyServices from '../views/MyServices.vue'
 import Service from '../views/Service.vue'
 import ServiceItem from '../views/ServiceItem.vue'
 import ServiceItemEdit from '../views/ServiceItemEdit.vue'
@@ -15,6 +16,11 @@ const routes = [
     path: '/',
     name: 'Home',
     component: Home
+  },
+  {
+    path: '/my-services',
+    name: 'MyServices',
+    component: MyServices
   },
   {
     path: '/about',
