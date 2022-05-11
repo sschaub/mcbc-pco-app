@@ -29,6 +29,7 @@ for person in pco.iterate('https://api.planningcenteronline.com/people/v2/people
         p.phone_number = phone_number
     else:
         p = Person(id=person['data']['id'], name=name, email=email, phone=phone_number)
+        logging.info(f'Adding new person {p.name}...')
         db.session.add(p)
 
 db.session.commit()

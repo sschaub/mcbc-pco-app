@@ -24,7 +24,7 @@
             
             </v-list-item>
           </v-list>
-          <div v-else>You are not currently scheduled for any upcoming services.</div>
+          <div v-else>{{ msg }}</div>
         </div>
       </v-col>
 
@@ -41,6 +41,7 @@ export default {
 
   data: () => ({
     serviceList: [],
+    msg: "",
     loading: true
   }),
 
@@ -53,11 +54,15 @@ export default {
   async mounted() {
     try {
       this.serviceList = await this.$api.getMyServices()
+      if (this.serviceList.length == 0) {
+        this.msg = "You are not currently scheduled for any upcoming services."
+      }
     } catch (err) {
       if (err.response && err.response.status == 401) {
         this.$router.push({ path:'/login' })
       } else {
         console.log(err);
+        this.msg = "Problem loading information. Please try again."
       }
     } finally {
       this.loading = false
