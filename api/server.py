@@ -158,9 +158,9 @@ def api_my_services(current_user: Person):
 
     all_services = get_all_services()
 
-    my_schedules = pco.get(f'/services/v2/people/{current_user.id}/schedules')
+    my_plan_persons = pco.get(f'/services/v2/people/{current_user.id}/plan_people?include=plan')
 
-    plan_ids = [schedule['relationships']['plan']['data']['id'] for schedule in my_schedules['data']]
+    plan_ids = [plan_person['relationships']['plan']['data']['id'] for plan_person in my_plan_persons['data']]
 
     my_services = [service for service in all_services if service['plan_id'] in plan_ids]
     
