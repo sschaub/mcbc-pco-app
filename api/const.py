@@ -22,7 +22,7 @@ BASE_MONTHLY_REPORT_URL_PDF = f'https://services.planningcenteronline.com/report
 PLAN_DETAIL_URL = '/services/v2/service_types/{}/plans/{}'
 ITEM_DETAIL_URL = '/services/v2/service_types/{}/plans/{}/items/{}'
 # The ID numbers in the following come from the PCO API https://api.planningcenteronline.com/services/v2/service_types
-SERVICE_TYPES = { 1060129: 'Sunday AM', 1060132: 'Sunday PM', 1060133: 'Wednesday' }
+SERVICE_TYPES = { 1060129: 'Sunday AM', 1060132: 'Sunday PM', 1060133: 'Wednesday', 1243611: 'Special Service' }
 SERVICE_ORDER_NOTE_CATEGORIES = { 
     # service_order_id: item_note_category_id
     1060129: 3987812, # Sunday AM
