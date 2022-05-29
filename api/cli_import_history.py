@@ -69,9 +69,8 @@ def genhistory(after_date_str):
                                 print(f'Cannot find person {person_id}')
                             else:
                                 person_names.append(p.name)
-                        sip = ServiceItemPerson(service_item=si, person=p)
-                        
-                        db.session.add(sip)
+                                sip = ServiceItemPerson(service_item=si, person=p)                        
+                                db.session.add(sip)
                     si.person_names = ', '.join(person_names)
                     
             db.session.commit()
