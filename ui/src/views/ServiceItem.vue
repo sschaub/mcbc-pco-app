@@ -30,7 +30,7 @@
           <v-btn @click="editClicked()">Edit</v-btn>
           <span v-if="isAdmin()">
             &nbsp;
-            <v-btn @click="emailClicked()">Send Email</v-btn>
+            <v-btn v-if="siStore.item.assigned_to.length" @click="emailClicked()">Send Email</v-btn>
             &nbsp;
             <v-btn v-if="isPending(siStore.sched_item)" @click="approveClicked()">Approve 
               <v-icon dark right>
@@ -148,7 +148,34 @@ export default {
     emailClicked() {
       let toList = siStore.item.assigned_to.map(p => p.email).join(',')
       let toListNames = siStore.item.assigned_to.map(p => p.name.split(' ')[0]).join(', ')
-      let body = `Dear ${toListNames},\n\n${location.href}`
+      let user = this.getUser()
+      let body
+      if (user.email == 'sarnold@mountcalvarybaptist.org') {      
+        body = `Good Morning ${toListNames},\n
+I hope you're well this morning.
+
+Thank you for preparing to minister the ${siStore.item.description} for this coming ${siStore.service.name}.
+
+At some point at the beginning of the week here could submit your title that you are planning to minister?
+
+To submit your title/info we are using new online “MCBC Music App" that we hope might simplify the process of both finding and submitting music numbers for our regular ministry.
+
+The first-time setup is fairly straight-forward:
+
+  1.  Open the link: ${location.href}
+  2.  Click “edit” beneath your name/ministry slot
+  3.  Login with username password
+      * Username: same email that use/receive emails from PCO
+      * Password: your cell # (or if this doesn’t work, click “Password Reminder”)
+  4.  Search for a title … and follow the steps from there.
+
+Thank you so much!
+SA
+https://schedule.mcbcmusic.org/pdf
+`
+      } else {
+        body = `Dear ${toListNames},\n\n${location.href}`
+      }
       let subject = siStore.service.name + " " + siStore.item.description
       // launch email client
       location = "mailto:" + toList + "?subject=" + encodeURI(subject) + "&body=" + encodeURI(body)
