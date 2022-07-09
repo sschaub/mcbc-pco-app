@@ -19,7 +19,7 @@
             <td>{{ item.solo_instruments }}</td>
           </tr>
           <tr v-if="item.accomp_instruments">
-            <td>Accompanimental instruments:</td>
+            <td>Accompaniment:</td>
             <td>{{ item.accomp_instruments }}</td>
           </tr>
           <tr>
