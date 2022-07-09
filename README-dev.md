@@ -49,6 +49,12 @@ Note: To expose the app to the local network:
 1. Edit .env.development and change VITE_APP_API_URL=http://192.168.2.50:9091
 2. Use `npm run public` 
 
+## Run a Python Script in api
+
+To run a script such as cli_import_people.py, in VSCode, in the debug tab, pick Python: Current
+File, open the file, and choose Run > Start Debugging. This will import environment varibles from
+.env and start the Python program.
+
 
 
 ## Development Setup: Docker

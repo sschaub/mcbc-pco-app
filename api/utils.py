@@ -560,7 +560,7 @@ def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id
         msg += row('Accompaniment', accomp_instruments, sched_spec.accomp_instruments)
         msg += row('Other musicians', other_performers, sched_spec.other_performers)
 
-        msg += '</table>\n<h3>Song Details</h3>\n<table>\n'
+        msg += '</table>\n<h3>Song Details</h3>\n<table><tr><td><table>\n'
 
         orig_copyright = f'{sched_spec.copyright_year or ""} by {sched_spec.copyright_holder or "?"}'
 
@@ -573,7 +573,19 @@ def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id
         msg += row('Arranger', arranger, sched_spec.arranger)
         msg += row('Copyright', copyright, orig_copyright, extra_text=copyright_status_html)
 
-    msg += '</table>\n'
+    msg += '</table></td><td>\n'
+
+    msg += f'<p>Words by {author}<br>'
+    if translator:
+        msg += f'Translated by {translator}<br>'
+    if composer:
+        msg += f'Music by {composer}<br>'
+    if arranger:
+        msg += f'Arranged by {arranger}<br>'
+    if copyright:
+        msg += f'{copyright}'
+    msg += '</p></td></tr></table>'
+
         
     if details_provided:
 
