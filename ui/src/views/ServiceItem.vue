@@ -150,11 +150,12 @@ export default {
       let toListNames = siStore.item.assigned_to.map(p => p.name.split(' ')[0]).join(', ')
       let user = this.getUser()
       let body
+      let serviceName = siStore.service.name.split(' - ')[0]
       if (user.email == 'sarnold@mountcalvarybaptist.org') {      
         body = `Good Morning ${toListNames},\n
 I hope you're well this morning.
 
-Thank you for preparing to minister the ${siStore.item.description} for this coming ${siStore.service.name}.
+Thank you for preparing to minister the ${siStore.item.description} for this coming ${serviceName}.
 
 At some point at the beginning of the week here could submit your title that you are planning to minister?
 
