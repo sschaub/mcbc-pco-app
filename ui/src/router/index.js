@@ -5,6 +5,7 @@ import Service from '../views/Service.vue'
 import ServiceItem from '../views/ServiceItem.vue'
 import ServiceItemEdit from '../views/ServiceItemEdit.vue'
 import ServiceItemReview from '../views/ServiceItemReview.vue'
+import ServiceAVReport from '../views/ServiceAVReport.vue'
 import SongSearch from '../views/SongSearch.vue'
 import SongSearchArrangements from '../views/SongSearchArrangements.vue'
 import SongSearchArrangementsDetail from '../views/SongSearchArrangementsDetail.vue'
@@ -38,6 +39,13 @@ const routes = [
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     //component: () => import(/* webpackChunkName: "about" */ '../views/Sesrvice.vue')
+  },
+
+  {
+    path: '/service/:service_id/av',
+    name: 'ServiceAVReport',
+    component: ServiceAVReport,
+    props: true
   },
 
   {

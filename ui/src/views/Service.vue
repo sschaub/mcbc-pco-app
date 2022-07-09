@@ -67,7 +67,10 @@
                   <v-list-item-subtitle>{{ tag.tag_group_name }}</v-list-item-subtitle>
                 </v-list-item-header>
               </v-list-item>
-            </v-list>          
+          </v-list>
+          
+          <br>
+          <v-btn @click="showAVReport">A/V Report</v-btn>
 
         </div>
 
@@ -185,6 +188,10 @@ export default {
       } finally {
         this.loading = false
       }      
+    },
+
+    showAVReport() {
+      this.$router.push({ path: `/service/${this.service_id}/av` })
     }
   },
 

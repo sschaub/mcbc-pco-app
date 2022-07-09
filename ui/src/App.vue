@@ -1,6 +1,6 @@
 <template>
   <v-app>
-          <v-app-bar
+          <v-app-bar class="no-print"
             color="blue">
             <v-icon v-if="$route.name != 'Home'" @click="$router.go(-1)" class="back-arrow">mdi-chevron-left</v-icon>
             <v-spacer></v-spacer>
@@ -76,6 +76,12 @@
   background-color: lightblue; 
   border-color: black; 
   padding: 20px; 
+}
+
+@media print {
+  .no-print {
+    display: none !important
+  }
 }
 
 </style>

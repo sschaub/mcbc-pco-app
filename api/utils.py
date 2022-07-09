@@ -88,6 +88,11 @@ def get_plan(service_type_id: int, plan_id: int) -> dict:
             row['details_provided'] = special.details_provided
             row['status'] = special.status
             row['copyright_status'] = special.copyright_license_status
+            row['genre_note'] = special.genre_note
+            row['solo_instruments'] = special.solo_instruments
+            row['accomp_instruments'] = special.accomp_instruments
+            row['ministry_location'] = special.ministry_location
+            row['staging_notes'] = special.staging_notes
         else:
             row['details_provided'] = SchedSpecial.DETAILS_NO
             row['status'] = SchedSpecial.STATUS_NOT_SUBMITTED
