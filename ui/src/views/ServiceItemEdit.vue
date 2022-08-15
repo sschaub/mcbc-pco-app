@@ -220,7 +220,7 @@
         <v-text-field v-model="siStore.sched_item.genre_note" label="Type of Number (Vocal solo, violin duet, etc.)" />
       </v-col>
       <v-col v-if="isAdmin()" cols="12" sm="6" md="6">    
-        <v-text-field v-model="siStore.sched_item.solo_instruments" label="Solo instrument(s) if applicable (ex. Violin)" />
+        <v-text-field v-model="siStore.sched_item.solo_instruments" label="Service order note (ex. Violin)" />
       </v-col>
     </v-row>
     <v-row>
@@ -381,6 +381,8 @@ export default {
           siStore.service = res.service
           siStore.item = res.item
           siStore.copyright_holders = res.copyright_holders
+          //siStore.copyright_holders.push('Public Domain')
+          //siStore.copyright_holders.push('Improvised Arrangement')
         } finally {
           this.loading = false
         }
