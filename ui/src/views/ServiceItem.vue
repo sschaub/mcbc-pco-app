@@ -30,7 +30,9 @@
           <v-btn @click="editClicked()">Edit</v-btn>
           <span v-if="isAdmin()">
             &nbsp;
-            <v-btn v-if="siStore.item.assigned_to.length" @click="emailClicked()">Send Email</v-btn>
+            <v-btn v-if="siStore.item.assigned_to.length" @click="emailClicked('init')">Initial Email</v-btn>
+            &nbsp;
+            <v-btn v-if="siStore.item.assigned_to.length" @click="emailClicked('followup')">Followup Email</v-btn>
             &nbsp;
             <v-btn v-if="isPending(siStore.sched_item)" @click="approveClicked()">Approve 
               <v-icon dark right>
@@ -160,14 +162,14 @@ export default {
       this.$router.push({ path: `/service/${this.service_id}/${this.item_id}/edit` })
     },
 
-    emailClicked() {
+    emailClicked(emailType) {
       let toList = siStore.item.assigned_to.map(p => p.email).join(',')
       let toListNames = siStore.item.assigned_to.map(p => p.name.split(' ')[0]).join(', ')
       let user = this.getUser()
       let body
       let serviceName = siStore.service.name.split(' - ')[0]
-      if (user.email == 'sarnold@mountcalvarybaptist.org') {      
-        body = `Good Morning ${toListNames},\n
+      if (emailType == 'init') {      
+        body = `Good morning ${toListNames},\n
 I hope you're well this morning.
 
 Thank you for preparing to minister the ${siStore.item.description} for this coming ${serviceName}.
@@ -184,7 +186,16 @@ SA
 https://schedule.mcbcmusic.org/pdf
 `
       } else {
-        body = `Dear ${toListNames},\n\n${location.href}`
+        body = `Good afternoon ${toListNames},\n
+Just a quick reminder to submit your information for your ministry sometime today.
+
+Submit your info here: ${location.href}
+
+Thank you!
+
+SA
+https://schedule.mcbcmusic.org/pdf
+`
       }
       let subject = siStore.service.name + " " + siStore.item.description
       // launch email client

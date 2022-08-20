@@ -104,3 +104,17 @@ With VSCode:
 Test URL's:
 * Application UI: http://localhost:8080
 * Application API: http://localhost:9091
+
+# Start SQLite Database GUI
+
+On the server:
+
+```
+~/.local/bin/sqlite_web ~/mcbc-pco-app/db/mcbcmusic.sqlite3
+```
+
+On dev workstation:
+
+```
+ssh -L 8080:127.0.0.1:8080 mcbcmusic
+```

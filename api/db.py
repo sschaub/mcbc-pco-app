@@ -42,8 +42,8 @@ class SchedSpecial(db.Model):
     arrangement_id = db.Column(db.Integer, nullable=True)
     arrangement_name = db.Column(db.String(40), nullable=True) # Name of arrangement
     title = db.Column(db.String(40), nullable=False)          # Title of song
-    copyright_year = db.Column(db.Integer, nullable=True)
-    copyright_holder = db.Column(db.String(40), nullable=True)
+    copyright_year = db.Column(db.Integer, nullable=True)      # No longer used? Check on this
+    copyright_holder = db.Column(db.String(40), nullable=True) # No longer used? Check on this
     copyright = db.Column(db.String(120), nullable=True)
     ccli_num = db.Column(db.Integer, nullable=True)
     author = db.Column(db.String(40), nullable=True)

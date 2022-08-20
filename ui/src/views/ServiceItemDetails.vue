@@ -6,7 +6,7 @@
       Translated by {{sched_item.translator}}
       </div>
     <div>Music by {{sched_item.composer}} <span class="missing" v-if="!sched_item.composer">Missing info</span></div>
-    <div v-if="sched_item.arranger">Arranged by {{sched_item.arranger}}</div>
+    <div>Arranged by {{sched_item.arranger ? sched_item.arranger : '(None)'}}</div>
     <div v-if="sched_item.copyright_year && copyrightHolder() || sched_item.copyright">
       <span v-if="sched_item.copyright">{{sched_item.copyright.replace('Copyright', '©')}}
         <span v-if="sched_item.ccli_num">CCLI #{{sched_item.ccli_num}}.</span>
