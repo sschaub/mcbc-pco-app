@@ -423,8 +423,7 @@ def begin_edit_item(service_type_id: int, plan_id: int, item: dict) -> SchedSpec
         if item['arrangement_id']:
             arr = get_arrangement(item['song_id'], item['arrangement_id'])
             sched_spec.song_text = arr['lyrics']
-            sched_spec.copyright_holder = arr['copyright_holder']
-            sched_spec.copyright_year = arr['copyright_year']
+            sched_spec.copyright = arr['copyright']
             sched_spec.author = arr['author']
             sched_spec.composer = arr['composer']
             sched_spec.translator = arr['translator']
