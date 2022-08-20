@@ -37,7 +37,7 @@ LOCATION_NOTE_CATEGORIES = {
     1060133: 3993729,  # Wednesday
     1243611: 4717357   # Special service
     }
-EDITABLE_ITEMS = ['Prelude Opener', 'Vocal Special', 'Service Opener', 'Instrumental Special', 'Organ Special', 'Offertory']
+EDITABLE_ITEMS = ['Prelude Opener', 'Vocal Special', 'Service Opener', 'Instrumental Special', 'Organ Special', 'Offertory', 'Choir Special']
 SERVICE_POSITIONS = ['Songleader', 'Organ', 'Piano', 'Piano 2']
 
 
