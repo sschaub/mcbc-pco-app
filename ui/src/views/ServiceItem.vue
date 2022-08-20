@@ -23,7 +23,7 @@
               <a v-if="songUrl()" :href="songUrl()" target="_blank">[pco]</a>
               <span v-else>(new song)</span>
             </span>
-            <p v-if="siStore.sched_item.arrangement_name">Arrangement: {{ siStore.sched_item.arrangement_name }} <a v-if="isAdmin()" :href="arrangementUrl()" target="_blank">[pco]</a></p>
+            <p v-if="arrangementName()">Arrangement: {{ arrangementName() }} <a v-if="isAdmin()" :href="arrangementUrl()" target="_blank">[pco]</a></p>
             <div v-if="isPending(siStore.sched_item)" class="pending">(Approval Pending)</div>
           </div>
           <br>
@@ -132,12 +132,27 @@ export default {
     },
 
     songUrl() {
-      if (siStore.sched_item.song_id)
-        return `https://services.planningcenteronline.com/songs/${siStore.sched_item.song_id}`
+      let song_id = siStore.sched_item.item_id ? siStore.sched_item.song_id : siStore.item.song_id
+      if (song_id)
+        return `https://services.planningcenteronline.com/songs/${song_id}`
     },
 
     arrangementUrl() {
-      return `https://services.planningcenteronline.com/songs/${siStore.sched_item.song_id}/arrangements/${siStore.sched_item.arrangement_id}`
+      let arr_id = ''
+      let song_id = ''
+      if (siStore.sched_item.item_id) {
+        song_id = siStore.sched_item.song_id
+        arr_id = siStore.sched_item.arrangement_id
+      } else {
+        song_id = siStore.item.song_id
+        arr_id = siStore.item.arrangement_id
+      }
+      if (arr_id) 
+        return `https://services.planningcenteronline.com/songs/${song_id}/arrangements/${arr_id}`
+    },
+
+    arrangementName() {
+      return (siStore.sched_item.item_id) ? siStore.sched_item.arrangement_name : siStore.item.arrangement
     },
         
     editClicked() {
