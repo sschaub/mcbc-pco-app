@@ -413,7 +413,10 @@ def api_import_service_item(current_user: Person, service_id: str, item_id: str)
         arrangement = arrangements['data'][0]
         sched_spec.arrangement_id = arrangement['id']
 
-    sched_spec.arrangement_name = import_arrangement_name
+    force_new_arrangement = False
+    if sched_spec.arrangement_name != import_arrangement_name:
+        sched_spec.arrangement_name = import_arrangement_name
+        force_new_arrangement = True
     if sched_spec.arrangement_id and not new_song:
         arrangement = pco.get(f'/services/v2/songs/{sched_spec.song_id}/arrangements/{sched_spec.arrangement_id}')
         notes = arrangement['data']['attributes']['notes'] or ''
@@ -452,7 +455,7 @@ def api_import_service_item(current_user: Person, service_id: str, item_id: str)
 
     payload = pco.template('Arrangement', arr_attrs)
 
-    if sched_spec.arrangement_id:
+    if sched_spec.arrangement_id and not force_new_arrangement:
         pco.patch(f'/services/v2/songs/{sched_spec.song_id}/arrangements/{sched_spec.arrangement_id}', payload)
     else:
         arrangement = pco.post(f'/services/v2/songs/{sched_spec.song_id}/arrangements', payload)
