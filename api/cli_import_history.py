@@ -9,6 +9,7 @@ import argparse
 from db import *
 from const import *
 from utils import *
+import config
 
 def genhistory(after_date_str):
     if not after_date_str:
@@ -18,17 +19,22 @@ def genhistory(after_date_str):
 
     all_people = Person.query.all()
 
+    report_rows = []
     num = 0
     service_types_url ='https://api.planningcenteronline.com/services/v2/service_types'
     for service_type in pco.iterate(service_types_url):
         service_type_id = service_type['data']['id']
         plans_url = f"{service_types_url}/{service_type_id}/plans"
-        for plan in pco.iterate(plans_url, filter='after', per_page=50, after=after_date_str): # filter='after,past'
+        for plan in pco.iterate(plans_url, filter='after,past', per_page=50, after=after_date_str): # filter='after,past'
             plan = plan['data']
             plan_id = plan['id']
             plan_url = f'{plans_url}/{plan_id}'
             plan_theme = plan['attributes']['title'] or ''
             plan_time = plan['attributes']['sort_date']
+            service_dt = datetime.strptime(plan_time, '%Y-%m-%dT%H:%M:%SZ') 
+            plan_date_str, plan_time_str = plan_time.split('T')
+            plan_time_str = plan_time_str.strip('Z')
+                
             print(f'Processing plan at {plan_time}...')
             
             team_members = list(member['data'] for member in pco.iterate(f"{plan_url}/team_members", per_page=50))
@@ -72,14 +78,16 @@ def genhistory(after_date_str):
                                 sip = ServiceItemPerson(service_item=si, person=p)                        
                                 db.session.add(sip)
                     si.person_names = ', '.join(person_names)
-                    
+                    if service_dt < datetime.today():
+                        report_rows.append([plan_date_str, plan_time_str, row['item_seq'], plan_theme, row['description'], row['title'], row['arrangement'], si.person_names]) 
             db.session.commit()
             num += 1
-            # if num > 3:
-            #      return
-    logging.info(f'History generation complete')
+            
+    report_rows.sort(key=lambda entry: (entry[0], entry[1], entry[2]))
 
-def gen_history_report():
+    return report_rows
+
+def gen_history_report(rows):
     report_html = ["""
     <html>
     <head>
@@ -117,10 +125,10 @@ def gen_history_report():
 """)
 
     report_content = '\n'.join(report_html)
-    s3_object = s3.Object(S3_BUCKET_NAME, 'history.html')
-    s3_object.put(Body=report_content, ContentType='text/html')
 
-    logging.info(f'History generation complete')
+    report_filename = os.path.join(config.REPORT_PATH, 'history.html')
+    with open(report_filename, 'w') as f:
+        f.write(report_content)
 
     return report_content
 
@@ -133,6 +141,9 @@ def main():
 
     args = parser.parse_args()
 
-    genhistory(args.after)
+    rows = genhistory(args.after)
+    gen_history_report(rows)
+
+    logging.info(f'History generation complete')
 
 main()

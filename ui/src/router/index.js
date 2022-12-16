@@ -10,6 +10,7 @@ import SongSearch from '../views/SongSearch.vue'
 import SongSearchArrangements from '../views/SongSearchArrangements.vue'
 import SongSearchArrangementsDetail from '../views/SongSearchArrangementsDetail.vue'
 import About from '../views/About.vue'
+import Admin from '../views/Admin.vue'
 import Login from '../views/Login.vue'
 
 const routes = [
@@ -27,6 +28,11 @@ const routes = [
     path: '/about',
     name: 'About',
     component: About
+  },
+  {
+    path: '/admin',
+    name: 'Admin',
+    component: Admin
   },
 
   {

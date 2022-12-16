@@ -23,16 +23,18 @@
               <v-list-item @click="toSongSearch()">
                 <v-list-item-header>Song Search</v-list-item-header>
               </v-list-item>
+              <!--
               <v-list-item @click="navigateTo('https://schedule.mcbcmusic.org/history')">
                 <v-list-item-header>History</v-list-item-header>
               </v-list-item>
-              <v-list-item @click="navigateTo('https://schedule.mcbcmusic.org/pdf')">
+              -->
+              <v-list-item @click="navigateTo('/pdf')">
                 <v-list-item-header>View Schedule</v-list-item-header>
               </v-list-item>
               <v-list-item @click="navigateTo('https://www.mcbcmusic.org/')">
                 <v-list-item-header>Music Website</v-list-item-header>
               </v-list-item>
-              <v-list-item v-if="isAdmin()" @click="navigateTo('https://schedule.mcbcmusic.org/menu')">
+              <v-list-item v-if="isAdmin()" @click="navToPage('/admin')">
                 <v-list-item-header>Admin</v-list-item-header>
               </v-list-item>
               <v-list-item @click="navigateTo('https://www.mcbcmusic.org/home/lyrics-app-help')">

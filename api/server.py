@@ -19,6 +19,9 @@ from datetime import datetime, timedelta
 from threading import Thread
 from utils import *
 from db import *
+import schedule
+import const
+import config
 
 @cross_origin()
 @app.errorhandler(Exception)
@@ -135,15 +138,6 @@ def api_password_reminder():
 
     return 'If your email was recognized, a password reminder was sent.'
 
-def get_upcoming_plans():
-    plans = []
-    for service_type_id, service_type_name in SERVICE_TYPES.items():
-        url = BASE_SERVICE_TYPE_URL.format(service_type_id)
-        r = requests.get(url, auth=(PCO_APP_ID, PCO_SECRET))
-        for plan in r.json()['data']:
-            plans.append([service_type_name, plan])
-            
-    return sorted(plans, key=lambda plan_tuple: plan_tuple[1]['attributes']['sort_date'])
 
 @app.route('/services')
 def api_services():
@@ -542,95 +536,31 @@ def api_tags():
     
     return jsonify(tags)
 
+@app.route('/pdf')
+def generate_pdf():
+    return schedule.generate_pdf()
 
-# @app.route('/menu')
-# def index():
-#     logging.info('Serving menu')
-#     return HTML_INDEX
+@app.route('/schedule-report-url')
+def api_schedule_report_url():
+    plans = get_all_services()
+    report_url = const.BASE_MONTHLY_REPORT_URL_HTML 
+    for plan in plans:
+        planid = plan['plan_id']
+        report_url += f"&{planid}_plan=true"
 
-# @app.route('/<format>')
-# def generate_schedule(format):
+    report_url = report_url.format(planid)
 
-#     if format not in ['html', 'html-admin', 'pdf']:
-#         return f'Invalid format requested: {format}'
+    return report_url
 
-#     logging.info('Beginning monthly schedule generation')
-#     plans = get_upcoming_plans()
-#     last_updated_at = ''
-#     report_url = BASE_MONTHLY_REPORT_URL_PDF if format == 'pdf' else BASE_MONTHLY_REPORT_URL_HTML
-#     for (service_type_name, plan) in plans:
-#         planid = plan['id']
-#         if plan['attributes']['updated_at'] > last_updated_at:
-#             last_updated_at = plan['attributes']['updated_at']
-#         report_url += f"&{planid}_plan=true"
+@app.route('/history')
+def history():
+    history_filename = os.path.join(config.REPORT_PATH, 'history.html')
+    if not os.path.exists(history_filename):
+        return "No history available. Please try again later."
+        
+    with open(history_filename) as f:
+        return Response(f.read(), mimetype='text/html')
 
-#     report_url = report_url.format(planid)
-
-#     if format == 'html-admin':
-#         return flask.redirect(report_url)
-
-#     file_path = f'/tmp/schedule.{format}'
-#     regenerate = True
-#     if os.path.exists(file_path):
-#         modTimesinceEpoc = os.path.getmtime(file_path)
-#         modificationTime = datetime.utcfromtimestamp(modTimesinceEpoc).strftime('%Y-%m-%dT%H:%M:%SZ')
-#         logging.info(f"modificationTime = {modificationTime}, last_updated_at = {last_updated_at}")
-#         regenerate = modificationTime < last_updated_at
-
-#     if DEV_FORCE_REGENERATE_SCHEDULE:
-#         regenerate = True
-#     if regenerate:
-#         logging.info("Schedule has changed, regenerating...")
-#         s = requests.Session()
-#         r = s.get('https://login.planningcenteronline.com/login/new')
-#         m = re.search(r'''name="authenticity_token" value="([^"]*)"''', r.text)
-#         auth_tok = m.group(1)
-
-#         # Login to planningcenter
-#         r = s.post('https://login.planningcenteronline.com/login', data={
-#             'authenticity_token': auth_tok,
-#             'login': PCO_WEBAPP_LOGIN_USERNAME,
-#             'password': PCO_WEBAPP_LOGIN_PASSWORD,
-#             'commit': 'Log In'
-#         })
-
-#         # Generate report
-#         r = s.get(report_url)
-
-#         if format == 'pdf':
-#             if not DEV_SCHEDULE:
-#                 with open(file_path, "wb") as f:
-#                     f.write(r.content)
-#             return Response(r.content, mimetype='application/pdf')
-#         else:
-#             if not DEV_SCHEDULE:
-#                 with open(file_path, "w") as f:
-#                     f.write(r.text)
-#             return r.text
-
-#     else:
-
-#         if format == 'pdf':
-#             with open(file_path, "rb") as f:
-#                 data = f.read()
-#             return Response(data, mimetype='application/pdf')
-#         else:
-#             with open(file_path) as f:
-#                 data = f.read()
-#             return data
-
-# HTML_INDEX = '''
-# <html>
-# <body>
-# <h2>MCBC Music Plan Reports</h2>
-# <p><a href="pdf">Current Schedule (PDF)</a></p>
-# <p><a href="html">Current Schedule (HTML)</a></p>
-# <p><a href="html-admin">Current Schedule (PCO Login Required)</a></p>
-# <p><a href="serviceorder">Generate Service Orders (PCO Login Required)</a></p>
-
-# </body>
-# </html>
-# '''
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=os.environ.get("FLASK_SERVER_PORT", 9091), debug=True)

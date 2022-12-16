@@ -9,6 +9,7 @@ PCO_WEBAPP_LOGIN_USERNAME = os.environ['PCO_WEBAPP_LOGIN_USERNAME']
 PCO_WEBAPP_LOGIN_PASSWORD = os.environ['PCO_WEBAPP_LOGIN_PASSWORD']
 
 DB_PATH = os.environ.get("DB_PATH", '/tmp/mcbcmusic.sqlite3')
+REPORT_PATH = os.environ.get("REPORT_PATH", '/tmp')
 
 SENDGRID_API_KEY=os.environ['SENDGRID_API_KEY']
 ALL_EMAIL_LIST=os.environ.get("ALL_EMAIL_LIST", "sschaub@gmail.com").split(',') # Personnel to receive special entry submissions

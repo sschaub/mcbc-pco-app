@@ -43,7 +43,7 @@ def get_all_services():
     services = list(
         { 'id': f"{service_type_id}-{plan['id']}", 'name': get_service_name(service_type_id, plan['attributes']['sort_date']), 
             'service_date': plan['attributes']['dates'], 'service_type': service_type_name, 'plan_theme': plan['attributes']['title'],
-            'plan_id': plan['id'] }
+            'plan_id': plan['id'], 'updated_at': plan['attributes']['updated_at'] }
         for (service_type_id, service_type_name, plan) in sorted(plans, key=lambda plan_tuple: plan_tuple[2]['attributes']['sort_date']))
 
     return services

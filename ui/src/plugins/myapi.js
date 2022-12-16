@@ -169,6 +169,10 @@ class ApiService {
         return this.post(`/services/${serviceId}/tags`, { tags: tags })
     }
 
+    getScheduleReportUrl() {
+        return this.get(`/schedule-report-url`)
+    }
+
 }
  
 

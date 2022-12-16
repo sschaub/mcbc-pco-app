@@ -42,9 +42,11 @@ services:
       - INITIAL_EMAIL_LIST=$INITIAL_EMAIL_LIST
       - ALL_EMAIL_LIST=$ALL_EMAIL_LIST
       - DB_PATH=/db/mcbcmusic.sqlite3
+      - REPORT_PATH=/reports
     volumes:
       - ./api:/src 
       - ./db:/db
+      - ./reports:/reports
     networks:
       - mynet
 
