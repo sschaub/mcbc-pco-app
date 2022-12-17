@@ -88,6 +88,8 @@
 
 <script>
 
+import {SCHEDULE_PREFIX} from './constants.js';
+
 import { ssStore } from './views/SongSearchState.js'
 
 export default {
@@ -100,7 +102,7 @@ export default {
 
   data: () => ({
     drawer: false,
-    schedule_prefix: import.meta.env.VITE_APP_SCHEDULE_PREFIX,
+    schedule_prefix: SCHEDULE_PREFIX,
     items: [
       { title: 'Hi', value: 'bye' }
     ]
