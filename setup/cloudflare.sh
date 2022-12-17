@@ -10,7 +10,7 @@
 # Cloudflare zone is the zone which holds the record
 zone=mcbcmusic.org
 # dnsrecords is the A record which will be updated
-dnsrecords=(app.mcbcmusic.org api.mcbcmusic.org appsh.mcbcmusic.org)
+dnsrecords=(app.mcbcmusic.org api.mcbcmusic.org schedule.mcbcmusic.org appsh.mcbcmusic.org)
 
 ## Cloudflare authentication details
 ## Set these variables outside the script
