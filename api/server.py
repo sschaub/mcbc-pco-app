@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os
 
-from flask import Flask, Response, escape, request, jsonify, make_response
+from flask import Flask, Response, escape, request, jsonify, make_response, redirect
 from flask_cors import CORS, cross_origin
 from pypco import PCORequestException
 from werkzeug.exceptions import HTTPException
@@ -560,6 +560,10 @@ def history():
         
     with open(history_filename) as f:
         return Response(f.read(), mimetype='text/html')
+
+@app.route('/')
+def home():
+    return redirect("https://app.mcbcmusic.org")
 
 
 if __name__ == "__main__":

@@ -23,12 +23,10 @@
               <v-list-item @click="toSongSearch()">
                 <v-list-item-header>Song Search</v-list-item-header>
               </v-list-item>
-              <!--
-              <v-list-item @click="navigateTo('https://schedule.mcbcmusic.org/history')">
+              <v-list-item @click="navigateTo(`${schedule_prefix}/history`)">
                 <v-list-item-header>History</v-list-item-header>
               </v-list-item>
-              -->
-              <v-list-item @click="navigateTo('/pdf')">
+              <v-list-item @click="navigateTo(`${schedule_prefix}/pdf`)">
                 <v-list-item-header>View Schedule</v-list-item-header>
               </v-list-item>
               <v-list-item @click="navigateTo('https://www.mcbcmusic.org/')">
@@ -102,6 +100,7 @@ export default {
 
   data: () => ({
     drawer: false,
+    schedule_prefix: import.meta.env.VITE_APP_SCHEDULE_PREFIX,
     items: [
       { title: 'Hi', value: 'bye' }
     ]
