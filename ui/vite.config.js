@@ -1,8 +1,10 @@
-import { defineConfig } from 'vite'
+// Plugins
 import vue from '@vitejs/plugin-vue'
-import vuetify from '@vuetify/vite-plugin'
+import vuetify from 'vite-plugin-vuetify'
 
-import path from 'path'
+// Utilities
+import { defineConfig } from 'vite'
+import { fileURLToPath, URL } from 'node:url'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -11,19 +13,14 @@ export default defineConfig({
     // https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vite-plugin
     vuetify({
       autoImport: true,
-      // TODO: Uncomment the following line to be able to override vuetify style variables in styles/variables.scss
-      // styles: 'expose'
     }),
   ],
   define: { 'process.env': {} },
+  envDir: '..',
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'),
+      '@': fileURLToPath(new URL('./src', import.meta.url))
     },
-  },
-
-  /* remove the need to specify .vue files https://vitejs.dev/config/#resolve-extensions
-  resolve: {
     extensions: [
       '.js',
       '.json',
@@ -32,7 +29,9 @@ export default defineConfig({
       '.ts',
       '.tsx',
       '.vue',
-    ]
+    ],
   },
-  */
+  server: {
+    port: 3000,
+  },
 })

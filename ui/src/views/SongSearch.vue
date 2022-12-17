@@ -15,7 +15,7 @@
                 <v-text-field ref="keywords" v-model="ssStore.keywords" label="Search words" @keyup.enter="doSongSearch()" class="flex-grow" />
               </v-col>
               <v-col class="flex-grow-0 flex-shrink-1">
-                  <v-btn @click="doSongSearch()" :disabled="ssStore.keywords.length < 3">Search</v-btn>
+                  <v-btn @click="doSongSearch()" :disabled="ssStore.keywords.length < 3 || loading">Search</v-btn>
               </v-col>
             </v-row>
           </v-container>
@@ -42,14 +42,7 @@
 
               
               <v-list v-for="song in ssStore.songList" :key="song.id" class="text-left mx-auto app-list">
-                <v-list-item twoline @click="songSelected(song.id)" class="text-left">
-                  <v-list-item-header>
-                    <v-list-item-title>{{ song.title }}</v-list-item-title>
-                    <v-list-item-subtitle>{{ song.author }}</v-list-item-subtitle>
-                  </v-list-item-header>
-                  <v-icon color="indigo">
-                    mdi-chevron-right
-                  </v-icon>
+                <v-list-item @click="songSelected(song.id)" class="text-left" :title="song.title" :subtitle="song.author" prepend-icon="mdi-chevron-right">
                 </v-list-item>
               </v-list>
               <p v-if="ssStore.isPicker"><br>Don't see your song in the list above?</p>

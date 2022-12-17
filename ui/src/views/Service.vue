@@ -25,19 +25,22 @@
 
           <div v-if="items.length">
             <h3 class="subhead">Specials</h3>
-            <v-list lines="three" v-for="item in items" :key="item.id" density="compact" class="mx-auto app-list">
-              <v-list-item two-line @click="toPath(item.id)" density="compact" class="text-left" >
-                <v-list-item-header>
+            <v-list v-for="item in items" :key="item.id" class="mx-auto app-list" >
+              <v-list-item lines="three" @click="toPath(item.id)"  class="text-left">
+                              
+                  <!-- 
+                  <template #prepend>
+                    <v-icon color="indigo">
+                      mdi-chevron-right
+                    </v-icon>
+                  </template>    
+                      -->
+
                   <v-list-item-title>{{ item.description }} <span v-if="isAdmin()" :class="itemStyle(item)">({{ itemStatus(item) }})</span></v-list-item-title>
                   <v-list-item-subtitle>
                     <div v-if="item.assigned_to.length">{{ itemPeople(item.assigned_to) }}</div>
                     {{ item.title }}
                   </v-list-item-subtitle>
-                  </v-list-item-header>
-                
-                  <v-icon color="indigo">
-                    mdi-chevron-right
-                  </v-icon>
                 
                 </v-list-item>
                 <v-divider></v-divider>
@@ -50,22 +53,16 @@
           <div v-if="songs.length">
             <h3 class="subhead">Other Songs</h3>
             <v-list v-for="song in songs" :key="song.id" class="mx-auto app-list">
-              <v-list-item two-line density="compact" class="text-left">
-                <v-list-item-header>
-                  <v-list-item-title>{{ song.title }}</v-list-item-title>
-                  <v-list-item-subtitle>{{song.description}} - {{ song.arrangement }}</v-list-item-subtitle>
-                </v-list-item-header>
+              <v-list-item lines="two" density="compact" class="text-left" :title="song.title" :subtitle="`${song.description} - ${song.arrangement}`">
               </v-list-item>
             </v-list>
           </div>
 
           <h3 class="subhead" v-if="selected_tags.length">Song Themes</h3>
           <v-list v-for="tag in service.tags" :key="tag.id" class="mx-auto app-list">
-              <v-list-item two-line density="compact" class="text-left">
-                <v-list-item-header>
+              <v-list-item lines="two" density="compact" class="text-left">
                   <v-list-item-title>{{ tag.tag_name }}</v-list-item-title>
                   <v-list-item-subtitle>{{ tag.tag_group_name }}</v-list-item-subtitle>
-                </v-list-item-header>
               </v-list-item>
           </v-list>
           

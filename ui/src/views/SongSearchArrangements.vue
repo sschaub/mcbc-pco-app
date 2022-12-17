@@ -11,12 +11,11 @@
         <h3 class="subhead">Song Usage</h3>
         <p>(Since August 2020)</p>
         <v-list v-for="sh in ssStore.song.history" :key="sh.id" class="text-left mx-auto app-list">
-          <v-list-item two-line class="text-left">
-            <v-list-item-header>
-              <v-list-item-title>{{ sh.service_name }}<span v-if="sh.is_future">*</span></v-list-item-title>
-              <v-list-item-subtitle>                
-                {{ sh.event }} - {{ sh.arrangement }} <span v-if="sh.person_names != 'Sam Arnold'">[{{ sh.person_names }}]</span></v-list-item-subtitle>
-            </v-list-item-header>
+          <v-list-item class="text-left">
+            <v-list-item-title>{{ sh.service_name }}<span v-if="sh.is_future">*</span></v-list-item-title>
+            <v-list-item-subtitle>                
+              {{ sh.event }} - {{ sh.arrangement }} <span v-if="sh.person_names != 'Sam Arnold'">[{{ sh.person_names }}]</span>
+            </v-list-item-subtitle>
           </v-list-item>
         </v-list>
         <div v-if="ssStore.song.history && ssStore.song.history.length"><br>* indicates planned future use</div>
@@ -39,13 +38,7 @@
         <p>Here are the arrangements in our database:</p>
 
         <v-list v-for="arr in ssStore.arrList" :key="arr.id" class="text-left mx-auto app-list">
-          <v-list-item @click="arrangementSelected(arr)" class="text-left">
-            <v-list-item-header>
-              <v-list-item-title>{{ arr.name }}</v-list-item-title>
-            </v-list-item-header>
-            <v-icon color="indigo">
-              mdi-chevron-right
-            </v-icon>
+          <v-list-item @click="arrangementSelected(arr)" :title="arr.name" class="text-left" prepend-icon="mdi-chevron-right">
           </v-list-item>
         </v-list> 
 
@@ -54,7 +47,6 @@
               Use another arrangement
         </v-btn>
 
-        
       </v-col>
 
     </v-row>

@@ -72,11 +72,7 @@
           <div v-if="songs.length">
             <h3>Other Songs In This Service</h3>
             <v-list v-for="song in songs" :key="song.id" class="mx-auto app-list">
-              <v-list-item two-line density="compact" class="text-left">
-                <v-list-item-header>
-                  <v-list-item-title>{{ song.title }}</v-list-item-title>
-                  <v-list-item-subtitle>{{song.description}} - {{ song.arrangement }}</v-list-item-subtitle>
-                </v-list-item-header>
+              <v-list-item :title="song.title" :subtitle="`${song.description} - ${song.arrangement}`" class="text-left">
               </v-list-item>
             </v-list>            
           </div>

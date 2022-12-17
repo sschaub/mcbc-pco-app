@@ -8,20 +8,7 @@
         <div v-if="!loading">
           <h2>Upcoming Services</h2>
           <v-list v-for="service in serviceList" :key="service.id" class="text-left mx-auto app-list" density="compact">
-            <v-list-item lines="three" @click="toPath(service.id)">
-              <v-list-item-header>
-              <v-list-item-title>
-                {{ service.name }}
-              </v-list-item-title>
-              <v-list-item-subtitle>
-                {{ service.plan_theme }}
-              </v-list-item-subtitle>
-              </v-list-item-header>
-              
-              <v-icon color="indigo">
-                mdi-chevron-right
-              </v-icon>
-            
+            <v-list-item  @click="toPath(service.id)" :title="service.name" :subtitle="service.plan_theme" prepend-icon="mdi-chevron-right">
             </v-list-item>
           </v-list>
         </div>

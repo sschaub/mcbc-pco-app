@@ -11,35 +11,35 @@
 
           <v-navigation-drawer
             v-model="drawer"
-            position="right"
+            location="right"
             temporary>
             <v-list>
               <v-list-item @click="navToPage('/')">
-                <v-list-item-header>Home</v-list-item-header>
+                Home
               </v-list-item>
               <v-list-item @click="navToPage('/my-services')">
-                <v-list-item-header>My Services</v-list-item-header>
+                My Services
               </v-list-item>
               <v-list-item @click="toSongSearch()">
-                <v-list-item-header>Song Search</v-list-item-header>
+                Song Search
               </v-list-item>
               <v-list-item @click="navigateTo(`${schedule_prefix}/history`)">
-                <v-list-item-header>History</v-list-item-header>
+                History
               </v-list-item>
               <v-list-item @click="navigateTo(`${schedule_prefix}/pdf`)">
-                <v-list-item-header>View Schedule</v-list-item-header>
+                View Schedule
               </v-list-item>
               <v-list-item @click="navigateTo('https://www.mcbcmusic.org/')">
-                <v-list-item-header>Music Website</v-list-item-header>
+                Music Website
               </v-list-item>
               <v-list-item v-if="isAdmin()" @click="navToPage('/admin')">
-                <v-list-item-header>Admin</v-list-item-header>
+                Admin
               </v-list-item>
               <v-list-item @click="navigateTo('https://www.mcbcmusic.org/home/lyrics-app-help')">
-                <v-list-item-header>Help</v-list-item-header>
+                Help
               </v-list-item>
               <v-list-item v-if="getUser()" @click="logout()">
-                <v-list-item-header>Logout</v-list-item-header>
+                Logout
               </v-list-item>
               <!-- TODO: Add Song Search Here -->
             </v-list>
