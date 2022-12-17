@@ -13,7 +13,7 @@ import config
 
 def genhistory(after_date_str):
     if not after_date_str:
-        after_date = datetime.today() - timedelta(days=30)
+        after_date = datetime.today() - timedelta(days=365)
         after_date_str = after_date.strftime('%Y-%m-%d')
     logging.info(f'Generating history after {after_date_str}')
 
