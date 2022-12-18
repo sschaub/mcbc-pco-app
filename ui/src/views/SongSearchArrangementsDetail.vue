@@ -18,13 +18,11 @@
 
         <h3 class="subhead">Arrangement Usage</h3>
         <v-list v-for="sh in ssStore.arrangement.history" :key="sh.id" class="text-left mx-auto app-list">
-          <v-list-item two-line class="text-left">
-            <v-list-item-header>
-              <v-list-item-title>{{ sh.service_name }}<span v-if="sh.is_future">*</span></v-list-item-title>
-              <v-list-item-subtitle>                
-                {{ sh.event }} <span v-if="sh.person_names != 'Sam Arnold'">[{{ sh.person_names }}]</span>
-              </v-list-item-subtitle>
-            </v-list-item-header>
+          <v-list-item class="text-left">
+            <v-list-item-title>{{ sh.service_name }}<span v-if="sh.is_future">*</span></v-list-item-title>
+            <v-list-item-subtitle>                
+              {{ sh.event }} <span v-if="sh.person_names != 'Sam Arnold'">[{{ sh.person_names }}]</span>
+            </v-list-item-subtitle>
           </v-list-item>                       
         </v-list>
         <div v-if="ssStore.arrangement.history && ssStore.arrangement.history.length"><br>* indicates planned future use</div>

@@ -7,7 +7,7 @@
       </div>
     <div>Music by {{sched_item.composer}} <span class="missing" v-if="!sched_item.composer">Missing info</span></div>
     <div>Arranged by {{sched_item.arranger ? sched_item.arranger : '(None)'}}</div>
-    <div v-if="sched_item.copyright_year && copyrightHolder() || sched_item.copyright">
+    <div v-if="hasCopyrightInfo()">
       <span v-if="sched_item.copyright">{{sched_item.copyright.replace('Copyright', '©')}}
         <span v-if="sched_item.ccli_num">CCLI #{{sched_item.ccli_num}}.</span>
       </span>
@@ -37,6 +37,10 @@
         <th>Special type:</th>
         <td>{{sched_item.genre_note}} <span class="missing" v-if="!sched_item.genre_note">Missing info</span></td>
       </tr>
+      <tr v-if="sched_item.solo_instruments">
+        <th>Service order note:</th>
+        <td>{{sched_item.solo_instruments}}</td>
+      </tr>
       <tr>
         <th>Accompaniment:</th>
         <td>
@@ -52,7 +56,7 @@
     </table>
 
     <h3 class="newsection">Other Details</h3>
-    
+
     <div>
       <h4>Staging Notes</h4>
       <div>Location: {{sched_item.ministry_location}}</div>
@@ -99,6 +103,13 @@ export default {
       if (result == 'OK') {
         this.sched_item.copyright_license_status = COPYRIGHT_STATUS_APPROVED
       }
+    },
+
+    hasCopyrightInfo() {
+      if (this.isNonCopyright(this.sched_item.copyright))
+        return true;
+        
+      return this.sched_item.copyright_year && this.copyrightHolder() || this.sched_item.copyright
     },
 
     copyrightHolder() {

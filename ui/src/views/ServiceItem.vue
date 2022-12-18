@@ -1,14 +1,49 @@
 <template>
-  <!-- <v-breadcrumbs divider="-">
-    <v-list>
-      <v-list-item to="/">All Services</v-list-item>
-      <v-list-item :to="`/service/${service_id}`">{{service.name}}</v-list-item>
-    </v-list>
-  </v-breadcrumbs> -->
   <v-container fluid>
     <div v-if="loading" class="text-center">
       <v-progress-circular indeterminate  />
     </div>
+    <v-row>
+      <v-dialog v-model="showImport" persistent>
+        <v-card>
+          <v-card-title>
+            <span class="text-h5">Import Arrangement</span>
+          </v-card-title>
+          <v-card-text>
+            <v-container>
+              <v-row>
+                <v-col cols="12">
+                  <v-text-field v-model="importArrangementName" label="Arrangement Name (ex. SATB - Forrest)" />
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="12">
+                  <v-text-field v-model="importServiceOrderNote" label="Service Order Note" />
+                </v-col>
+              </v-row>
+            </v-container>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn
+              color="blue-darken-1"
+              variant="text"
+              @click="showImport = false"
+            >
+              Cancel
+            </v-btn>
+            <v-btn
+              color="blue-darken-1"
+              variant="text"
+              :disabled="!importArrangementName" @click="doImport()"
+            >
+              Import
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </v-row>
+
     <v-row class="text-center">
       <!-- <div class="ssbreadcrumb"><a href="/">Services</a> &gt; <a :href="`/service/${service_id}`">{{service.name}}</a></div> -->
       <v-col cols="12" sm="6" md="6">
@@ -44,20 +79,6 @@
               <v-btn @click="resetClicked()">Reset</v-btn>
             </span>
           </span>
-
-          <div v-if="showImport">
-            <v-container>
-              <v-row>
-                <v-col>
-                  <v-text-field v-model="importArrangementName" label="Arrangement Name (ex. SATB - Forrest)" />
-                </v-col>
-                <v-col cols="4">
-                  <v-btn :disabled="!importArrangementName" @click="doImport()">Import</v-btn>&nbsp;
-                  <v-btn @click="showImport = false">Cancel</v-btn>
-                </v-col>
-              </v-row>
-            </v-container>
-          </div>
 
           <br>
           <service-item-details v-if="siStore.sched_item.details_provided" :sched_item="siStore.sched_item"  /> 
@@ -233,7 +254,7 @@ https://schedule.mcbcmusic.org/pdf
     async doImport() {
       try {
         this.loading = true
-        let response = await this.$api.importServiceItem(this.service_id, this.item_id, this.importArrangementName)
+        let response = await this.$api.importServiceItem(this.service_id, this.item_id, this.importArrangementName, this.importServiceOrderNote)
         siStore.sched_item.arrangement_name = response.arrangement_name
         siStore.sched_item.arrangement_id = response.arrangement_id
         siStore.sched_item.song_id = response.song_id
@@ -260,7 +281,8 @@ https://schedule.mcbcmusic.org/pdf
       siStore.item = res.item
       siStore.service = res.service
       siStore.sched_item = res.sched_item || {}
-      this.importArrangementName = siStore.sched_item.arrangement_name      
+      this.importArrangementName = siStore.sched_item.arrangement_name
+      this.importServiceOrderNote = siStore.sched_item.solo_instruments
       document.title = siStore.service.name + ' ' + siStore.item.description
     } finally {
       this.loading = false

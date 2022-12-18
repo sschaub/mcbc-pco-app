@@ -8,7 +8,7 @@
         <div v-if="!loading">
           <h2>My Services</h2>
           <v-list v-if="serviceList.length" v-for="service in serviceList" :key="service.id" class="text-left mx-auto app-list" density="compact">
-            <v-list-item lines="2" @click="toPath(service.id)" :title="service.name" :subtitle="service.plan_theme" prepend-icon="mdi-chevron-right">
+            <v-list-item lines="2" @click="toPath(service.id)" :title="service.name" :subtitle="service.plan_theme" append-icon="mdi-chevron-right">
             </v-list-item>
           </v-list>
           <div v-else>{{ msg }}</div>

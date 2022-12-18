@@ -8,7 +8,7 @@
         <div v-if="!loading">
           <h2>Upcoming Services</h2>
           <v-list v-for="service in serviceList" :key="service.id" class="text-left mx-auto app-list" density="compact">
-            <v-list-item  @click="toPath(service.id)" :title="service.name" :subtitle="service.plan_theme" prepend-icon="mdi-chevron-right">
+            <v-list-item  @click="toPath(service.id)" :title="service.name" :subtitle="service.plan_theme" append-icon="mdi-chevron-right">
             </v-list-item>
           </v-list>
         </div>

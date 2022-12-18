@@ -18,6 +18,10 @@ export default {
             return sched_item.copyright_license_status == COPYRIGHT_STATUS_APPROVED
         },
 
+        isNonCopyright(copyright) {
+            return copyright == 'Public Domain' || copyright == 'Improvised'
+        },
+
         // authentication utilities
 
         setUser(user) {

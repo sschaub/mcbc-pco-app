@@ -212,6 +212,9 @@ def parse_author(author: str) -> tuple:
         author = m.group(1)
         composer = m.group(2)
     return author, composer
+
+def is_not_copyrighted(copyright: str) -> bool:
+    return copyright == 'Public Domain' or copyright == 'Improvised'
     
 def parse_copyright(copyright: str) -> tuple:
     copyright_year = None
@@ -220,6 +223,9 @@ def parse_copyright(copyright: str) -> tuple:
     if m:
         copyright_year = m.group(1)
         copyright_holder = m.group(3)
+    elif is_not_copyrighted(copyright):
+        copyright_year = ''
+        copyright_holder = copyright
     else:
         copyright = ''
     return copyright_year, copyright_holder, copyright
@@ -521,6 +527,8 @@ def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id
 
     if copyright:
         copyright_year, copyright_holder, _ = parse_copyright(copyright)
+    elif is_not_copyrighted(copyright_holder):
+        copyright = copyright_holder
     elif copyright_holder and copyright_year:
         copyright = f'Copyright {copyright_year} {copyright_holder}.'
 
@@ -533,7 +541,8 @@ def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id
 
     copyright_license_status = sched_spec.copyright_license_status
     if copyright_holder and copyright_holder != sched_spec.copyright_holder:
-        if LicensedPublishers.query.filter(func.lower(LicensedPublishers.publisher_name)==copyright_holder.lower()).count() > 0:
+        if (is_not_copyrighted(copyright_holder) or 
+            LicensedPublishers.query.filter(func.lower(LicensedPublishers.publisher_name)==copyright_holder.lower()).count() > 0):
             copyright_license_status = SchedSpecial.COPYRIGHT_STATUS_APPROVED
         else:
             copyright_license_status = SchedSpecial.COPYRIGHT_STATUS_UNKNOWN
@@ -566,7 +575,10 @@ def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id
 
         msg += '</table>\n<h3>Song Details</h3>\n<table><tr><td><table>\n'
 
-        orig_copyright = f'{sched_spec.copyright_year or ""} by {sched_spec.copyright_holder or "?"}'
+        if is_not_copyrighted(sched_spec.copyright_holder):
+            orig_copyright = sched_spec.copyright_holder
+        else:
+            orig_copyright = f'{sched_spec.copyright_year or ""} by {sched_spec.copyright_holder or "?"}'
 
         copyright_status_html = ''
         if copyright_license_status == SchedSpecial.COPYRIGHT_STATUS_UNKNOWN:

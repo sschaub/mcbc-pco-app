@@ -93,113 +93,48 @@
         <!-- <v-text-field v-model="siStore.sched_item.start_key" label="Starting Key (ex. A / Ab (A-flat major) / ab [a-flat minor])" /> -->
         <!-- <v-select :items="keys" v-model="siStore.sched_item.start_key" label="Starting Key"  /> -->
         <div class="gray">
-        Starting Key: <select v-model="siStore.sched_item.start_key" class="ssdropdown">
-          <option value=""></option>
-          <option value="A">A major</option>
-          <option value="a">A minor</option>
-          <option value="Ab">A-flat major</option>
-          <option value="ab">A-flat minor</option>
-          <option value="A#">A-sharp major</option>
-          <option value="a#">A-sharp minor</option>
-          <option value="B">B major</option>
-          <option value="b">b minor</option>
-          <option value="Bb">B-flat major</option>
-          <option value="bb">B-flat minor</option>
-          <option value="C">C major</option>
-          <option value="c">C minor</option>
-          <option value="C#">C-sharp major</option>
-          <option value="c#">C-sharp minor</option>
-          <option value="D">D major</option>
-          <option value="d">D minor</option>
-          <option value="Db">D-flat major</option>
-          <option value="db">D-flat minor</option>
-          <option value="D#">D-sharp major</option>
-          <option value="d#">D-sharp minor</option>
-          <option value="E">E major</option>
-          <option value="Eb">E-flat major</option>
-          <option value="eb">E-flat minor</option>
-          <option value="e">E minor</option>
-          <option value="F">F major</option>
-          <option value="f">F minor</option>
-          <option value="F#">F-sharp major</option>
-          <option value="f#">F-sharp minor</option>
-          <option value="G">G major</option>
-          <option value="g">G minor</option>
-          <option value="Gb">G-flat major</option>
-          <option value="gb">G-flat minor</option>
-          <option value="G#">G-sharp major</option>
-          <option value="g#">G-sharp minor</option>
-        </select>
-
+          <v-select label="Starting Key" v-model="siStore.sched_item.start_key" :items="keys" item-title="name" item-value="val">          
+          </v-select>
         </div>
       </v-col>
       <v-col cols="12" sm="6" md="6">
         <!-- <v-text-field v-model="siStore.sched_item.end_key" label="Ending Key" /> -->
         <div style="margin-bottom: 30px">
-          Ending Key: <select v-model="siStore.sched_item.end_key" class="ssdropdown">
-            <option value=""></option>
-            <option value="A">A major</option>
-            <option value="a">A minor</option>
-            <option value="Ab">A-flat major</option>
-            <option value="ab">A-flat minor</option>
-            <option value="A#">A-sharp major</option>
-            <option value="a#">A-sharp minor</option>
-            <option value="B">B major</option>
-            <option value="b">b minor</option>
-            <option value="Bb">B-flat major</option>
-            <option value="bb">B-flat minor</option>
-            <option value="C">C major</option>
-            <option value="c">C minor</option>
-            <option value="C#">C-sharp major</option>
-            <option value="c#">C-sharp minor</option>
-            <option value="D">D major</option>
-            <option value="d">D minor</option>
-            <option value="Db">D-flat major</option>
-            <option value="db">D-flat minor</option>
-            <option value="D#">D-sharp major</option>
-            <option value="d#">D-sharp minor</option>
-            <option value="E">E major</option>
-            <option value="Eb">E-flat major</option>
-            <option value="eb">E-flat minor</option>
-            <option value="e">E minor</option>
-            <option value="F">F major</option>
-            <option value="f">F minor</option>
-            <option value="F#">F-sharp major</option>
-            <option value="f#">F-sharp minor</option>
-            <option value="G">G major</option>
-            <option value="g">G minor</option>
-            <option value="Gb">G-flat major</option>
-            <option value="gb">G-flat minor</option>
-            <option value="G#">G-sharp major</option>
-            <option value="g#">G-sharp minor</option>
-          </select>
+          <v-select label="Ending Key" v-model="siStore.sched_item.end_key" :items="keys" item-title="name" item-value="val">          
+          </v-select>
         </div>
       </v-col>
     </v-row>
+    <v-row>
+      <v-col cols="12">
+        <v-radio-group v-model="copyrightType" inline>
+          <v-radio label="Copyrighted Work" value="C" />
+          <v-radio label="Improvised" value="Improvised" />
+          <v-radio v-if="isAdmin()" label="Public Domain" value="Public Domain" />
+        </v-radio-group>
+      </v-col>
+    </v-row>    
     <v-row class="text-center">
-      <v-col v-if="!siStore.sched_item.copyright" cols="12">
+      <v-col v-if="isNewCopyrightEntry()" cols="12">
           Tip: To fill in the following, look for a copyright notice (ex. "Copyright 2004 Soundforth") on the bottom of the first page of the music.<br>
           If it's not there, look at the title page of the book.
       </v-col>
     </v-row>
-    <v-row v-if="!siStore.sched_item.copyright">
+    <v-row v-if="isNewCopyrightEntry()">
       <v-col cols="12" sm="6" md="6">
-        Copyright Holder: <select v-model="siStore.sched_item.copyright_holder" class="ssdropdown">
-          <option></option>
-          <option v-for="holder in siStore.copyright_holders">{{holder}}</option>
-          <option>Other</option>
-        </select>
+        <v-combobox label="Copyright Holder" v-model="siStore.sched_item.copyright_holder" :items="copyrightHolders()"> 
+        </v-combobox>
       </v-col>
       <v-col cols="12" sm="6" md="6">
         <v-text-field v-if="siStore.sched_item.copyright_holder == 'Other'" v-model="siStore.sched_item.copyright_holder_other" label="Copyright Holder (ex. Soundforth)" />
       </v-col>
     </v-row>
-    <v-row v-if="!siStore.sched_item.copyright">
+    <v-row v-if="isNewCopyrightEntry() && !isPublicDomain()">
       <v-col cols="12" sm="6" md="6">
         <v-text-field v-model="siStore.sched_item.copyright_year" label="Copyright Year (ex. 1995)" type="number" />
       </v-col>
     </v-row>    
-    <v-row v-if="siStore.sched_item.copyright">
+    <v-row v-if="siStore.sched_item.copyright && !isPublicDomain()">
       <v-col cols="12">
         <v-text-field v-model="siStore.sched_item.copyright" label="Copyright Info" />
       </v-col>
@@ -293,11 +228,59 @@ export default {
     loading: false,
     songChanged: false,
     mode: '',
-    keys: ['A', 'C', 'Bb'],
-    possible_locations: ['Pulpit', 'Piano well', 'Brass well', 'Orchestra pit', 'Choir loft', 'Bell loft', 'Other']
+    copyrightType: 'C',
+    keys: [{ val: "", name: "Unknown" },
+          { val: "A", name: "A major" },
+          { val: "a", name: "A minor" },
+          { val: "Ab", name: "A-flat major" },
+          { val: "ab", name: "A-flat minor" },
+          { val: "A#", name: "A-sharp major" },
+          { val: "a#", name: "A-sharp minor" },
+          { val: "B", name: "B major" },
+          { val: "b", name: "b minor" },
+          { val: "Bb", name: "B-flat major" },
+          { val: "bb", name: "B-flat minor" },
+          { val: "C", name: "C major" },
+          { val: "c", name: "C minor" },
+          { val: "C#", name: "C-sharp major" },
+          { val: "c#", name: "C-sharp minor" },
+          { val: "D", name: "D major" },
+          { val: "d", name: "D minor" },
+          { val: "Db", name: "D-flat major" },
+          { val: "db", name: "D-flat minor" },
+          { val: "D#", name: "D-sharp major" },
+          { val: "d#", name: "D-sharp minor" },
+          { val: "E", name: "E major" },
+          { val: "Eb", name: "E-flat major" },
+          { val: "eb", name: "E-flat minor" },
+          { val: "e", name: "E minor" },
+          { val: "F", name: "F major" },
+          { val: "f", name: "F minor" },
+          { val: "F#", name: "F-sharp major" },
+          { val: "f#", name: "F-sharp minor" },
+          { val: "G", name: "G major" },
+          { val: "g", name: "G minor" },
+          { val: "Gb", name: "G-flat major" },
+          { val: "gb", name: "G-flat minor" },
+          { val: "G#", name: "G-sharp major" },
+          { val: "g#", name: "G-sharp minor" }],
+    possible_locations: ['Pulpit', 'Piano well', 'Brass well', 'Orchestra pit', 'Choir loft', 'Bell loft', 'Other'],
+    improvised: false
   }),  
 
   methods: {
+
+    copyrightHolders() {
+      return ['', ...siStore.copyright_holders, 'Other'] 
+    },
+
+    isPublicDomain() {
+      return this.isNonCopyright(siStore.sched_item.copyright) 
+    },
+
+    isNewCopyrightEntry() {
+      return this.copyrightType == 'C' && !siStore.sched_item.copyright
+    },
 
     continueClicked() {
       siStore.sched_item.song_text = siStore.sched_item.song_text ? siStore.sched_item.song_text.trim() : ''
@@ -357,8 +340,18 @@ export default {
         this.mode = "askfordetails"
       } else {
         this.mode = ""
+        this.initCopyrightType()
       }
 
+    },
+
+    initCopyrightType() {
+      if (this.isNonCopyright(siStore.sched_item.copyright)) {
+        this.copyrightType = siStore.sched_item.copyright
+      } else {
+        this.copyrightType = 'C'
+      }
+      console.log(`copyright: ${siStore.sched_item.copyright}, copyrightType = ${this.copyrightType}`)
     },
 
     openSearch() {
@@ -366,6 +359,19 @@ export default {
       this.$router.push({ name: 'SongSearch' })
     }
 
+  },
+
+  watch: {
+    copyrightType(newValue) {
+      if (this.isNonCopyright(newValue)) {
+        // public domain or improvised
+        siStore.sched_item.copyright = newValue
+      } else {
+        siStore.sched_item.copyright_holder = ''
+        siStore.sched_item.copyright_year = ''
+        siStore.sched_item.copyright = ''
+      }
+    }
   },
   
   async mounted() {
@@ -380,9 +386,7 @@ export default {
           siStore.sched_item = res.sched_item
           siStore.service = res.service
           siStore.item = res.item
-          siStore.copyright_holders = res.copyright_holders
-          //siStore.copyright_holders.push('Public Domain')
-          //siStore.copyright_holders.push('Improvised Arrangement')
+          siStore.copyright_holders = res.copyright_holders          
         } finally {
           this.loading = false
         }
@@ -409,7 +413,9 @@ export default {
           }
         }
       }
-      ssStore.selectionOccurred = false
+      ssStore.selectionOccurred = false      
+
+      this.initCopyrightType()
 
       if (siStore.sched_item.title) {
         if (siStore.sched_item.details_provided == DETAILS_NO) {

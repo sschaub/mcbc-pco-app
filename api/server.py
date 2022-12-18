@@ -374,6 +374,9 @@ def api_import_service_item(current_user: Person, service_id: str, item_id: str)
 
     data = request.json
     import_arrangement_name = data['import_arrangement_name']
+    import_service_order_note = data['import_service_order_note']
+
+    sched_spec.solo_instruments = import_service_order_note
 
     authors = []
     if sched_spec.author:

@@ -3,7 +3,6 @@
           <v-app-bar class="no-print"
             color="blue">
             <v-icon v-if="$route.name != 'Home'" @click="$router.go(-1)" class="back-arrow">mdi-chevron-left</v-icon>
-            <v-spacer></v-spacer>
             <v-app-bar-title>MCBC Music</v-app-bar-title>
             <v-spacer></v-spacer>
             <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>

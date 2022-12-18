@@ -25,7 +25,7 @@ def genhistory(after_date_str):
     for service_type in pco.iterate(service_types_url):
         service_type_id = service_type['data']['id']
         plans_url = f"{service_types_url}/{service_type_id}/plans"
-        for plan in pco.iterate(plans_url, filter='after,past', per_page=50, after=after_date_str): # filter='after,past'
+        for plan in pco.iterate(plans_url, filter='after', per_page=50, after=after_date_str): # filter='after,past'
             plan = plan['data']
             plan_id = plan['id']
             plan_url = f'{plans_url}/{plan_id}'
@@ -37,7 +37,9 @@ def genhistory(after_date_str):
                 
             print(f'Processing plan at {plan_time}...')
             
-            team_members = list(member['data'] for member in pco.iterate(f"{plan_url}/team_members", per_page=50))
+            team_members = list(member['data'] 
+                                for member in pco.iterate(f"{plan_url}/team_members", per_page=50) 
+                                if member['data']['attributes']['status'] != 'D')
 
             service = Service.query.filter_by(service_type_id=service_type_id, plan_id=plan_id).first()
             if service:

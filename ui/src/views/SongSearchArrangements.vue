@@ -38,7 +38,7 @@
         <p>Here are the arrangements in our database:</p>
 
         <v-list v-for="arr in ssStore.arrList" :key="arr.id" class="text-left mx-auto app-list">
-          <v-list-item @click="arrangementSelected(arr)" :title="arr.name" class="text-left" prepend-icon="mdi-chevron-right">
+          <v-list-item @click="arrangementSelected(arr)" :title="arr.name" class="text-left" append-icon="mdi-chevron-right">
           </v-list-item>
         </v-list> 
 

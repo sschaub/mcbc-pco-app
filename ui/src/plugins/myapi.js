@@ -133,8 +133,8 @@ class ApiService {
         return this.post(`/services/${service_type_id}-${plan_id}/${item_id}/approve_copyright`)
     }
 
-    importServiceItem(service_id, item_id, importArrangementName) {
-        return this.post(`/services/${service_id}/${item_id}/import`, { import_arrangement_name: importArrangementName })
+    importServiceItem(service_id, item_id, importArrangementName, importServiceOrderNote) {
+        return this.post(`/services/${service_id}/${item_id}/import`, { import_arrangement_name: importArrangementName, import_service_order_note: importServiceOrderNote })
     }    
 
     searchSongs(searchType, keywords) {
