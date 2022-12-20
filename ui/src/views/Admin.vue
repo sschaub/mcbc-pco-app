@@ -28,26 +28,23 @@
             <v-spacer></v-spacer>
             <v-btn
               color="blue-darken-1"
-              variant="text"
               @click="showGenerator = false"              
             >
               Cancel
             </v-btn>
             <v-btn
               color="blue-darken-1"
-              variant="text"
-              :disabled="selectedServices.length == 0"
-               @click="genServiceOrder('pdf')"
-            >
-              Generate PDF
-            </v-btn>
-            <v-btn
-              color="blue-darken-1"
-              variant="text"
               :disabled="selectedServices.length == 0"
                @click="genServiceOrder('html')"
             >
-              Generate Web Page
+              View
+            </v-btn>
+            <v-btn
+              color="blue-darken-1"
+              :disabled="selectedServices.length == 0"
+               @click="genServiceOrder('pdf')"
+            >
+              Save PDF
             </v-btn>
           </v-card-actions>
         </v-card>
