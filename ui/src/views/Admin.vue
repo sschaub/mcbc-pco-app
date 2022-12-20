@@ -1,22 +1,64 @@
 <template>
   <v-container>
+    <v-row>
+      <v-dialog v-model="showGenerator" 
+        scrollable
+        transition="dialog-bottom-transition">
+        <v-card>
+          <v-card-title>
+            <span class="text-h5">Service Order Generator</span>
+          </v-card-title>
+          <v-card-text>
+            <v-container>
+              <v-row>
+                <v-col cols="12">
+                  <h3>Select Services for Service Order</h3>
+                  <v-checkbox v-for="plan in serviceList"
+                    v-model="selectedServices"
+                    :hide-details="true"
+                    density="compact"
+                    :key="plan.plan_id"
+                    :value="plan.plan_id"
+                    :label="plan.name"/>
+                </v-col>
+              </v-row>
+            </v-container>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn
+              color="blue-darken-1"
+              variant="text"
+              @click="showGenerator = false"              
+            >
+              Cancel
+            </v-btn>
+            <v-btn
+              color="blue-darken-1"
+              variant="text"
+              :disabled="selectedServices.length == 0"
+               @click="genServiceOrder('pdf')"
+            >
+              Generate PDF
+            </v-btn>
+            <v-btn
+              color="blue-darken-1"
+              variant="text"
+              :disabled="selectedServices.length == 0"
+               @click="genServiceOrder('html')"
+            >
+              Generate Web Page
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </v-row>
     <v-row class="text-center">
       <v-col cols="12">
         <h2>Admin</h2>
         <h2>&nbsp;</h2>
         <v-btn @click="schedule()" :disabled="loading">Current Schedule</v-btn><br><br>
-        <v-btn @click="loadServices()">Service Order Generator</v-btn>
-
-        <h3 v-if="serviceList.length">Select services for service order</h3>
-        <v-checkbox v-for="plan in serviceList"
-          v-model="selectedServices"
-          :hide-details="true"
-          :key="plan.plan_id"
-          :value="plan.plan_id"
-          :label="plan.name"/>
-
-        <v-btn v-if="serviceList.length" @click="genServiceOrder()" :disabled="selectedServices.length == 0">Generate Service Order</v-btn>
-        
+        <v-btn @click="loadServices()" :disabled="loading">Service Order Generator</v-btn>    
         
       </v-col>
 
@@ -33,6 +75,7 @@ export default {
 
   data: () => ({
     loading: false,
+    showGenerator: false,
     serviceList: [],
     selectedServices: [],
   }),  
@@ -50,17 +93,19 @@ export default {
 
     async loadServices() {
       try {
+        this.loading = true
         this.serviceList = await this.$api.getServices()
+        this.showGenerator = true
       } finally {
         this.loading = false
       }
     },
 
-    genServiceOrder() {
+    genServiceOrder(format) {
       console.log(this.selectedServices)
       let planIdStr = this.selectedServices.map( plan => `${plan}_plan=true` ).join('&')
       planIdStr += `&plan_id=${this.selectedServices[0]}`
-      let url = `https://services.planningcenteronline.com/reports/${REPORT_ID_SERVICE_ORDER}.html?${planIdStr}`
+      let url = `https://services.planningcenteronline.com/reports/${REPORT_ID_SERVICE_ORDER}.${format}?${planIdStr}`
       open(url)
     }
   }

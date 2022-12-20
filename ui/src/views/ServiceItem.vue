@@ -4,7 +4,7 @@
       <v-progress-circular indeterminate  />
     </div>
     <v-row>
-      <v-dialog v-model="showImport" persistent>
+      <v-dialog v-model="showImport">
         <v-card>
           <v-card-title>
             <span class="text-h5">Import Arrangement</span>
