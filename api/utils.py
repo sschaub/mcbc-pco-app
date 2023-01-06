@@ -62,7 +62,8 @@ def get_plan(service_type_id: int, plan_id: int) -> dict:
 
     service_name = get_service_name(service_type_id, plan_datetime_str)
 
-    team_members = list(member['data'] for member in pco.iterate(plan_url + "/team_members", per_page=50))
+    team_members = list(member['data'] for member in pco.iterate(plan_url + "/team_members", per_page=50)
+                        if member['data']['attributes']['status'] != 'D')
 
     positions = {}
     for member in team_members:
