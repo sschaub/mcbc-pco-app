@@ -11,3 +11,5 @@ export const REPORT_ID_SERVICE_ORDER = '117209';
 
 export const SCHEDULE_PREFIX = import.meta.env.VITE_APP_SCHEDULE_PREFIX;
 
+export const SISTATE_INITIAL = 0;
+export const SISTATE_LOADED = 1;

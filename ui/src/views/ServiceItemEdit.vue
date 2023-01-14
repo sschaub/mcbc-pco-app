@@ -35,7 +35,7 @@
         <br>
         <div>Do you wish to replace the details previously entered with what we have on file for this song?</div>
         <br><br>
-        <v-btn @click="replaceDetails()">Yes</v-btn>&nbsp;<v-btn @click="mode = ''">No</v-btn>
+        <v-btn @click="replaceDetails()">Yes</v-btn>&nbsp;<v-btn @click="doNotReplaceDetails()">No</v-btn>
       </v-col>
     </v-row>
   </v-container>
@@ -208,7 +208,7 @@
 
 <script>
 
-import {ITEM_STATUS_PENDING, DETAILS_YES, DETAILS_NO} from '../constants.js';
+import {ITEM_STATUS_PENDING, DETAILS_YES, DETAILS_NO, SISTATE_INITIAL, SISTATE_LOADED} from '../constants.js';
 
 // import SongSearch from './SongSearch.vue'
 import { siStore } from './ServiceItemState.js'
@@ -311,6 +311,11 @@ export default {
       this.mode='';
     },
 
+    doNotReplaceDetails() {
+      this.initCopyrightType()
+      this.mode = ''
+    },
+
     replaceDetails() {
       siStore.sched_item.author = ssStore.song.author
       siStore.sched_item.arranger = ''
@@ -319,7 +324,6 @@ export default {
       siStore.sched_item.end_key = ''
       if (ssStore.arrangement.id) {
           siStore.sched_item.author = ssStore.arrangement.author
-          siStore.sched_item.copyright = ssStore.arrangement.copyright
           siStore.sched_item.start_key = ssStore.arrangement.start_key
           siStore.sched_item.end_key = ssStore.arrangement.end_key
           siStore.sched_item.song_text = ssStore.arrangement.lyrics
@@ -327,12 +331,18 @@ export default {
           siStore.sched_item.arranger = ssStore.arrangement.arranger        
           siStore.sched_item.translator = ssStore.arrangement.translator
           siStore.sched_item.ccli_num = ssStore.arrangement.ccli_num
+          siStore.sched_item.copyright = ssStore.arrangement.copyright
       } else if (ssStore.song.id) {
           siStore.sched_item.title = ssStore.song.title
           siStore.sched_item.author = ssStore.song.author
           siStore.sched_item.composer = ssStore.song.composer
           siStore.sched_item.song_text = ssStore.song.lyrics
-          siStore.sched_item.copyright = ssStore.arrangement.copyright
+          siStore.sched_item.copyright = ssStore.song.copyright
+      }
+      siStore.sched_item.copyright_holder = ''
+      siStore.sched_item.copyright_year = ''
+      if (!siStore.sched_item.copyright) {
+        siStore.sched_item.copyright = 'Improvised'
       }
 
       if (siStore.sched_item.details_provided != DETAILS_YES) {
@@ -346,12 +356,12 @@ export default {
     },
 
     initCopyrightType() {
+      console.log(`initCopyrightType(): ${siStore.sched_item.copyright}`)
       if (this.isNonCopyright(siStore.sched_item.copyright)) {
         this.copyrightType = siStore.sched_item.copyright
       } else {
         this.copyrightType = 'C'
       }
-      console.log(`copyright: ${siStore.sched_item.copyright}, copyrightType = ${this.copyrightType}`)
     },
 
     openSearch() {
@@ -377,7 +387,7 @@ export default {
   async mounted() {
     scrollTo(0,0)
     try {
-      let cameFromServiceItemScreen = !siStore.item.description; // true if entering from ServiceItem screen
+      let cameFromServiceItemScreen = siStore.state == SISTATE_INITIAL; // true if entering from ServiceItem screen
       if (cameFromServiceItemScreen) {
         ssStore.init(true)
         try {
@@ -386,7 +396,8 @@ export default {
           siStore.sched_item = res.sched_item
           siStore.service = res.service
           siStore.item = res.item
-          siStore.copyright_holders = res.copyright_holders          
+          siStore.copyright_holders = res.copyright_holders
+          siStore.state = SISTATE_LOADED          
         } finally {
           this.loading = false
         }
@@ -394,7 +405,9 @@ export default {
 
       document.title = siStore.service.name + ' ' + siStore.item.description
 
-      if (ssStore.selectionOccurred) {
+      let selectionOccurred = ssStore.selectionOccurred
+      ssStore.selectionOccurred = false
+      if (selectionOccurred) {
         // Coming from song picker
         siStore.sched_item.title = ssStore.song.title
         siStore.sched_item.song_id = ssStore.song.id
@@ -412,12 +425,13 @@ export default {
             this.replaceDetails()          
           }
         }
-      }
-      ssStore.selectionOccurred = false      
+      } 
 
       this.initCopyrightType()
 
       if (siStore.sched_item.title) {
+        // A title has been assigned to this item - decide whether to request or display details
+
         if (siStore.sched_item.details_provided == DETAILS_NO) {
           if (siStore.sched_item.song_id && siStore.sched_item.arrangement_id) {
             // ask if user wishes to enter details

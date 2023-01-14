@@ -447,7 +447,7 @@ def api_import_service_item(current_user: Person, service_id: str, item_id: str)
         notes_lines.append(f'CCLI#: {sched_spec.ccli_num}')
 
     arr_attrs['notes'] = '\n'.join(notes_lines)    
-    if new_song or not sched_spec.arrangement_id:
+    if new_song or force_new_arrangement or not sched_spec.arrangement_id:
         arr_attrs['length'] = 180   # 3 minute default length
 
     payload = pco.template('Arrangement', arr_attrs)
