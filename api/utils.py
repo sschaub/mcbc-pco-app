@@ -558,7 +558,9 @@ def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id
             <table>'''
             
     service_name = item_data['service']['name']
-    assigned_to_list = ','.join(item['name'] + " &lt;" + item.get('email') + "&gt;<br>" for item in item_data['item']['assigned_to'])
+    print(f"item_data = {item_data}")
+    assigned_to_list = ','.join(item['name'] + 
+       (" &lt;" + item.get('email') + "&gt;<br>" if item.get('email') else "") for item in item_data['item']['assigned_to'])
     link = f'/songs/{song_id}' if song_id else ''
     title_approval = '<span style="color: red">Approval Pending</span>' if sched_spec.status == SchedSpecial.STATUS_PENDING else '<span style="color: green">Approved</span>'
     msg += row('Assigned To', assigned_to_list, assigned_to_list)
