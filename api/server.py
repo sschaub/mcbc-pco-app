@@ -413,7 +413,8 @@ def api_import_service_item(current_user: Person, service_id: str, item_id: str)
     force_new_arrangement = False
     if sched_spec.arrangement_name != import_arrangement_name:
         sched_spec.arrangement_name = import_arrangement_name
-        force_new_arrangement = True
+        if not new_song:
+            force_new_arrangement = True
     if sched_spec.arrangement_id and not new_song:
         arrangement = pco.get(f'/services/v2/songs/{sched_spec.song_id}/arrangements/{sched_spec.arrangement_id}')
         notes = arrangement['data']['attributes']['notes'] or ''
