@@ -61,26 +61,26 @@
             <p v-if="arrangementName()">Arrangement: {{ arrangementName() }} <a v-if="isAdmin()" :href="arrangementUrl()" target="_blank">[pco]</a></p>
             <div v-if="isPending(siStore.sched_item)" class="pending">(Approval Pending)</div>
           </div>
-          <br>
-          <v-btn @click="editClicked()">Edit</v-btn>
+          <div class="ma-5" style="line-height: 3">
+          <v-btn  @click="editClicked()">Edit</v-btn>
           <span v-if="isAdmin()">
             &nbsp;
-            <v-btn v-if="siStore.item.assigned_to.length" @click="emailClicked('init')">Initial Email</v-btn>
+            <v-btn  v-if="siStore.item.assigned_to.length" @click="emailClicked('init')">Initial Email</v-btn>
             &nbsp;
-            <v-btn v-if="siStore.item.assigned_to.length" @click="emailClicked('followup')">Followup Email</v-btn>
+            <v-btn  v-if="siStore.item.assigned_to.length" @click="emailClicked('followup')">Followup Email</v-btn>
             &nbsp;
-            <v-btn v-if="isPending(siStore.sched_item)" @click="approveClicked()">Approve 
+            <v-btn  v-if="isPending(siStore.sched_item)" @click="approveClicked()">Approve 
               <v-icon dark right>
                 mdi-checkbox-marked-circle
               </v-icon>
             </v-btn>
-            <v-btn v-if="!isPending(siStore.sched_item) && siStore.sched_item.title" @click="showImport = true">Import To PCO</v-btn>            
+            <v-btn  v-if="!isPending(siStore.sched_item) && siStore.sched_item.title" @click="showImport = true">Import To PCO</v-btn>            
             <span v-if="siStore.sched_item.title">&nbsp;
-              <v-btn @click="resetClicked()">Reset</v-btn>
+              <v-btn  @click="resetClicked()">Reset</v-btn>
             </span>
           </span>
 
-          <br>
+        </div>
           <service-item-details v-if="siStore.sched_item.details_provided" :sched_item="siStore.sched_item"  /> 
           <song-lyrics v-if="siStore.sched_item.details_provided" :lyrics="siStore.sched_item.song_text" />
         </div>

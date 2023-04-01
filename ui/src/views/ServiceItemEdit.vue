@@ -20,10 +20,10 @@
       <v-col cols="12">
         <h2>{{ siStore.sched_item.title }}</h2>
         <br>
-        <div>Since we do not have this song / arrangement in our database, please provide at least the
+        <div>Since you are using a song / arrangement that is not in our database, please provide at least the
           composer and arranger information on the next screen.
         </div>
-        <div><v-btn @click="provideDetailsClicked()">Continue</v-btn></div>
+        <div class="mt-5"><v-btn @click="provideDetailsClicked()">Continue</v-btn></div>
       </v-col>
     </v-row>
   </v-container>

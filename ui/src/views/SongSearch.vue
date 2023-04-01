@@ -49,7 +49,7 @@
             </div>
           </div>
 
-          <div v-if="ssStore.isPicker">
+          <div v-if="ssStore.isPicker && hasSearched">
             <br>
             <v-btn  @click="newSongClicked()">
                 Add New Song
@@ -90,6 +90,7 @@ export default {
     mode: 'song',
     loading: false,
     notFound: '',
+    hasSearched: false,
     ssStore: ssStore
   }),
 
@@ -111,6 +112,7 @@ export default {
         }
       } finally {
         this.loading = false
+        this.hasSearched = true
       }
     },
 

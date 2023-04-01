@@ -37,15 +37,15 @@
         <h3 class="subhead">Select Arrangement</h3>
         <p>Here are the arrangements in our database:</p>
 
-        <v-list v-for="arr in ssStore.arrList" :key="arr.id" class="text-left mx-auto app-list">
+        <v-list v-for="arr in arrangements" :key="arr.id" class="text-left mx-auto app-list">
           <v-list-item @click="arrangementSelected(arr)" :title="arr.name" class="text-left" append-icon="mdi-chevron-right">
           </v-list-item>
         </v-list> 
 
-        <br><br>
-        <v-btn v-if="ssStore.isPicker" @click="arrangementSelected()">
+        <div class="mt-5"><v-progress-circular indeterminate v-if="loading" /></div>
+        <!-- <v-btn v-if="ssStore.isPicker" @click="arrangementSelected()">
               Use another arrangement
-        </v-btn>
+        </v-btn> -->
 
       </v-col>
 
@@ -68,22 +68,31 @@ export default {
   name: 'SongSearchArrangements',
 
   data: () => ({
-    // loading: false,
+    loading: false,
     ssStore: ssStore
   }),
+
+  computed: {
+    arrangements() {
+      if (ssStore.isPicker)
+        return [...ssStore.arrList, {name: "Use another arrangement"}]
+      else
+        return ssStore.arrList
+    }
+  },
 
   methods: {
 
     async arrangementSelected(arrangement) {
-      if (arrangement) {
+      if (arrangement.id) {
         console.log(arrangement, 'selected')
         ssStore.arrangement = arrangement
-        // this.loading = true
+        this.loading = true
         try {
           ssStore.arrangement = await this.$api.getArrangement(ssStore.song.id, ssStore.arrangement.id)      
 
         } finally {
-          // this.loading = false
+          this.loading = false
         }        
         this.$router.push( { name: 'SongSearchArrangementsDetail' })
       } else {
