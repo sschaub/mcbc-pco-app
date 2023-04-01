@@ -77,12 +77,12 @@
         <v-text-field v-model="siStore.sched_item.author" label="Text (ex. Fanny Crosby)" />
       </v-col>
       <v-col cols="12" sm="6" md="6">
-        <v-text-field v-model="siStore.sched_item.composer" label="Tune (ex. Joseph Haydn)"  />
+        <v-text-field v-model="siStore.sched_item.composer" label="Composer (ex. Joseph Haydn)"  />
       </v-col>
     </v-row>
     <v-row>      
       <v-col cols="12" sm="6" md="6">
-        <v-text-field v-model="siStore.sched_item.arranger" label="Arranger (ex. Craig Courtney)"  />
+        <v-text-field v-model="siStore.sched_item.arranger" label="Arranger (ex. Craig Courtney)" :rules="[rules.arranger]"  />
       </v-col>
       <v-col cols="12" sm="6" md="6">
         <v-text-field v-if="isAdmin()" v-model="siStore.sched_item.translator" label="Text Translator (ex. Fred Jones)"  />
@@ -222,7 +222,7 @@ export default {
     item_id: String
   },
 
-  data: () => ({
+  data: vm => ({
     siStore: siStore,
     ssStore: ssStore,
     loading: false,
@@ -269,6 +269,7 @@ export default {
     rules: {
       year: value => /^(\d\d\d\d)?$/.test(value) || 'Must be a 4-digit year',
       ccli: value => /^(\d+)?$/.test(value) || 'Must be a number',
+      arranger: function(value) { return value === '' || siStore.sched_item.composer !== '' || 'You have not entered a composer. If this is an original composition, leave this blank and supply a composer name instead.' }
     }
   }),  
 
