@@ -72,6 +72,7 @@
         </div>
 
         <div v-if="isAdmin() && !loading">
+          <!-- <v-btn @click="showCCLIReport">CCLI Report</v-btn> -->
           <v-btn v-if="!assignTags" @click="assignTagsClicked()">Assign Song Tags</v-btn>
 
           <div v-else>
@@ -189,6 +190,9 @@ export default {
 
     showAVReport() {
       this.$router.push({ path: `/service/${this.service_id}/av` })
+    },
+    showCCLIReport() {
+      this.$router.push({ path: `/service/${this.service_id}/ccli` })
     }
   },
 

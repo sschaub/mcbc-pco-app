@@ -141,15 +141,18 @@ def api_password_reminder():
 
 @app.route('/services')
 def api_services():
-
-    services = get_all_services()
+    when = request.args.get('when', 'future')
+    if when == 'past':
+        after_date = datetime.today() - timedelta(days=62)
+        after_date_str = after_date.strftime('%Y-%m-%d')
+        when = f'after,past&after={after_date_str}'
+    services = get_all_services(when)
 
     return jsonify(services)
 
 @app.route('/my-services')
 @token_required
 def api_my_services(current_user: Person):
-
     all_services = get_all_services()
 
     my_plan_persons = pco.get(f'/services/v2/people/{current_user.id}/plan_people?include=plan')
@@ -520,7 +523,7 @@ def api_arrangements(song_id):
             'last_used': last_used
         })
     
-    return jsonify(arr_list)
+    return jsonify(sorted(arr_list, key=lambda arr: arr['name']))
 
 @app.route('/songs/<song_id>/arrangements/<arr_id>')
 def api_arrangement(song_id, arr_id):

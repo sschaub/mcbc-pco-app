@@ -6,12 +6,14 @@
           <v-progress-circular indeterminate />
         </div>
         <div v-if="!loading">
-          <h2>Upcoming Services</h2>
+          <h2>{{ title }}</h2>
           <v-list v-for="service in serviceList" :key="service.id" class="text-left mx-auto app-list" density="compact">
             <v-list-item  @click="toPath(service.id)" :title="service.name" :subtitle="service.plan_theme" append-icon="mdi-chevron-right">
             </v-list-item>
           </v-list>
+          <v-btn @click="switchServiceList()">{{  btnTitle }}</v-btn>
         </div>
+
       </v-col>
 
     </v-row>
@@ -27,21 +29,40 @@ export default {
 
   data: () => ({
     serviceList: [],
-    loading: true
+    loading: true,
+    future: true,    
   }),
+
+  computed: {
+    title() {
+      return this.future ? 'Upcoming Services' : 'Recent Services'
+    },
+    btnTitle() {
+      return this.future ? 'Show Recent Services' : 'Show Upcoming Services'
+    },
+  },
 
   methods: {
     toPath(service_id) {
       this.$router.push({ path: `/service/${service_id}` })
+    },
+    switchServiceList() {
+      this.future = !this.future
+      this.showServices(this.future ? 'future' : 'past')
+    },
+    async showServices(when) {      
+      this.loading = true
+      try {
+        this.serviceList = await this.$api.getServices(when)
+      } finally {
+        this.loading = false
+
+      }
     }
   },
 
   async mounted() {
-    try {
-      this.serviceList = await this.$api.getServices()
-    } finally {
-      this.loading = false
-    }
+    this.showServices('future')
     
   }
 }

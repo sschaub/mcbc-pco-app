@@ -74,8 +74,8 @@ class ApiService {
         return this.post(`/password_reminder`, { 'username': username })
     }
 
-    getServices() {
-        return this.get(`/services`)
+    getServices(when) {
+        return this.get(`/services?when=${when}`)
     }    
 
     getMyServices() {

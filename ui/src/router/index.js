@@ -6,6 +6,7 @@ import ServiceItem from '../views/ServiceItem.vue'
 import ServiceItemEdit from '../views/ServiceItemEdit.vue'
 import ServiceItemReview from '../views/ServiceItemReview.vue'
 import ServiceAVReport from '../views/ServiceAVReport.vue'
+import ServiceCCLIReport from '../views/ServiceCCLIReport.vue'
 import SongSearch from '../views/SongSearch.vue'
 import SongSearchArrangements from '../views/SongSearchArrangements.vue'
 import SongSearchArrangementsDetail from '../views/SongSearchArrangementsDetail.vue'
@@ -51,6 +52,13 @@ const routes = [
     path: '/service/:service_id/av',
     name: 'ServiceAVReport',
     component: ServiceAVReport,
+    props: true
+  },
+
+  {
+    path: '/service/:service_id/ccli',
+    name: 'ServiceCCLIReport',
+    component: ServiceCCLIReport,
     props: true
   },
 

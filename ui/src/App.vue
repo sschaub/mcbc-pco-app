@@ -65,6 +65,9 @@
   appearance: auto; 
   border: 2px solid black; 
 }
+.v-btn {
+  margin:5px
+}
 
 .search-help { 
   max-width: 600px; 

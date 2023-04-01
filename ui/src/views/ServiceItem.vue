@@ -61,7 +61,7 @@
             <p v-if="arrangementName()">Arrangement: {{ arrangementName() }} <a v-if="isAdmin()" :href="arrangementUrl()" target="_blank">[pco]</a></p>
             <div v-if="isPending(siStore.sched_item)" class="pending">(Approval Pending)</div>
           </div>
-          <div class="ma-5" style="line-height: 3">
+          <div class="ma-5">
           <v-btn  @click="editClicked()">Edit</v-btn>
           <span v-if="isAdmin()">
             &nbsp;
