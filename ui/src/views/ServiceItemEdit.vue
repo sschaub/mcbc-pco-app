@@ -131,7 +131,7 @@
     </v-row>
     <v-row v-if="isNewCopyrightEntry() && !isPublicDomain()">
       <v-col cols="12" sm="6" md="6">
-        <v-text-field v-model="siStore.sched_item.copyright_year" label="Copyright Year (ex. 1995)" type="number" />
+        <v-text-field v-model="siStore.sched_item.copyright_year" label="Copyright Year (ex. 1995)" :rules="[rules.year]" />
       </v-col>
     </v-row>    
     <v-row v-if="siStore.sched_item.copyright && !isPublicDomain()">
@@ -141,7 +141,7 @@
     </v-row>    
     <v-row v-if="isAdmin()">
       <v-col cols="6" v-if="isAdmin()">
-        <v-text-field v-model="siStore.sched_item.ccli_num" label="CCLI Number" type="number" />
+        <v-text-field v-model="siStore.sched_item.ccli_num" label="CCLI Number" :rules="[rules.ccli]"  />
       </v-col>
     </v-row>    
     <v-row>
@@ -265,7 +265,11 @@ export default {
           { val: "G#", name: "G-sharp major" },
           { val: "g#", name: "G-sharp minor" }],
     possible_locations: ['Pulpit', 'Piano well', 'Brass well', 'Orchestra pit', 'Choir loft', 'Bell loft', 'Other'],
-    improvised: false
+    improvised: false,
+    rules: {
+      year: value => /^(\d\d\d\d)?$/.test(value) || 'Must be a 4-digit year',
+      ccli: value => /^(\d+)?$/.test(value) || 'Must be a number',
+    }
   }),  
 
   methods: {
