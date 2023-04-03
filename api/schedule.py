@@ -25,7 +25,7 @@ if DEV_SCHEDULE:
 
 def generate_pdf():
     logging.info('Beginning monthly schedule generation')
-    plans = get_all_services()
+    plans = get_all_services('future')
     last_updated_at = ''
     report_url = const.BASE_MONTHLY_REPORT_URL_PDF 
     for plan in plans:
