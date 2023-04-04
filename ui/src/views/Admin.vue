@@ -91,7 +91,7 @@ export default {
     async loadServices() {
       try {
         this.loading = true
-        this.serviceList = await this.$api.getServices()
+        this.serviceList = await this.$api.getServices('future')
         this.showGenerator = true
       } finally {
         this.loading = false
@@ -99,7 +99,6 @@ export default {
     },
 
     genServiceOrder(format) {
-      console.log(this.selectedServices)
       let planIdStr = this.selectedServices.map( plan => `${plan}_plan=true` ).join('&')
       planIdStr += `&plan_id=${this.selectedServices[0]}`
       let url = `https://services.planningcenteronline.com/reports/${REPORT_ID_SERVICE_ORDER}.${format}?${planIdStr}`
