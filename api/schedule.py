@@ -32,9 +32,9 @@ def generate_pdf():
         planid = plan['plan_id']
         if plan['updated_at'] > last_updated_at:
             last_updated_at = plan['updated_at']
-        report_url += f"&{planid}_plan=true"
+        report_url += f"&plan_ids%5B%5D={planid}"
 
-    report_url = report_url.format(planid)
+    #report_url = report_url.format(planid)
 
     filename = os.path.join(REPORT_PATH, 'mcbcschedule.pdf')
     regenerate = True
