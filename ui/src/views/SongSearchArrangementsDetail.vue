@@ -2,11 +2,16 @@
   <v-container>
     <v-row class="text-center">
       <v-col cols="12">
-        <!-- <v-progress-circular indeterminate v-if="loading" /> -->
-
-        <h2 class="subhead">{{ ssStore.song.title }} </h2>
+        <div>
+          <span class="title">{{ ssStore.song.title }}</span>
+            <span v-if="isAdmin()" style="margin-left: 10px">              
+              <a :href="`https://services.planningcenteronline.com/songs/${ssStore.song.id}`" target="_blank">[pco]</a>
+           </span>
+        </div>
         
-        <h3>Arrangement: {{ ssStore.arrangement.name }}</h3>
+        <div><span class="subhead">Arrangement: {{ ssStore.arrangement.name }}</span>  
+          <a v-if="isAdmin()" style="margin-left: 10px" 
+             :href="`https://services.planningcenteronline.com/songs/${ssStore.song.id}/arrangements/${ssStore.arrangement.id}`" target="_blank">[pco]</a></div>
         <div v-if="ssStore.arrangement.composer">Composer: {{ ssStore.arrangement.composer }}</div>
         <div v-if="ssStore.arrangement.arranger">Arranger: {{ ssStore.arrangement.arranger }}</div>
         <br>
@@ -41,6 +46,8 @@
 
 <style>
   h4 { margin-top: 20px }
+  .title { font-size: 24px; font-weight: bold;}
+  .subhead { font-size: 16px; font-weight: bold;}
 </style>
 
 <script>
