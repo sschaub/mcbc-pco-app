@@ -21,15 +21,19 @@ for person in pco.iterate('https://api.planningcenteronline.com/people/v2/people
             email = incl['attributes']['address']
         elif incl['type'] == 'PhoneNumber':
             phone_number = incl['attributes']['number']
+            if phone_number:
+                phone_number = ''.join(digit for digit in phone_number if digit.isdigit())
 
     p = Person.query.filter_by(id=person['data']['id']).first()
     if p:
+        if p.name != name or p.email != email or p.phone != phone_number:
+            logging.info(f'Updating {p.name} to email {email} phone {phone_number}')
         p.name = name
         p.email = email
-        p.phone_number = phone_number
+        p.phone = phone_number
     else:
         p = Person(id=person['data']['id'], name=name, email=email, phone=phone_number)
-        logging.info(f'Adding new person {p.name}...')
+        logging.info(f'Adding new person {p.name} with email {email} phone {phone_number}')
         db.session.add(p)
 
 db.session.commit()
