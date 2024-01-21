@@ -386,6 +386,13 @@ export default {
         siStore.sched_item.copyright_year = ''
         siStore.sched_item.copyright = ''
       }
+    },
+    'siStore.sched_item.start_key'(newKey, oldKey) {
+      // When starting key is changed, adjust ending key to starting key
+      // if ending key is not set or is same as starting key
+      if (!siStore.sched_item.end_key || siStore.sched_item.end_key == oldKey) {
+        siStore.sched_item.end_key = newKey
+      }
     }
   },
   
