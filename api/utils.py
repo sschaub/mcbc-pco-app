@@ -105,6 +105,14 @@ def get_plan(service_type_id: int, plan_id: int) -> dict:
         'tag_name': tag.song_tag.tag_name
      } for tag in ServiceTag.query.filter_by(service_type_id=service_type_id, plan_id=plan_id) if tag.song_tag]
 
+    sched_specs = SchedSpecial.query.filter_by(
+            service_type_id=service_type_id,
+            plan_id=plan_id)
+    
+    sched_spec_list = [sqlorm_object_as_dict(sched_spec) for sched_spec in sched_specs]
+    sched_spec_dict = {item['item_id']: item for item in sched_spec_list}
+
+
     return {
         'service': {
             'service_id': f'{service_type_id}-{plan_id}',
@@ -114,7 +122,8 @@ def get_plan(service_type_id: int, plan_id: int) -> dict:
             'personnel': positions,
             'tags': tags
         },
-        'items': rows        
+        'items': rows,
+        'sched_items': sched_spec_dict,
     }
 
 def get_plan_item(service_type_id: int, plan_id: int, item_id: int) -> dict:

@@ -36,7 +36,10 @@
                   </template>    
                       -->
 
-                  <v-list-item-title>{{ item.description }} <span v-if="isAdmin()" :class="itemStyle(item)">({{ itemStatus(item) }})</span></v-list-item-title>
+                  <v-list-item-title>{{ item.description }} 
+                    <span v-if="isAdmin()" :class="itemStyle(item)">({{ itemStatus(item) }})</span>
+                    <span v-if="isAdmin() && itemLocation(item) == 'Piano well'" class="highlight-location"> ({{ itemLocation(item) }})</span>
+                  </v-list-item-title>
                   <v-list-item-subtitle>
                     <div v-if="item.assigned_to.length">{{ itemPeople(item.assigned_to) }}</div>
                     {{ item.title }}
@@ -100,6 +103,8 @@
   .itemstatus { font-style: italic; font-size: smaller; }
   .status_ok { color: green; }
   .status-notok { color: lightgray; }
+  .highlight-location { font-style: italic; font-size: smaller; color: blue; }
+
 </style>
 
 <script>
@@ -125,7 +130,8 @@ export default {
       ],
     assignTags: false,
     tags: [],
-    selected_tags: []
+    selected_tags: [],
+    sched_items: {}
   }),  
 
   methods: {
@@ -150,6 +156,13 @@ export default {
         }
       }
       return status
+    },
+
+    itemLocation(item) {
+      let sched_item = this.sched_items[item.id]
+      if (sched_item) {
+        return sched_item.ministry_location
+      }
     },
 
     itemStyle(item) {
@@ -211,6 +224,7 @@ export default {
       this.items = res.items
       this.service = res.service
       this.selected_tags = res.service.tags.map( tag => tag.id )
+      this.sched_items = res.sched_items
       console.log(this.selected_tags[0])
     } finally {
       this.loading = false
