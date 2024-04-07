@@ -186,7 +186,8 @@ export default {
       let body
       let serviceName = siStore.service.name.split(' - ')[0]
       if (emailType == 'init') {      
-        body = `Good morning ${toListNames},\n
+        body = `Hi ${toListNames},
+
 I hope you're well this morning.
 
 Thank you for preparing to minister the ${siStore.item.description} for this coming ${serviceName}.
@@ -197,10 +198,7 @@ Please use this link to submit your title: ${location.href}
 
 If you need a reminder about how to submit the information, here's some info that should help: https://www.mcbcmusic.org/home/lyrics-app-help
 
-Thank you so much!
-
-SA
-https://schedule.mcbcmusic.org/pdf
+in His service,
 `
       } else {
         body = `Good afternoon ${toListNames},\n
@@ -210,8 +208,6 @@ Submit your info here: ${location.href}
 
 Thank you!
 
-SA
-https://schedule.mcbcmusic.org/pdf
 `
       }
       let subject = siStore.service.name + " " + siStore.item.description
