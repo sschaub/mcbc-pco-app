@@ -198,17 +198,14 @@ Please use this link to submit your title: ${location.href}
 
 If you need a reminder about how to submit the information, here's some info that should help: https://www.mcbcmusic.org/home/lyrics-app-help
 
-in His service,
-`
+in His service,`
       } else {
         body = `Good afternoon ${toListNames},\n
 Just a quick reminder to submit your information for your ministry sometime today.
 
 Submit your info here: ${location.href}
 
-Thank you!
-
-`
+Thank you!`
       }
       let subject = siStore.service.name + " " + siStore.item.description
       // launch email client
