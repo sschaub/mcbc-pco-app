@@ -440,7 +440,7 @@ def api_import_service_item(current_user: Person, service_id: str, item_id: str)
     # Remove lines from notes that contain information we're going to add
     notes_lines = [line for line in notes_lines if line and not (
         line.startswith('Arranger:') or line.startswith('Copyright') or line.startswith('Translator:')
-        or line.startswith('Author:') or line.startswith('Composer')
+        or line.startswith('Author:') or line.startswith('Composer:') or line.startswith('CCLI#:') or line.startswith('Improvised')
         )]
     if sched_spec.arranger:
         notes_lines.append(f'Arranger: {sched_spec.arranger}')
