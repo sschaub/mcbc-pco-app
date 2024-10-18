@@ -375,38 +375,43 @@ def api_import_service_item(current_user: Person, service_id: str, item_id: str)
     if not sched_spec:
         return { 'result': 'Fail', 'error': 'Unexpected error: Invalid scheduled special ID' }, 404
 
+    # A new song has no song id
+    new_song = not sched_spec.song_id
+
     data = request.json
     import_arrangement_name = data['import_arrangement_name']
     import_service_order_note = data['import_service_order_note']
 
     sched_spec.solo_instruments = import_service_order_note
 
-    authors = []
-    if sched_spec.author:
-        authors.append(f"{sched_spec.author} (text)")
-    if sched_spec.composer:
-        authors.append(f"{sched_spec.composer} (tune)")
-    author = ', '.join(authors)
     copyright = sched_spec.copyright    
 
     song_attrs = {        
         'title': sched_spec.title,
     }
 
-    if author:
-        song_attrs['author'] = author
+    if new_song:
+        # Only do copyright and author info for a new song 
+        # (don't want to override song-wide copyright/author for existing song)
+        
+        if copyright:
+            song_attrs['copyright'] = copyright
 
-    if not sched_spec.song_id and copyright:
-        # Only do copyright for a new song (don't want to override song-wide copyright for existing song)
-        song_attrs['copyright'] = copyright
+        authors = []
+        if sched_spec.author:
+            authors.append(f"{sched_spec.author} (text)")
+        if sched_spec.composer:
+            authors.append(f"{sched_spec.composer} (tune)")
+        author = ', '.join(authors)
+
+        if author:
+            song_attrs['author'] = author
 
     payload = pco.template('Song', song_attrs)
 
     if sched_spec.song_id:
-        new_song = False
         song = pco.patch(f'/services/v2/songs/{sched_spec.song_id}', payload)
     else:
-        new_song = True
         song = pco.post('/services/v2/songs', payload)
         sched_spec.song_id = song['data']['id']
         arrangements = pco.get(f'/services/v2/songs/{sched_spec.song_id}/arrangements')
@@ -435,7 +440,7 @@ def api_import_service_item(current_user: Person, service_id: str, item_id: str)
     # Remove lines from notes that contain information we're going to add
     notes_lines = [line for line in notes_lines if line and not (
         line.startswith('Arranger:') or line.startswith('Copyright') or line.startswith('Translator:')
-        or line.startswith('Author:') or line.startswith('Composer')
+        or line.startswith('Author:') or line.startswith('Composer:') or line.startswith('CCLI#:') or line.startswith('Improvised')
         )]
     if sched_spec.arranger:
         notes_lines.append(f'Arranger: {sched_spec.arranger}')
