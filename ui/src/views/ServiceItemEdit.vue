@@ -264,7 +264,7 @@ export default {
           { val: "gb", name: "G-flat minor" },
           { val: "G#", name: "G-sharp major" },
           { val: "g#", name: "G-sharp minor" }],
-    possible_locations: ['Pulpit', 'Piano well', 'Brass well', 'Orchestra pit', 'Choir loft', 'Bell loft', 'Other'],
+    possible_locations: ['Pulpit', 'Piano well', 'Brass well', 'Orchestra pit', 'Choir loft', 'Bell loft', 'Platform Steps', 'Other'],
     improvised: false,
     rules: {
       year: value => /^(\d\d\d\d)?$/.test(value) || 'Must be a 4-digit year',
