@@ -554,7 +554,7 @@ def generate_pdf():
 
 @app.route('/schedule-report-url')
 def api_schedule_report_url():
-    plans = get_all_services()
+    plans = get_all_services('future')
     report_url = const.BASE_MONTHLY_REPORT_URL_HTML 
     for plan in plans:
         planid = plan['plan_id']
