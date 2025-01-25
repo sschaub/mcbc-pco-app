@@ -1,22 +1,17 @@
 #!/usr/bin/env python
 import os
 
-from flask import Flask, Response, escape, request, jsonify, make_response, redirect
-from flask_cors import CORS, cross_origin
+from flask import Response, request, jsonify, make_response, redirect
+from flask_cors import cross_origin
 from pypco import PCORequestException
 from werkzeug.exceptions import HTTPException
-import requests
 import logging
-import re
-import os
 import os.path
 import json
 import uuid
 import jwt
 from functools import wraps
-from  werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
-from threading import Thread
 from utils import *
 from db import *
 import schedule
@@ -153,7 +148,7 @@ def api_services():
 @app.route('/my-services')
 @token_required
 def api_my_services(current_user: Person):
-    all_services = get_all_services()
+    all_services = get_all_services('future')
 
     my_plan_persons = pco.get(f'/services/v2/people/{current_user.id}/plan_people?include=plan')
 

@@ -75,7 +75,7 @@
   margin-top: 10px; 
   text-align: left; 
   font-style: italic; 
-  background-color: lightblue; 
+  /* background-color: lightblue;  */
   border-color: black; 
   padding: 20px; 
 }

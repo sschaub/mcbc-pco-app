@@ -105,7 +105,12 @@ export default {
       ssStore.songList = []
       ssStore.showHelp = false
       try {
-        ssStore.songList = await this.$api.searchSongs(ssStore.searchType, ssStore.keywords)
+        // Remove everything except letters, spaces, and single quotes
+        let cleaned = ssStore.keywords.replace(/[^a-zA-Z\s']/g, '');
+
+        // Remove single quotes that are not part of a word
+        let keywords = cleaned.replace(/(^|\s)'|'(\s|$)/g, '$1$2');
+        ssStore.songList = await this.$api.searchSongs(ssStore.searchType, keywords)
         if (ssStore.songList.length == 0) {
           this.notFound = true
           this.$refs.keywords.focus()
