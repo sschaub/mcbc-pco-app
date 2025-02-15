@@ -32,6 +32,7 @@
             <div v-if="notFound">
               <br>
               <p>No songs found.</p>
+              <br>
             </div>
 
             <div v-else>
@@ -45,20 +46,15 @@
                 <v-list-item @click="songSelected(song.id)" class="text-left" :title="song.title" :subtitle="song.author" prepend-icon="mdi-chevron-right">
                 </v-list-item>
               </v-list>
-              <p v-if="ssStore.isPicker"><br>Don't see your song in the list above?</p>
             </div>
           </div>
 
           <div v-if="ssStore.isPicker && hasSearched">
-            <br>
-            <v-btn  @click="newSongClicked()">
-                Add New Song
-            </v-btn>
-            <br>
-            (If not in the database)
+            <v-list v-if="ssStore.isPicker" class="text-left mx-auto app-list">
+                <v-list-item @click="newSongClicked()" title="Add New Song" prepend-icon="mdi-chevron-right"></v-list-item>
+            </v-list>
           </div>
 
-          <!-- <v-btn v-if="ssStore.isPicker" @click="showRecommended" style="margin-top: 10px">Suggested Titles</v-btn> -->
         </div>
 
         <div v-if="mode == 'newsong'">
@@ -102,6 +98,7 @@ export default {
 
       this.notFound = false
       this.loading = true
+      this.hasSearched = false
       ssStore.songList = []
       ssStore.showHelp = false
       try {
