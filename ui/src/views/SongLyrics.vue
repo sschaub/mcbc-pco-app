@@ -3,7 +3,7 @@
     <h4>Song Text</h4>
     <div v-if="!lyrics" :class="missingClass" >Missing info</div>
     <table v-else class="table-center">
-      <tr><td v-html="lyrics.replace(/\n/g, '<br>')"></td></tr>
+      <tr><td v-html="toHtml(lyrics)"></td></tr>
     </table>
   </div>
 
@@ -36,7 +36,9 @@ export default {
   },
 
   methods: {
-
+    toHtml(str) {
+      return str.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;').replaceAll('\n', '<br>')
+    }
   },
 
   mounted() {
