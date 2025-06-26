@@ -2,7 +2,6 @@ import sys
 
 from db import *
 from const import *
-import sqlalchemy
 
 logging.info(f'Importing people...')
 
@@ -17,7 +16,7 @@ for person in pco.iterate('https://api.planningcenteronline.com/people/v2/people
     email = ''
     phone_number = ''
     for incl in person['included']:
-        if incl['type'] == 'Email':
+        if incl['type'] == 'Email' and incl['attributes']['primary']:
             email = incl['attributes']['address']
         elif incl['type'] == 'PhoneNumber':
             phone_number = incl['attributes']['number']

@@ -4,3 +4,4 @@ requests
 pypco
 flask_sqlalchemy
 pyjwt
+notion-client

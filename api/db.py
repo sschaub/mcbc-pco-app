@@ -9,6 +9,7 @@ CORS(app)
 app.config['SECRET_KEY'] = FLASK_SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_PATH}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
 
 def sqlorm_object_as_dict(obj):
@@ -106,6 +107,16 @@ class ServiceItemPerson(db.Model):
 
     person = db.relationship("Person")
     service_item = db.relationship("ServiceItem", back_populates="service_item_people")
+
+class ServiceTeamPerson(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    service_id = db.Column(db.Integer, db.ForeignKey('service.id')) # FK to Service
+    person_id = db.Column(db.Integer, db.ForeignKey('person.id'))
+    team_name = db.Column(db.String(40), nullable=True)
+
+    person = db.relationship("Person")
+    service = db.relationship("Service")
+
 
 class LicensedPublishers(db.Model):
     id = db.Column(db.Integer, primary_key=True)
