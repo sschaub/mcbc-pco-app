@@ -17,5 +17,3 @@ INITIAL_EMAIL_LIST=os.environ.get("INITIAL_EMAIL_LIST", "sschaub@gmail.com").spl
 FROM_EMAIL_ADDR='admin@mcbcmusic.org'
 LOG_LEVEL=os.environ.get("LOG_LEVEL", "INFO")
 
-SENDPULSE_CLIENT_ID=os.environ['SENDPULSE_CLIENT_ID']
-SENDPULSE_SECRET=os.environ['SENDPULSE_SECRET']
