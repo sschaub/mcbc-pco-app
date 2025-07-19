@@ -10,8 +10,17 @@
             "request": "launch",
             "program": "${file}",
             "cwd": "${workspaceFolder}/api",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
         },
+        {
+            "name": "Import History",
+            "type": "python",
+            "request": "launch",
+            "program": "cli_import_history.py",
+            "args": ["--after", "2025-07-01"],
+            "cwd": "${workspaceFolder}/api",
+            "console": "integratedTerminal"
+        },        
         {
             "name": "Python: Flask",
             "type": "python",

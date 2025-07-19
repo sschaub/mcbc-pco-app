@@ -56,7 +56,7 @@
         <h2>&nbsp;</h2>
         <v-btn @click="schedule()" :disabled="loading">Current Schedule</v-btn><br><br>
         <v-btn @click="loadServices()" :disabled="loading">Service Order Generator</v-btn>    
-        
+        <v-btn @click="lastFeatured()">Last Featured Report</v-btn>
       </v-col>
 
     </v-row>
@@ -66,6 +66,7 @@
 <script>
 
 import {REPORT_ID_SERVICE_ORDER} from '../constants.js';
+import {SCHEDULE_PREFIX} from '../constants.js';
 
 export default {
   name: 'Admin',
@@ -96,6 +97,10 @@ export default {
       } finally {
         this.loading = false
       }
+    },
+
+    lastFeatured() {
+      window.open(`${SCHEDULE_PREFIX}/last_featured`)
     },
 
     genServiceOrder(format) {

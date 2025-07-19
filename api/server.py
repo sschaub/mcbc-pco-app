@@ -568,6 +568,15 @@ def history():
     with open(history_filename) as f:
         return Response(f.read(), mimetype='text/html')
 
+@app.route('/last_featured')
+def last_featured():
+    history_filename = os.path.join(config.REPORT_PATH, 'last_featured.html')
+    if not os.path.exists(history_filename):
+        return "No report available. Please try again later."
+        
+    with open(history_filename) as f:
+        return Response(f.read(), mimetype='text/html')
+
 @app.route('/')
 def home():
     return redirect("https://app.mcbcmusic.org")

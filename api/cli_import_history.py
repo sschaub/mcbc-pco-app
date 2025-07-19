@@ -1,8 +1,7 @@
 import sys
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import logging
-import threading
 import time
 import argparse
 
@@ -10,6 +9,8 @@ from db import db, Person, Service, ServiceItem, ServiceItemPerson
 from const import *
 from utils import *
 import config
+
+FEATURE_POSITIONS = ('Instrumental Special', 'Offertory', 'Service Opener', 'Vocal Special')
 
 def genhistory(after_date_str):
     if not after_date_str:
@@ -20,10 +21,26 @@ def genhistory(after_date_str):
     all_people = Person.query.all()
 
     report_rows = []
+    position_check = {} # { person_id -> name }
     num = 0
+    person_to_last_feature = {} # { person_id -> date person was last featured }
     service_types_url ='https://api.planningcenteronline.com/services/v2/service_types'
     for service_type in pco.iterate(service_types_url):
         service_type_id = service_type['data']['id']
+
+        teams_url = f"/services/v2/service_types/{service_type_id}/team_positions" 
+        for pos in pco.iterate(teams_url):
+            pos_name = pos['data']['attributes']['name']
+            if pos_name in FEATURE_POSITIONS:
+                pos_id = pos['data']['id']
+                assignments_url = f"{teams_url}/{pos_id}/person_team_position_assignments?include=person"
+                for asmt in pco.iterate(assignments_url):
+                    person = asmt['included'][0]
+                    person_id = person['id']
+                    position_check[person_id] = person['attributes']['full_name']
+
+        #/22615714/person_team_position_assignments?include=person"
+
         plans_url = f"{service_types_url}/{service_type_id}/plans"
         for plan in pco.iterate(plans_url, filter='after', per_page=50, after=after_date_str): # filter='after,past'
             plan = plan['data']
@@ -75,6 +92,11 @@ def genhistory(after_date_str):
                     p = Person.query.filter_by(id=person_id).first()
                     db.session.add(ServiceTeamPerson(service=s, person=p, team_name=team_name))
 
+                    if team_name in FEATURE_POSITIONS:
+                        last_date = person_to_last_feature.get(person_id)
+                        if not last_date or last_date < s.service_date:
+                            person_to_last_feature[person_id] = s.service_date
+
             for row in rows:
                 if row['item_type'] == 'song':
                     si = ServiceItem(service=s, event=row['description'], title=row['title'],
@@ -100,7 +122,7 @@ def genhistory(after_date_str):
             
     report_rows.sort(key=lambda entry: (entry[0], entry[1], entry[2]))
 
-    return report_rows
+    return report_rows, position_check, person_to_last_feature
 
 def gen_history_report(rows):
     report_html = ["""
@@ -148,6 +170,40 @@ def gen_history_report(rows):
 
     return report_content
 
+def gen_last_featured_report(position_check: dict, person_to_last_feature: dict):
+
+    report_html = ["""
+    <html>
+    <head>
+        <title>MCBC Music Last Featured Report</title>
+        <style>
+            .service_header {
+                background-color: lightgray
+            }
+        </style>    
+    </head>
+    <body>
+        <h2>MCBC Music Last Featured Report</h2>
+        <ul>
+    """]
+    people = ((person_to_last_feature.get(person_id, date(1970,1,1)), person_name) for (person_id, person_name) in position_check.items())
+    for last_date, person_name in sorted(people):
+        date_fmt = 'not featured in last year' if last_date.year == 1970 else last_date.strftime("%m/%d/%Y")
+        report_html.append(f"""<li>{person_name} - {date_fmt}""")
+
+    report_html.append("""
+</ul>
+</body>
+</html>
+""")
+
+    report_content = '\n'.join(report_html)
+
+    report_filename = os.path.join(config.REPORT_PATH, 'last_featured.html')
+    logging.info(f"Writing report to {report_filename} ...")
+    with open(report_filename, 'w') as f:
+        f.write(report_content)
+
 def main():
     parser = argparse.ArgumentParser(description='Import PCO service history.')
     # parser.add_argument('logfile', nargs='?', help='Log file')
@@ -157,9 +213,11 @@ def main():
 
     args = parser.parse_args()
 
-    rows = genhistory(args.after)
+    rows, position_check, person_to_last_feature = genhistory(args.after)
     gen_history_report(rows)
 
-    logging.info(f'History generation complete')
+    gen_last_featured_report(position_check, person_to_last_feature)
+
+    logging.info('History generation complete')
 
 main()
