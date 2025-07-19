@@ -190,7 +190,9 @@ def gen_last_featured_report(position_check: dict, person_to_last_feature: dict)
     """]
     people = ((person_to_last_feature.get(person_id, (date(1970,1,1), 0)), person_name) for (person_id, person_name) in position_check.items())
     for (last_date, num_times), person_name in sorted(people):
-        date_fmt = 'not featured in last year' if num_times == 0 else last_date.strftime("%m/%d/%Y") + f" ({num_times} time(s) in last year)"
+        date_fmt = 'not featured in last year' if num_times == 0 else last_date.strftime("%m/%d/%Y")
+        if num_times > 1:
+            date_fmt += f" ({num_times} time(s) in last year)"
         report_html.append(f"""<li>{person_name} - {date_fmt}""")
 
     report_html.append("""
