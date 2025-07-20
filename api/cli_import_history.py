@@ -177,12 +177,7 @@ def gen_last_featured_report(position_check: dict, person_to_last_feature: dict)
     report_html = ["""
     <html>
     <head>
-        <title>MCBC Music Last Featured Report</title>
-        <style>
-            .service_header {
-                background-color: lightgray
-            }
-        </style>    
+        <title>MCBC Music Last Featured Report</title> 
     </head>
     <body>
         <h2>MCBC Music Last Featured Report</h2>
@@ -190,22 +185,30 @@ def gen_last_featured_report(position_check: dict, person_to_last_feature: dict)
     """]
     people = ((person_to_last_feature.get(person_id, (date(1970,1,1), 0)), person_name) for (person_id, person_name) in position_check.items())
     for (last_date, num_times), person_name in sorted(people):
-        date_fmt = 'not featured in last year' if num_times == 0 else last_date.strftime("%m/%d/%Y")
-        if num_times > 1:
-            date_fmt += f" ({num_times} time(s) in last year)"
-        report_html.append(f"""<li>{person_name} - {date_fmt}""")
+        indicator = ''
+        if num_times:
+            indicator = ' - ' + last_date.strftime("%m/%d/%Y")
+            if num_times > 1:
+                indicator += " " + "😀" * num_times
+        report_html.append(f"""<li>{person_name}{indicator}""")
 
     report_html.append("""
-</ul>
-</body>
-</html>
-""")
+    </ul>
+                        
+    <p>About this report:</p>
+    <ul>
+        <li>If no date appears, the user/ensemble has not been scheduled in the last 12 months
+        <li>The number of 😀 indicates the number of times the person has been scheduled in the last 12 months, if scheduled more than once
+    </ul>
+    </body>
+    </html>
+    """)
 
     report_content = '\n'.join(report_html)
 
     report_filename = os.path.join(config.REPORT_PATH, 'last_featured.html')
     logging.info(f"Writing report to {report_filename} ...")
-    with open(report_filename, 'w') as f:
+    with open(report_filename, 'w', encoding="utf-8") as f:
         f.write(report_content)
 
 def main():
