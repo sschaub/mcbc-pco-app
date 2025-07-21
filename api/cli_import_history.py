@@ -10,7 +10,7 @@ from const import *
 from utils import *
 import config
 
-FEATURE_POSITIONS = ('Instrumental Special', 'Offertory', 'Service Opener', 'Vocal Special')
+FEATURE_POSITIONS = ('Instrumental Special', 'Offertory', 'Service Opener', 'Prelude Opener', 'Vocal Special')
 
 def genhistory(after_date_str):
     if not after_date_str:
@@ -183,12 +183,17 @@ def gen_last_featured_report(position_check: dict, person_to_last_feature: dict)
         <ul>
     """]
     people = ((person_to_last_feature.get(person_id, (date(1970,1,1), 0)), person_name) for (person_id, person_name) in position_check.items())
+    future = False
     for (last_date, num_times), person_name in sorted(people):
         indicator = ''
         if num_times:
             indicator = ' - ' + last_date.strftime("%m/%d/%Y")
+            if last_date > date.today() and not future:
+                future = True
+                report_html.append(f"""</ul><h3>Scheduled Ministry</h3><ul>""")
             if num_times > 1:
                 indicator += " " + "😀" * num_times
+
         report_html.append(f"""<li>{person_name}{indicator}""")
 
     report_html.append("""
@@ -198,6 +203,7 @@ def gen_last_featured_report(position_check: dict, person_to_last_feature: dict)
     <ul>
         <li>If no date appears, the user/ensemble has not been scheduled in the last 12 months
         <li>The number of 😀 indicates the number of times the person has been scheduled in the last 12 months, if scheduled more than once
+        <li>⏰ - scheduled for the future
     </ul>
     </body>
     </html>
