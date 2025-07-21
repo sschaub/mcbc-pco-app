@@ -49,9 +49,6 @@ def genhistory(after_date_str):
             plan_theme = plan['attributes']['title'] or ''
             plan_time = plan['attributes']['sort_date']
             service_dt = datetime.strptime(plan_time, '%Y-%m-%dT%H:%M:%SZ') 
-            if service_dt > datetime.today():
-                # Skip future plans
-                continue
 
             plan_date_str, plan_time_str = plan_time.split('T')
             plan_time_str = plan_time_str.strip('Z')
@@ -118,7 +115,9 @@ def genhistory(after_date_str):
                                 sip = ServiceItemPerson(service_item=si, person=p)                        
                                 db.session.add(sip)
                     si.person_names = ', '.join(person_names)
-                    report_rows.append([plan_date_str, plan_time_str, row['item_seq'], plan_theme, row['description'], row['title'], row['arrangement'], si.person_names]) 
+
+                    if service_dt <= datetime.today():
+                        report_rows.append([plan_date_str, plan_time_str, row['item_seq'], plan_theme, row['description'], row['title'], row['arrangement'], si.person_names]) 
             db.session.commit()
             num += 1
             
