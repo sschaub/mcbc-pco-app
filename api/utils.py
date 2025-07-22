@@ -1,8 +1,9 @@
-import json
+from email.message import EmailMessage
 import logging
+import smtplib
+import config
 from const import *
 from db import *
-import requests
 import sqlalchemy.exc
 import re
 from threading import Thread
@@ -699,39 +700,44 @@ def save_item(current_user: Person, item_data, service_type_id, plan_id, item_id
     return success
 
 def send_email(subject: str, msg: str, replyEmail: str = '', replyName: str = '',  toEmails: list = None, ccEmails: list = None):
+    # Note: Sendpulse also has an API, but its API does not appear to support the replyTo header, so we use its SMTP interface
+
     if not ccEmails:
         ccEmails = []
     if not toEmails:
         toEmails = INITIAL_EMAIL_LIST
     
-    cc_email_list = [{"email": email} for email in ccEmails if email not in toEmails]
-    to_email_list = [{"email": email} for email in toEmails]
-    personalizations = {"to": to_email_list, "subject": subject}
-    
-    if len(cc_email_list):
-        personalizations["cc"] = cc_email_list
+    cc_email_list = [email for email in ccEmails if email not in toEmails]
+    to_email_list = [email for email in toEmails]
 
-    json={
-                "personalizations": [personalizations],
-                "content": [{"type": "text/html", "value": msg}],
-                "from":{"email":FROM_EMAIL_ADDR,"name":"MCBC Music"},
-    }
-    if replyEmail:
-        reply_to = {"email":replyEmail}
-        if replyName:
-            reply_to["name"] = replyName
-        json['reply_to'] = reply_to
+    # if replyEmail:
 
-    r = None
+
     try:
-        r = requests.post('https://api.sendgrid.com/v3/mail/send', 
-            headers={
-                'Authorization': f'Bearer {SENDGRID_API_KEY}'
-                },
-            json=json)
-        r.raise_for_status()
+
+        # Create the email message
+        email_msg = EmailMessage()
+        email_msg['Subject'] = subject
+        email_msg['From'] = f"MCBC Music <{FROM_EMAIL_ADDR}>"
+        email_msg['To'] = ', '.join(to_email_list)
+        if cc_email_list:
+            email_msg['Cc'] = ', '.join(cc_email_list)
+        if replyEmail:
+            if replyName:
+                email_msg['Reply-To'] = f"{replyName} <{replyEmail}>"
+            else:
+                email_msg['Reply-To'] = replyEmail
+
+        email_msg.set_content("This is an HTML email. Please view it in a compatible email client.")
+        email_msg.add_alternative(msg, subtype='html')
+
+        # Combine all recipients (To + Cc)
+        all_recipients = to_email_list + cc_email_list
+
+        # Send the email
+        with smtplib.SMTP_SSL(config.SENDPULSE_SMTP_SERVER, config.SENDPULSE_SMTP_PORT) as server:
+            server.login(config.SENDPULSE_SMTP_USERNAME, config.SENDPULSE_SMTP_PASSWORD)
+            server.send_message(email_msg, from_addr=FROM_EMAIL_ADDR, to_addrs=all_recipients)
     except:
-        status_code = r.status_code if r else 'unknown'
-        logging.exception(f'Problem sending email with reply address {replyEmail}: status {status_code}')
-        logging.info(json)
+        logging.exception(f'Problem sending email with reply address {replyEmail}: ')
 

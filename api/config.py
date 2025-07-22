@@ -11,11 +11,12 @@ PCO_WEBAPP_LOGIN_PASSWORD = os.environ['PCO_WEBAPP_LOGIN_PASSWORD']
 DB_PATH = os.environ.get("DB_PATH", '/tmp/mcbcmusic.sqlite3')
 REPORT_PATH = os.environ.get("REPORT_PATH", '/tmp')
 
-SENDGRID_API_KEY=os.environ['SENDGRID_API_KEY']
-ALL_EMAIL_LIST=os.environ.get("ALL_EMAIL_LIST", "sschaub@gmail.com").split(',') # Personnel to receive special entry submissions
-INITIAL_EMAIL_LIST=os.environ.get("INITIAL_EMAIL_LIST", "sschaub@gmail.com").split(',') # Personnel to receive initial special entry submissions
-FROM_EMAIL_ADDR='admin@mcbcmusic.org'
-LOG_LEVEL=os.environ.get("LOG_LEVEL", "INFO")
+ALL_EMAIL_LIST = os.environ.get("ALL_EMAIL_LIST", "sschaub@gmail.com").split(',') # Personnel to receive special entry submissions
+INITIAL_EMAIL_LIST = os.environ.get("INITIAL_EMAIL_LIST", "sschaub@gmail.com").split(',') # Personnel to receive initial special entry submissions
+FROM_EMAIL_ADDR = 'admin@mcbcmusic.org'
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
 
-#SENDPULSE_CLIENT_ID=os.environ['SENDPULSE_CLIENT_ID']
-#SENDPULSE_SECRET=os.environ['SENDPULSE_SECRET']
+SENDPULSE_SMTP_SERVER = "smtp-pulse.com"
+SENDPULSE_SMTP_PORT = 465
+SENDPULSE_SMTP_USERNAME = os.environ['SENDPULSE_SMTP_USERNAME']
+SENDPULSE_SMTP_PASSWORD = os.environ['SENDPULSE_SMTP_PASSWORD']
