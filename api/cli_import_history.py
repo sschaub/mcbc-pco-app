@@ -23,7 +23,7 @@ def genhistory(after_date_str):
     report_rows = []
     position_check = {} # { person_id -> name }
     num = 0
-    person_to_last_feature = {} # { person_id -> (date person was last featured, # times featured) }
+    person_to_last_feature = {} # { person_id -> (date person was last featured, # times featured, last_feature_position ) }
     service_types_url ='https://api.planningcenteronline.com/services/v2/service_types'
     for service_type in pco.iterate(service_types_url):
         service_type_id = service_type['data']['id']
@@ -90,11 +90,11 @@ def genhistory(after_date_str):
                     db.session.add(ServiceTeamPerson(service=s, person=p, team_name=team_name))
 
                     if team_name in FEATURE_POSITIONS:
-                        last_date, num_times = person_to_last_feature.get(person_id, (None, 0))
+                        last_date, num_times, _ = person_to_last_feature.get(person_id, (None, 0, None))
                         num_times += 1
                         if not last_date or last_date < s.service_date:
                             last_date = s.service_date
-                        person_to_last_feature[person_id] = (last_date, num_times)
+                        person_to_last_feature[person_id] = (last_date, num_times, team_name)
 
             for row in rows:
                 if row['item_type'] == 'song':
@@ -182,10 +182,10 @@ def gen_last_featured_report(position_check: dict, person_to_last_feature: dict)
         <h2>MCBC Music Last Featured Report</h2>
         <ul>
     """]
-    people = ((person_to_last_feature.get(person_id, (date(1970,1,1), 0)), person_name) for (person_id, person_name) in position_check.items())
+    people = ((person_to_last_feature.get(person_id, (date(1970,1,1), 0, None)), person_name) for (person_id, person_name) in position_check.items())
     future = False
     past = False
-    for (last_date, num_times), person_name in sorted(people):
+    for (last_date, num_times, team_name), person_name in sorted(people):
         indicator = ''
         if num_times:
             if not past:
@@ -194,7 +194,7 @@ def gen_last_featured_report(position_check: dict, person_to_last_feature: dict)
             if last_date > date.today() and not future:
                 future = True
                 report_html.append("""</ul><h3>Upcoming Ministry</h3><ul>""")
-            indicator = ' - ' + last_date.strftime("%m/%d/%Y")
+            indicator = ' - ' + last_date.strftime("%m/%d/%Y") + ' - ' + team_name
             if num_times > 1:
                 indicator += " " + "😀" * num_times
 
