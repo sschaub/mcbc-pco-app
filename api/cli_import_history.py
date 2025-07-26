@@ -27,6 +27,7 @@ def genhistory(after_date_str):
     service_types_url ='https://api.planningcenteronline.com/services/v2/service_types'
     for service_type in pco.iterate(service_types_url):
         service_type_id = service_type['data']['id']
+        service_type_name = service_type['data']['attributes']['name']
 
         teams_url = f"/services/v2/service_types/{service_type_id}/team_positions" 
         for pos in pco.iterate(teams_url):
@@ -94,7 +95,8 @@ def genhistory(after_date_str):
                         num_times += 1
                         if not last_date or last_date < s.service_date:
                             last_date = s.service_date
-                        person_to_last_feature[person_id] = (last_date, num_times, team_name)
+                        abbrev_service_name = service_type_name.replace("Sunday ", "")
+                        person_to_last_feature[person_id] = (last_date, num_times, f"{abbrev_service_name} {team_name}")
 
             for row in rows:
                 if row['item_type'] == 'song':
@@ -194,7 +196,7 @@ def gen_last_featured_report(position_check: dict, person_to_last_feature: dict)
             if last_date > date.today() and not future:
                 future = True
                 report_html.append("""</ul><h3>Upcoming Ministry</h3><ul>""")
-            indicator = ' - ' + last_date.strftime("%m/%d/%Y") + ' - ' + team_name
+            indicator = ' - ' + last_date.strftime("%m/%d/%Y") + ' ' + team_name
             if num_times > 1:
                 indicator += " " + "😀" * num_times
 
