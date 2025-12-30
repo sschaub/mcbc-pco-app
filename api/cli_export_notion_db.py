@@ -5,7 +5,11 @@ import os
 import csv
 from notion_client.helpers import iterate_paginated_api
 import config
-import logging
+import os.path
+
+# For some reason, logging output does not appear... maybe the notion_client is configuring logging
+# in a way that prevents our output. So we use print here.
+#import logging
 
 # STEP 1: Set up Notion API
 NOTION_API_TOKEN = os.getenv("NOTION_API_TOKEN")  # Or replace with your integration token directly
@@ -13,7 +17,7 @@ NOTION_API_TOKEN = os.getenv("NOTION_API_TOKEN")  # Or replace with your integra
 DATASOURCE_ID = "14c7a5a5-9ce8-4987-b31b-568e5700cb68"
 
 if not NOTION_API_TOKEN:
-    logging.error("No NOTION_API_TOKEN defined")
+    print("No NOTION_API_TOKEN defined")
     exit(1)
 
 headers = ["Title", "Song #", "Arr #", "☀️🌙 AM/PM", "🎵Feel/Musical Character", "⭐️ Rating ⭐️", "❤️ Priority", "😰 Difficulty (Hard/Medium/Easy)"]
@@ -24,7 +28,7 @@ out_headers=["title", "song_num", "arr_num", "service", "characteristics", "rati
 notion = Client(auth=NOTION_API_TOKEN)
 def extract_data():
 
-    logging.info("Reading records from Notion")
+    print("Reading records from Notion")
 
     rows = []
     for page in iterate_paginated_api(
@@ -80,10 +84,9 @@ def extract_data():
     return rows
 
 
-def export_to_csv(rows):
+def export_to_csv(rows, filename):
     # Reorder: "Arr #", "Song #" first if present
 
-    filename = os.path.join(config.REPORT_PATH, 'notion_export.csv')
     with open(filename, mode="w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=out_headers)
         writer.writeheader()
@@ -91,7 +94,15 @@ def export_to_csv(rows):
             # pprint.pprint(row)
             writer.writerow({h: row.get(h, "") for h in out_headers})
 
-    logging.info(f"✅ Exported {len(rows)} records to {filename}")
+    print(f"✅ Exported {len(rows)} records to {filename}")
+
+
+filename = os.path.join(config.REPORT_PATH, 'notion_export.csv')
+
+# Check if the file exists before deleting
+if os.path.isfile(filename):
+    os.remove(filename)
+    print(f"{filename} has been removed.")
 
 rows = extract_data()
-export_to_csv(rows)
+export_to_csv(rows, filename)
