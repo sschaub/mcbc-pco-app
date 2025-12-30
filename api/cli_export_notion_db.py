@@ -4,23 +4,31 @@ from notion_client import Client
 import os
 import csv
 from notion_client.helpers import iterate_paginated_api
+import config
+import logging
 
 # STEP 1: Set up Notion API
 NOTION_API_TOKEN = os.getenv("NOTION_API_TOKEN")  # Or replace with your integration token directly
 DATABASE_ID = "8d98d0622df14c1bb4e074004a81e3a3"  # Replace with your Notion database ID
 
-headers = ["Title", "Song # (outdated)", "Arr # (outdated)", "☀️🌙 AM/PM", "🎵Feel/Musical Character", "⭐️ Rating ⭐️", "❤️ Priority", "😰 Difficulty (Hard/Medium/Easy)", "Arr # (Updated)"]
-out_headers=["title", "song_num", "arr_num", "service", "characteristics", "rating", "priority", "difficulty", "arr_updated"]
+if not NOTION_API_TOKEN:
+    logging.error("No NOTION_API_TOKEN defined")
+    exit(1)
+
+headers = ["Title", "Song #", "Arr #", "☀️🌙 AM/PM", "🎵Feel/Musical Character", "⭐️ Rating ⭐️", "❤️ Priority", "😰 Difficulty (Hard/Medium/Easy)"]
+out_headers=["title", "song_num", "arr_num", "service", "characteristics", "rating", "priority", "difficulty"]
+
 
 
 notion = Client(auth=NOTION_API_TOKEN)
 def extract_data():
 
+    logging.info("Reading records from Notion")
     rows = []
     for page in iterate_paginated_api(
         notion.databases.query, database_id=DATABASE_ID,
         filter={
-            "property": "Arr # (outdated)",
+            "property": "Arr #",
             "number": {
                 "is_not_empty": True,
             },
@@ -70,17 +78,18 @@ def extract_data():
     return rows
 
 
-def export_to_csv(rows, filename="notion_export.csv"):
+def export_to_csv(rows):
     # Reorder: "Arr #", "Song #" first if present
 
+    filename = os.path.join(config.REPORT_PATH, 'notion_export.csv')
     with open(filename, mode="w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=out_headers)
         writer.writeheader()
         for row in rows:
-            pprint.pprint(row)
+            # pprint.pprint(row)
             writer.writerow({h: row.get(h, "") for h in out_headers})
 
-    print(f"✅ Exported {len(rows)} pages to {filename}")
+    logging.info(f"✅ Exported {len(rows)} records to {filename}")
 
 rows = extract_data()
 export_to_csv(rows)

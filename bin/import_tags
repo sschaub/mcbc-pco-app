@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+cd $SCRIPT_DIR/..
+pwd
+docker-compose --profile=prod run --rm api-prod python cli_export_notion_db.py 
+docker-compose --profile=prod run --rm api-prod python cli_import_notion_tags.py 
