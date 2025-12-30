@@ -9,7 +9,8 @@ import logging
 
 # STEP 1: Set up Notion API
 NOTION_API_TOKEN = os.getenv("NOTION_API_TOKEN")  # Or replace with your integration token directly
-DATABASE_ID = "8d98d0622df14c1bb4e074004a81e3a3"  # Replace with your Notion database ID
+# To get the DATASOURCE_ID, in Notion, go to the database > View Settings > Manage Data sources > Copy DataSource ID
+DATASOURCE_ID = "14c7a5a5-9ce8-4987-b31b-568e5700cb68"
 
 if not NOTION_API_TOKEN:
     logging.error("No NOTION_API_TOKEN defined")
@@ -24,9 +25,10 @@ notion = Client(auth=NOTION_API_TOKEN)
 def extract_data():
 
     logging.info("Reading records from Notion")
+
     rows = []
     for page in iterate_paginated_api(
-        notion.databases.query, database_id=DATABASE_ID,
+        notion.data_sources.query, data_source_id=DATASOURCE_ID,
         filter={
             "property": "Arr #",
             "number": {
