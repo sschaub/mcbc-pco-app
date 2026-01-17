@@ -161,8 +161,12 @@ def get_notion_page(song_no: int, arr_no: int) -> dict:
             },
         ]
     }
-    response = notion.data_sources.query(data_source_id=config.NOTION_DATASOURCE_ID, filter=filter, page_size=1)
-    return response['results'][0] if response['results'] else None
+    for datasource_id in [config.NOTION_CHORAL_DATASOURCE_ID, config.NOTION_INSTRUMENTAL_DATASOURCE_ID]:
+        response = notion.data_sources.query(data_source_id=datasource_id, filter=filter, page_size=1)
+        if response['results']:
+            return response['results'][0]
+
+    return {}
 
 
 

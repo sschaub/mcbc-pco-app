@@ -27,7 +27,7 @@ def extract_data():
 
     rows = []
     for page in iterate_paginated_api(
-        notion.data_sources.query, data_source_id=config.NOTION_DATASOURCE_ID,
+        notion.data_sources.query, data_source_id=config.NOTION_CHORAL_DATASOURCE_ID,
         filter={
             "property": "Arr #",
             "number": {
