@@ -9,6 +9,9 @@ import re
 from threading import Thread
 from datetime import datetime
 from sqlalchemy import update, select, func
+from notion_client import Client as NotionClient
+
+notion = NotionClient(auth=config.NOTION_API_TOKEN)
 
 def get_service_type_name(service_type_id: str):
     return SERVICE_TYPES.get(int(service_type_id), 'Unknown service type')
@@ -130,7 +133,7 @@ def get_plan(service_type_id: int, plan_id: int) -> dict:
 def get_plan_item(service_type_id: int, plan_id: int, item_id: int) -> dict:
     """
     returns a dict containing:
-    * item - list of plan items in service
+    * item - plan item in service
     * service - info about service { service_name, theme }
     """
 
@@ -138,10 +141,30 @@ def get_plan_item(service_type_id: int, plan_id: int, item_id: int) -> dict:
     item = next((item for item in data['items']
                         if int(item['id']) == item_id), None)
     if item:
+        # This is populated later
+        item['notion_url'] = None
         return {
             'service': data['service'],
             'item': item
         }
+
+def get_notion_page(song_no: int, arr_no: int) -> dict:
+    filter = {
+        "and": [
+            {
+                "property": "Song #",
+                "number": {"equals": song_no},
+            },
+            {
+                "property": "Arr #",
+                "number": {"equals": arr_no},
+            },
+        ]
+    }
+    response = notion.data_sources.query(data_source_id=config.NOTION_DATASOURCE_ID, filter=filter, page_size=1)
+    return response['results'][0] if response['results'] else None
+
+
 
 def get_plan_items_with_team(plan_url: str, team_members: list):
     rows = []

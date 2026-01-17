@@ -58,7 +58,10 @@
               <a v-if="songUrl()" :href="songUrl()" target="_blank">[pco]</a>
               <span v-else>(new song)</span>
             </span>
-            <p v-if="arrangementName()">Arrangement: {{ arrangementName() }} <a v-if="isAdmin()" :href="arrangementUrl()" target="_blank">[pco]</a></p>
+            <p v-if="arrangementName()">Arrangement: {{ arrangementName() }} 
+              <a v-if="isAdmin()" :href="arrangementUrl()" target="_blank">[pco]</a>
+              <span v-if="notionURL">&nbsp;<a :href="notionURL" target="_blank">[notion]</a></span>
+            </p>
             <div v-if="isPending(siStore.sched_item)" class="pending">(Approval Pending)</div>
           </div>
           <div class="ma-5">
@@ -129,7 +132,8 @@ export default {
     siStore: siStore,
     loading: true,
     showImport: false,
-    importArrangementName: ''
+    importArrangementName: '',
+    notionURL: ''
   }),  
 
   computed: {
@@ -252,6 +256,7 @@ Thank you!`
         siStore.sched_item.arrangement_id = response.arrangement_id
         siStore.sched_item.song_id = response.song_id
         this.showImport = false
+
       } catch (err) {
         if (err.response) {
           console.log(err.response.data)
@@ -263,6 +268,7 @@ Thank you!`
           
       } finally {
         this.loading = false
+
       }
     }
   },
@@ -277,6 +283,13 @@ Thank you!`
       this.importArrangementName = siStore.sched_item.arrangement_name
       this.importServiceOrderNote = siStore.sched_item.solo_instruments
       document.title = siStore.service.name + ' ' + siStore.item.description
+
+      if (this.isAdmin() && siStore.item && siStore.item.arrangement_id) {
+        this.loading = false // go ahead and hide loading indicator
+        let response = await this.$api.getNotionLink(siStore.item.song_id, siStore.item.arrangement_id)
+        this.notionURL = response.notion_url
+      }
+
     } finally {
       this.loading = false
     }

@@ -218,6 +218,7 @@ def api_service_item(service_id: str, item_id: str):
 
     return '{}'
 
+
 @app.route('/services/<service_id>/<item_id>', methods=['POST'])
 @token_required
 def api_update_service_item(current_user: Person, service_id: str, item_id: str):
@@ -530,6 +531,15 @@ def api_arrangement(song_id, arr_id):
     arr = get_arrangement(int(song_id), int(arr_id))
 
     return jsonify(arr)
+
+@app.route('/songs/<song_id>/arrangements/<arr_id>/notion_link')
+def api_arrangement_notionlink(song_id, arr_id):
+    notion_page = get_notion_page(int(song_id), int(arr_id))
+    notion_url = None
+    if notion_page:
+        notion_url = notion_page['url']
+
+    return jsonify({ "notion_url": notion_url })
 
 @app.route('/songs/<song_id>')
 def api_song(song_id):

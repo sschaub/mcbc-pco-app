@@ -11,12 +11,7 @@ import os.path
 # in a way that prevents our output. So we use print here.
 #import logging
 
-# STEP 1: Set up Notion API
-NOTION_API_TOKEN = os.getenv("NOTION_API_TOKEN")  # Or replace with your integration token directly
-# To get the DATASOURCE_ID, in Notion, go to the database > View Settings > Manage Data sources > Copy DataSource ID
-DATASOURCE_ID = "14c7a5a5-9ce8-4987-b31b-568e5700cb68"
-
-if not NOTION_API_TOKEN:
+if not config.NOTION_API_TOKEN:
     print("No NOTION_API_TOKEN defined")
     exit(1)
 
@@ -25,14 +20,14 @@ out_headers=["title", "song_num", "arr_num", "service", "characteristics", "rati
 
 
 
-notion = Client(auth=NOTION_API_TOKEN)
+notion = Client(auth=config.NOTION_API_TOKEN)
 def extract_data():
 
     print("Reading records from Notion")
 
     rows = []
     for page in iterate_paginated_api(
-        notion.data_sources.query, data_source_id=DATASOURCE_ID,
+        notion.data_sources.query, data_source_id=config.NOTION_DATASOURCE_ID,
         filter={
             "property": "Arr #",
             "number": {

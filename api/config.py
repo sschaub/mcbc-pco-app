@@ -20,3 +20,7 @@ SENDPULSE_SMTP_SERVER = "smtp-pulse.com"
 SENDPULSE_SMTP_PORT = 465
 SENDPULSE_SMTP_USERNAME = os.environ['SENDPULSE_SMTP_USERNAME']
 SENDPULSE_SMTP_PASSWORD = os.environ['SENDPULSE_SMTP_PASSWORD']
+
+NOTION_API_TOKEN = os.getenv("NOTION_API_TOKEN")
+# To get the DATASOURCE_ID, in Notion, go to the database > View Settings > Manage Data sources > Copy DataSource ID
+NOTION_DATASOURCE_ID = "14c7a5a5-9ce8-4987-b31b-568e5700cb68"

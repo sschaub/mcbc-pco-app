@@ -1,184 +1,200 @@
 // myapi.js
 // - Exposes ApiService class instance to all components in this application via the property this.$api
 
-import axios from "axios"
+import axios from "axios";
 
 // From https://medium.com/@danielalvidrez/vue-plugin-blueprint-api-service-47ea5f3258d4
 class ApiService {
-
-    /** Vue $api Prototype **/
-    constructor(options = OPTIONS){
-       this.$http = axios.create({
-          baseURL: options.baseUrl,
-          timeout: 5000,
-          headers: {
-             'Accept': 'application/json',
-             'Content-Type': 'application/json',
-             //'X-Requested-With': 'XMLHttpRequest', 
-          },
-       })
-       this.options = options
-       this.bindInterceptors()
+  /** Vue $api Prototype **/
+  constructor(options = OPTIONS) {
+    this.$http = axios.create({
+      baseURL: options.baseUrl,
+      timeout: 5000,
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        //'X-Requested-With': 'XMLHttpRequest',
+      },
+    });
+    this.options = options;
+    this.bindInterceptors();
     //    this.mapRoutes()
+  }
+
+  bindInterceptors() {
+    // Include API authorization with request header
+    this.$http.interceptors.request.use((request) => {
+      if (localStorage.api_auth) {
+        request.headers = {
+          Authorization: "Bearer " + localStorage.api_auth,
+        };
+      }
+      return request;
+    });
+    // this.$http.interceptors.response.use(
+    //     (response) => response,
+    //     (error) => this.httpError(error)
+    // )
+  }
+
+  log(msg) {
+    if (this.options.log) {
+      console.log(msg);
     }
+  }
 
-    bindInterceptors(){
-        // Include API authorization with request header
-        this.$http.interceptors.request.use((request) => {
-            if(localStorage.api_auth){
-                request.headers = {
-                    Authorization: 'Bearer ' + localStorage.api_auth,
-                }
-            }
-            return request
-          })
-        // this.$http.interceptors.response.use(
-        //     (response) => response, 
-        //     (error) => this.httpError(error)
-        // )
-    }     
+  /**
+   * Send get request
+   **/
+  async get(url) {
+    this.log(`Requesting ${url}...`);
+    const response = await this.$http.get(url);
+    this.log("Received response:");
+    this.log(response);
+    return response.data;
+  }
 
-    log(msg) {
-        if (this.options.log) {
-            console.log(msg)
-        }
-    }
+  /**
+   * Send update request
+   **/
+  async post(url, data) {
+    this.log(`Sending post ${url}...`);
+    const response = await this.$http.post(url, data);
+    this.log("Received response:");
+    this.log(response);
+    return response.data;
+  }
 
-    /**
-     * Send get request
-     **/
-    async get(url){
-        this.log(`Requesting ${url}...`)
-        const response = await this.$http.get(url)
-        this.log("Received response:")
-        this.log(response)
-        return response.data
-    }
+  login(username, password) {
+    return this.post(`/login`, { username: username, password: password });
+  }
 
-    /**
-     * Send update request
-     **/
-     async post(url, data) {
-        this.log(`Sending post ${url}...`)
-        const response = await this.$http.post(url, data)
-        this.log("Received response:")
-        this.log(response)
-        return response.data
-    }
+  passwordReminder(username) {
+    return this.post(`/password_reminder`, { username: username });
+  }
 
-    login(username, password) {
-        return this.post(`/login`, { 'username': username, 'password': password })
-    }
+  getServices(when) {
+    return this.get(`/services?when=${when}`);
+  }
 
-    passwordReminder(username) {
-        return this.post(`/password_reminder`, { 'username': username })
-    }
+  getMyServices() {
+    return this.get(`/my-services`);
+  }
 
-    getServices(when) {
-        return this.get(`/services?when=${when}`)
-    }    
+  getService(service_id) {
+    return this.get(`/services/${service_id}`);
+  }
 
-    getMyServices() {
-        return this.get(`/my-services`)
-    }    
+  /**
+   * returns {
+   *   item: {
+   *      id: int
+   *      item_seq: int
+   *      description: str
+   *      title: str
+   *      arrangement: str
+   *      arrangement_id: int
+   *      person: str
+   *      system: str - json string stored in PCO service item under the "System" note category
+   *      system_id: int - id of "System" note
+   *   }
+   *   service: {
+   *      name: str
+   *      theme: str
+   *   }
+   *   sched_item: SchedSpecial
+   * }
+   */
+  getServiceItem(service_id, item_id) {
+    return this.get(`/services/${service_id}/${item_id}`);
+  }
 
-    getService(service_id) {
-        return this.get(`/services/${service_id}`)
-    }
+  /**
+   * returns: See getServiceItem()
+   */
+  beginEditServiceItem(service_id, item_id) {
+    return this.post(`/services/${service_id}/${item_id}/edit`);
+  }
 
-    /**
-     * returns {
-     *   item: { 
-     *      id: int
-     *      item_seq: int
-     *      description: str
-     *      title: str
-     *      arrangement: str
-     *      arrangement_id: int
-     *      person: str
-     *      system: str - json string stored in PCO service item under the "System" note category
-     *      system_id: int - id of "System" note
-     *   }
-     *   service: { 
-     *      name: str
-     *      theme: str 
-     *   }
-     *   sched_item: SchedSpecial
-     * } 
-     */
-    getServiceItem(service_id, item_id) {
-        return this.get(`/services/${service_id}/${item_id}`)
-    }
+  updateServiceItem(service_id, item_id, itemData, emailType) {
+    return this.post(`/services/${service_id}/${item_id}`, {
+      item: itemData,
+      emailType: emailType,
+    });
+  }
 
-    /**
-     * returns: See getServiceItem()
-     */
-    beginEditServiceItem(service_id, item_id) {
-        return this.post(`/services/${service_id}/${item_id}/edit`)
-    }
+  approveServiceItem(service_id, item_id) {
+    return this.post(`/services/${service_id}/${item_id}/approve`);
+  }
 
-    updateServiceItem(service_id, item_id, itemData, emailType) {
-        return this.post(`/services/${service_id}/${item_id}`, { item: itemData, emailType: emailType })
-    }
+  resetServiceItem(service_id, item_id) {
+    return this.post(`/services/${service_id}/${item_id}/reset`);
+  }
 
-    approveServiceItem(service_id, item_id) {
-        return this.post(`/services/${service_id}/${item_id}/approve`)
-    }
+  approveCopyright(service_type_id, plan_id, item_id) {
+    return this.post(
+      `/services/${service_type_id}-${plan_id}/${item_id}/approve_copyright`,
+    );
+  }
 
-    resetServiceItem(service_id, item_id) {
-        return this.post(`/services/${service_id}/${item_id}/reset`)
-    }
+  importServiceItem(
+    service_id,
+    item_id,
+    importArrangementName,
+    importServiceOrderNote,
+  ) {
+    return this.post(`/services/${service_id}/${item_id}/import`, {
+      import_arrangement_name: importArrangementName,
+      import_service_order_note: importServiceOrderNote,
+    });
+  }
 
-    approveCopyright(service_type_id, plan_id, item_id) {
-        return this.post(`/services/${service_type_id}-${plan_id}/${item_id}/approve_copyright`)
-    }
+  searchSongs(searchType, keywords) {
+    return this.get(
+      `/song_search?search_type=${searchType}&keywords=${encodeURIComponent(keywords)}`,
+    );
+  }
 
-    importServiceItem(service_id, item_id, importArrangementName, importServiceOrderNote) {
-        return this.post(`/services/${service_id}/${item_id}/import`, { import_arrangement_name: importArrangementName, import_service_order_note: importServiceOrderNote })
-    }    
+  recommendedSongs(service_id) {
+    return this.get(`/services/${service_id}/recommended_songs`);
+  }
 
-    searchSongs(searchType, keywords) {
-        return this.get(`/song_search?search_type=${searchType}&keywords=${encodeURIComponent(keywords)}`)
-    }
+  getArrangements(songId) {
+    return this.get(`/songs/${songId}/arrangements`);
+  }
 
-    recommendedSongs(service_id) {
-        return this.get(`/services/${service_id}/recommended_songs`)
-    }
+  getArrangement(songId, arrId) {
+    return this.get(`/songs/${songId}/arrangements/${arrId}`);
+  }
 
-    getArrangements(songId) {
-        return this.get(`/songs/${songId}/arrangements`)
-    }
+  getNotionLink(songId, arrId) {
+    return this.get(`/songs/${songId}/arrangements/${arrId}/notion_link`);
+  }
 
-    getArrangement(songId, arrId) {
-        return this.get(`/songs/${songId}/arrangements/${arrId}`)
-    }
+  getSong(songId) {
+    return this.get(`/songs/${songId}`);
+  }
 
-    getSong(songId) {
-        return this.get(`/songs/${songId}`)
-    }
+  getTags() {
+    return this.get(`/tags`);
+  }
 
-    getTags() {
-        return this.get(`/tags`)
-    }
+  getPublishers() {
+    return this.get(`/publishers`);
+  }
 
-    getPublishers() {
-        return this.get(`/publishers`)
-    }
+  updateServiceTags(serviceId, tags) {
+    return this.post(`/services/${serviceId}/tags`, { tags: tags });
+  }
 
-    updateServiceTags(serviceId, tags) {
-        return this.post(`/services/${serviceId}/tags`, { tags: tags })
-    }
-
-    getScheduleReportUrl() {
-        return this.get(`/schedule-report-url`)
-    }
-
+  getScheduleReportUrl() {
+    return this.get(`/schedule-report-url`);
+  }
 }
- 
 
 export default {
-    install: (app, options) => {
-        // Expose ApiService to components as this.$api
-        app.config.globalProperties.$api = new ApiService(options)
-    }
-}
+  install: (app, options) => {
+    // Expose ApiService to components as this.$api
+    app.config.globalProperties.$api = new ApiService(options);
+  },
+};
