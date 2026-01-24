@@ -267,7 +267,7 @@ def update_notion_last_used():
     for row in result:
         page = get_notion_page(row.song_id, row.arrangement_id)
         if page:
-            if page['properties'].get('Last Date Ministered', {}).get('date', {}).get('start') != row.service_date:
+            if (page['properties']['Last Date Ministered']['date'] or {}).get('start') != row.service_date:
                 logging.info(f"Updating arrangement {row.arrangement_id} to last used date {row.service_date}")
                 update_page_date(page['id'], "Last Date Ministered", row.service_date)
             
@@ -281,10 +281,10 @@ def main():
 
     args = parser.parse_args()
 
-    rows, position_check, person_to_last_feature = genhistory(args.after)
-    gen_history_report(rows)
+    #rows, position_check, person_to_last_feature = genhistory(args.after)
+    #gen_history_report(rows)
 
-    gen_last_featured_report(position_check, person_to_last_feature)
+    #gen_last_featured_report(position_check, person_to_last_feature)
 
     update_notion_last_used()
 
