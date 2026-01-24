@@ -250,7 +250,7 @@ def update_page_date(page_id: str, property_name: str, d: str) -> None:
         },
     )
 
-def update_pco_last_used():
+def update_notion_last_used():
     after_date = datetime.today() - timedelta(days=30)
 
     logging.info(f"Updating Notion Last Service Date from {after_date:%Y-%m-%d} to the present...")
@@ -285,6 +285,8 @@ def main():
     gen_history_report(rows)
 
     gen_last_featured_report(position_check, person_to_last_feature)
+
+    update_notion_last_used()
 
     logging.info('History generation complete')
 
