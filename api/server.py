@@ -2,6 +2,7 @@
 import os
 
 from flask import Response, request, jsonify, make_response, redirect
+from sqlalchemy import text
 from flask_cors import cross_origin
 from pypco import PCORequestException
 from werkzeug.exceptions import HTTPException
@@ -190,7 +191,7 @@ def api_update_service_tags(current_user: Person, service_id: str):
 
     tags = request.json['tags']
 
-    db.session.execute('''delete from service_tag where service_type_id = :service_type_id and plan_id = :plan_id''',
+    db.session.execute(text('''delete from service_tag where service_type_id = :service_type_id and plan_id = :plan_id'''),
         { 'service_type_id': service_type_id, 'plan_id': plan_id })
 
     for tag_id in tags:
@@ -510,11 +511,11 @@ def api_arrangements(song_id):
     arr_list = []
     for arr in pco.iterate(url, per_page=50):
         arr_id = arr['data']['id']
-        rows = list(db.session.execute("""
+        rows = list(db.session.execute(text("""
             select max(service_date) 
             from service join service_item on service.id = service_item.service_id
             where arrangement_id = :arr_id
-            """, { 'arr_id': arr_id }))
+            """), { 'arr_id': arr_id }))
         last_used = ''
         if len(rows):
             last_used = rows[0][0]

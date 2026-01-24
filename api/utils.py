@@ -8,7 +8,7 @@ import sqlalchemy.exc
 import re
 from threading import Thread
 from datetime import datetime
-from sqlalchemy import update, select, func
+from sqlalchemy import update, select, func, text
 from notion_client import Client as NotionClient
 
 notion = NotionClient(auth=config.NOTION_API_TOKEN)
@@ -269,12 +269,12 @@ def parse_copyright(copyright: str) -> tuple:
     return copyright_year, copyright_holder, copyright
 
 def get_arrangement_history(arrangement_id: int) -> list:
-    history_list = list(dict(row) for row in db.session.execute("""
+    history_list = list(dict(row) for row in db.session.execute(text("""
         select service_item.id, service_type_id, service_date, event, person_names
         from service join service_item on service.id = service_item.service_id 
         where arrangement_id = :arr_id
         order by service_date desc
-        """, { 'arr_id': arrangement_id }))
+        """), { 'arr_id': arrangement_id }))
     for hi in history_list:
         hi['service_name'] = get_service_name(hi['service_type_id'], hi['service_date'])
         hi['is_future'] = str_to_date(hi['service_date']) > datetime.now()
@@ -368,12 +368,12 @@ def get_arrangement(song_id: int, arrangement_id: int) -> dict:
     }
 
 def get_song_history(song_id: int) -> list:
-    history_list = list(dict(row) for row in db.session.execute("""
+    history_list = list(dict(row) for row in db.session.execute(text("""
         select service_item.id, service_type_id, service_date, event, person_names, arrangement
         from service join service_item on service.id = service_item.service_id 
         where song_id = :song_id
         order by service_date desc
-        """, { 'song_id': song_id }))
+        """), { 'song_id': song_id }))
 
     for hi in history_list:
         hi['service_name'] = get_service_name(hi['service_type_id'], hi['service_date'])

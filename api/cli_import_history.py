@@ -73,18 +73,18 @@ def genhistory(after_date_str):
             service = Service.query.filter_by(service_type_id=service_type_id, plan_id=plan_id).first()
             if service:
                 # Record already exists - remove it so we can recreate
-                db.session.execute('''
+                db.session.execute(text('''
                     delete from service_item_person
                     where service_item_id in (select id from service_item where service_item.service_id = :service_id)
-                ''', { 'service_id': service.id }) 
-                db.session.execute('''
+                '''), { 'service_id': service.id }) 
+                db.session.execute(text('''
                     delete from service_item
                     where service_id = :service_id
-                ''', { 'service_id': service.id })
-                db.session.execute('''
+                '''), { 'service_id': service.id })
+                db.session.execute(text('''
                     delete from service_team_person
                     where service_id = :service_id
-                ''', { 'service_id': service.id })
+                '''), { 'service_id': service.id })
                 db.session.delete(service) 
                 db.session.commit()
 
