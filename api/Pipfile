@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+flask = "<3.0"
+flask-cors = "*"
+requests = "*"
+pypco = "*"
+flask-sqlalchemy = "<3.0"
+sqlalchemy = "<2.0"
+pyjwt = "*"
+notion-client = "*"
+backoff = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"

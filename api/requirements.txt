@@ -6,3 +6,4 @@ flask_sqlalchemy<3.0
 sqlalchemy<2.0
 pyjwt
 notion-client
+backoff

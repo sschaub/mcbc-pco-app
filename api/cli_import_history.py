@@ -5,10 +5,20 @@ import logging
 import time
 import argparse
 
+import backoff
+from notion_client import APIResponseError, Client
+
 from db import db, Person, Service, ServiceItem, ServiceItemPerson
 from const import *
 from utils import *
 import config
+from sqlalchemy import text
+
+# Suppress notion's HTTP Request logging
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+
+notion = Client(auth=config.NOTION_API_TOKEN)
 
 FEATURE_POSITIONS = ('Instrumental Special', 'Offertory', 'Service Opener', 'Prelude Opener', 'Vocal Special')
 
@@ -220,6 +230,47 @@ def gen_last_featured_report(position_check: dict, person_to_last_feature: dict)
     logging.info(f"Writing report to {report_filename} ...")
     with open(report_filename, 'w', encoding="utf-8") as f:
         f.write(report_content)
+
+@backoff.on_exception(
+    backoff.expo,                 # exponential backoff
+    APIResponseError,             # retry on Notion API errors...
+    max_tries=6,                  # ...up to N attempts
+    jitter=backoff.full_jitter,   # add jitter to reduce thundering herd
+    giveup=lambda e: not (isinstance(e, APIResponseError) and e.status == 429),  # ...but only if it's a 429
+)
+def update_page_date(page_id: str, property_name: str, d: str) -> None:
+    notion.pages.update(
+        page_id=page_id,
+        properties={
+            property_name: {
+                "date": {
+                    "start": d
+                }
+            }
+        },
+    )
+
+def update_pco_last_used():
+    after_date = datetime.today() - timedelta(days=30)
+
+    logging.info(f"Updating Notion Last Service Date from {after_date:%Y-%m-%d} to the present...")
+
+    sql = """
+        select service_item.song_id, service_item.arrangement_id, max(service_date) as service_date
+        from service left join service_item on service.id = service_item.service_id
+        where service_date > :after_date and service_date <= CURRENT_TIMESTAMP and arrangement_id is not null
+        group by song_id, arrangement_id
+        order by max(service_date)
+    """
+
+    result = db.session.execute(text(sql), {"after_date": after_date})
+    for row in result:
+        page = get_notion_page(row.song_id, row.arrangement_id)
+        if page:
+            if page['properties']['Last Date Ministered']['date']['start'] != row.service_date:
+                logging.info(f"Updating arrangement {row.arrangement_id} to last used date {row.service_date}")
+                update_page_date(page['id'], "Last Date Ministered", row.service_date)
+            
 
 def main():
     parser = argparse.ArgumentParser(description='Import PCO service history.')
