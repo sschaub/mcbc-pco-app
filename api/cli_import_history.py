@@ -281,10 +281,10 @@ def main():
 
     args = parser.parse_args()
 
-    #rows, position_check, person_to_last_feature = genhistory(args.after)
-    #gen_history_report(rows)
+    rows, position_check, person_to_last_feature = genhistory(args.after)
+    gen_history_report(rows)
 
-    #gen_last_featured_report(position_check, person_to_last_feature)
+    gen_last_featured_report(position_check, person_to_last_feature)
 
     update_notion_last_used()
 
