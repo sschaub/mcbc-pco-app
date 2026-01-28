@@ -258,7 +258,7 @@ def update_notion_last_used():
     sql = """
         select service_item.song_id, service_item.arrangement_id, max(service_date) as service_date
         from service left join service_item on service.id = service_item.service_id
-        where service_date > :after_date and service_date <= CURRENT_TIMESTAMP and arrangement_id is not null
+        where service_date > :after_date and service_date <= CURRENT_TIMESTAMP and arrangement_id <> ''
         group by song_id, arrangement_id
         order by max(service_date)
     """
