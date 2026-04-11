@@ -11,7 +11,10 @@
         
         <div><span class="subhead">Arrangement: {{ ssStore.arrangement.name }}</span>  
           <a v-if="isAdmin()" style="margin-left: 10px" 
-             :href="`https://services.planningcenteronline.com/songs/${ssStore.song.id}/arrangements/${ssStore.arrangement.id}`" target="_blank">[pco]</a></div>
+             :href="`https://services.planningcenteronline.com/songs/${ssStore.song.id}/arrangements/${ssStore.arrangement.id}`" target="_blank">[pco]</a>
+          <span v-if="notionURL">&nbsp;<a :href="notionURL" target="_blank">[notion]</a></span>
+          </div>
+
         <div v-if="ssStore.arrangement.composer">Composer: {{ ssStore.arrangement.composer }}</div>
         <div v-if="ssStore.arrangement.arranger">Arranger: {{ ssStore.arrangement.arranger }}</div>
         <br>
@@ -61,7 +64,8 @@ export default {
 
   data: () => ({
     // loading: false,
-    ssStore: ssStore
+    ssStore: ssStore,
+    notionURL: ''
   }),
 
   methods: {
@@ -74,8 +78,12 @@ export default {
 
   },
 
-  async mounted() {
+  async mounted() {    
     scrollTo(0,0)
+    if (this.isAdmin()) {
+      let response = await this.$api.getNotionLink(ssStore.song.id, ssStore.arrangement.id)
+      this.notionURL = response.notion_url
+    }    
   },
 
   
