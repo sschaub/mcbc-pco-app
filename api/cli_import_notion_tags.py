@@ -9,7 +9,7 @@ import logging
 
 PCO_BASE_SERVICES_URL = '/services/v2'
 
-TAG_GROUPS = ['characteristics', 'service', 'priority', 'rating', 'difficulty']
+TAG_GROUPS = ['characteristics', 'service', 'priority', 'rating', 'difficulty', 'location']
 
 PCO_GROUP_NAMES = { 'characteristics': 'Characteristics (Musical)' }
 
@@ -37,6 +37,7 @@ for tag_group in pco.iterate(f'{PCO_BASE_SERVICES_URL}/tag_groups', include='tag
         tag_id_to_group[tag_id] = group_name
         tag_id_to_name[tag_id] = tag_name
 
+    
 filename = os.path.join(config.REPORT_PATH, 'notion_export.csv')
 with open(filename, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
@@ -79,6 +80,8 @@ with open(filename, newline='', encoding='utf-8') as csvfile:
                     pco_group_name = PCO_GROUP_NAMES.get(tag_group, tag_group.lower())
                     tag_names = [tn.strip() for tn in tag_names if tn.strip()]
                     for tag_name in tag_names:
+                        if tag_name.startswith("I-"):
+                            continue
                         tag_id = all_tags.get(pco_group_name.lower(), {}).get(tag_name.lower())
                         if tag_id:
                             arr_tag_ids.append(tag_id)

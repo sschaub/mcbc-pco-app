@@ -15,8 +15,8 @@ if not config.NOTION_API_TOKEN:
     print("No NOTION_API_TOKEN defined")
     exit(1)
 
-headers = ["Title", "Song #", "Arr #", "☀️🌙 AM/PM", "🎵Feel/Musical Character", "⭐️ Rating ⭐️", "❤️ Priority", "😰 Difficulty (Hard/Medium/Easy)"]
-out_headers=["title", "song_num", "arr_num", "service", "characteristics", "rating", "priority", "difficulty"]
+headers = ["Title", "Song #", "Arr #", "☀️🌙 AM/PM", "🎵Feel/Musical Character", "⭐️ Rating ⭐️", "❤️ Priority", "😰 Difficulty (Hard/Medium/Easy)", "🔺Loc (new)"]
+out_headers=["title", "song_num", "arr_num", "service", "characteristics", "rating", "priority", "difficulty", "location"]
 
 
 
