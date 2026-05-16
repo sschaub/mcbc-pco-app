@@ -533,6 +533,16 @@ def api_arrangement(song_id, arr_id):
 
     return jsonify(arr)
 
+@app.route('/songs/<song_id>/arrangements/<arr_id>/location')
+def api_arrangement_location(song_id, arr_id):
+    tag_url = f'/services/v2/songs/{song_id}/arrangements/{arr_id}/tags'
+    location = None
+    for arr in pco.iterate(tag_url):
+        if arr['data']['relationships']['tag_group']['data']['id'] == '2686648':
+            location = arr['data']['attributes']['name']
+
+    return { 'location': location }
+
 @app.route('/songs/<song_id>/arrangements/<arr_id>/notion_link')
 def api_arrangement_notionlink(song_id, arr_id):
     notion_page = get_notion_page(int(song_id), int(arr_id))

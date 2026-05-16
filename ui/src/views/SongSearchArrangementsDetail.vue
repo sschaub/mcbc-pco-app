@@ -17,6 +17,7 @@
 
         <div v-if="ssStore.arrangement.composer">Composer: {{ ssStore.arrangement.composer }}</div>
         <div v-if="ssStore.arrangement.arranger">Arranger: {{ ssStore.arrangement.arranger }}</div>
+        <div>Location: {{ location }}</div>
         <br>
         <v-btn v-if="ssStore.isPicker" @click="confirmArrangement()">
           Choose Arrangement
@@ -65,7 +66,8 @@ export default {
   data: () => ({
     // loading: false,
     ssStore: ssStore,
-    notionURL: ''
+    notionURL: '',
+    location: null,
   }),
 
   methods: {
@@ -80,6 +82,8 @@ export default {
 
   async mounted() {    
     scrollTo(0,0)
+    let response = await this.$api.getArrangementLocation(ssStore.song.id, ssStore.arrangement.id)
+    this.location = response.location
     if (this.isAdmin()) {
       let response = await this.$api.getNotionLink(ssStore.song.id, ssStore.arrangement.id)
       this.notionURL = response.notion_url

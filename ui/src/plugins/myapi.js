@@ -167,6 +167,10 @@ class ApiService {
     return this.get(`/songs/${songId}/arrangements/${arrId}`);
   }
 
+  getArrangementLocation(songId, arrId) {
+    return this.get(`/songs/${songId}/arrangements/${arrId}/location`);
+  }
+
   getNotionLink(songId, arrId) {
     return this.get(`/songs/${songId}/arrangements/${arrId}/notion_link`);
   }
