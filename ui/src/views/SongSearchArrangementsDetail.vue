@@ -17,7 +17,7 @@
 
         <div v-if="ssStore.arrangement.composer">Composer: {{ ssStore.arrangement.composer }}</div>
         <div v-if="ssStore.arrangement.arranger">Arranger: {{ ssStore.arrangement.arranger }}</div>
-        <div>Location: {{ location }}</div>
+        <div>Location: <i>{{ location }}</i></div>
         <br>
         <v-btn v-if="ssStore.isPicker" @click="confirmArrangement()">
           Choose Arrangement
