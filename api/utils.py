@@ -152,11 +152,11 @@ def get_notion_page(song_no: int, arr_no: int) -> dict:
     filter = {
         "and": [
             {
-                "property": "Song #",
+                "property": "✳️ Song #",
                 "number": {"equals": song_no},
             },
             {
-                "property": "Arr #",
+                "property": "✳️ Arr #",
                 "number": {"equals": arr_no},
             },
         ]
